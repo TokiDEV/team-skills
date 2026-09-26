@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "team-skills",
+  "owner": {
+    "name": "Thomas Boffy",
+    "url": "https://github.com/TokiDEV"
+  },
+  "metadata": {
+    "description": "Agent-team skills for Claude Code by Thomas Boffy"
+  },
+  "plugins": [
+    {
+      "name": "team-skills",
+      "source": "./",
+      "description": "A multi-role council, a refactoring panel with a KISS/YAGNI gate, and a browser-based CEO gate for human decisions.",
+      "version": "0.1.0",
+      "author": { "name": "Thomas Boffy" },
+      "category": "development",
+      "tags": ["skills", "agents", "council", "refactoring", "decision-making"]
+    }
+  ]
+}
