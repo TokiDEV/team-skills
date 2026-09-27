@@ -1,6 +1,6 @@
 ---
 name: team-council
-description: 'Dispatch a multi-perspective agent team (PO, CTO, UX, Philosopher, Wildcard + ad-hoc specialists) to debate a decision in two rounds, then synthesize consensus, tensions, and a recommendation for the human to decide — and record the decision. Use at decision points: choosing an approach, reviewing an architecture, a pre-implementation "are we sure?", or a multi-perspective review of a completed feature.'
+description: 'Dispatch a multi-perspective agent team (PO, CTO, UX, Philosopher, Wildcard + ad-hoc specialists) to debate a decision in two rounds, then synthesize consensus, majority calls, tensions, and a recommendation for the human to decide — and record the decision. Use at decision points: choosing an approach, reviewing an architecture, a pre-implementation "are we sure?", or a multi-perspective review of a completed feature.'
 ---
 
 # team-council
@@ -34,7 +34,7 @@ The core 5 are always dispatched. Templates live in `roles/` next to this file; 
 Round 1 (parallel)  → all 5 agents: independent position + specialist evidence
 Question pause      → PO curates agents' flagged questions, attributed → CEO answers
 Round 2 (parallel)  → Philosopher (sees all R1) + conflicting pairs (see each other); agreeing agents skip
-Round 3             → PO synthesis agent → consensus / tensions / recommendation
+Round 3             → PO synthesis agent → consensus / majority calls / tensions / recommendation
 CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
 
@@ -51,7 +51,7 @@ Identify tensions from Round 1:
 - **Agents in agreement skip Round 2.**
 
 ### Round 3 — PO synthesis
-A dedicated synthesis agent (separate call from the Round 1 PO) reads everything and produces the summary below.
+A dedicated synthesis agent (separate call from the Round 1 PO) reads everything and produces the summary below. Each open question goes in exactly one section, chosen by its vote after Round 2. Only roles that took a side count. A majority means more than half of them back one option.
 
 ```markdown
 ## Council Summary
@@ -59,24 +59,32 @@ A dedicated synthesis agent (separate call from the Round 1 PO) reads everything
 ### Decision: [what was being decided]
 
 ### Consensus Points
-[Where the team agrees]
+[Where every role that spoke agrees]
+
+### Majority Calls
+[One per question with a majority: the question, the majority's option and
+who backs it, then the minority's option, who holds it and its strongest case]
 
 ### Key Tensions
-[Where they disagree — strongest version of each side]
+[Only questions with no majority (1–1, 1–1–1, 2–2, 2–1–1): each side's
+strongest version and who holds it, then the PO's suggested side and why]
 
 ### PO Recommendation
-[Weighted recommendation with the trade-offs explicitly accepted]
+[The overall direction and the trade-offs it accepts. Refer to Majority
+Calls and Key Tensions by id; don't restate them]
 
 ### Dissenting Views Worth Noting
-[Perspectives the PO disagrees with but the CEO should still see]
+[Concerns not tied to a question above. A minority on a Majority Call
+belongs in that call, not here]
 ```
 
 ### CEO gate
 **REQUIRED SUB-SKILL:** use `team-ceo-view` to present the synthesis as a local HTML decision page (`kind: "council"`). Map it like this:
 - `summary` (labelled bullets): *Decision* (what is being decided), *Consensus*, *Recommendation* (the PO's pick and the trade-offs it accepts).
 - **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Put the consensus points in its `detail`, and the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.
-- **More weighty decisions**: only for sub-choices the synthesis left genuinely open (e.g. accept a trade-off yes/no).
-- `tensions`: one per Key Tension, each side attributed by role. Dissenting views worth noting become an extra side.
+- **More decisions**: one per Majority Call. The majority's option is `recommended`, and the minority's option stays in `options` with its case in `against`.
+- `tensions`: one per Key Tension, each side attributed by role, with the PO's suggested side `recommended`. A Key Tension has no decision card. If D1 itself has no majority, it becomes `T1` and the page has no `D1`.
+- Dissenting views worth noting go in the `against` of the decision they weigh on, or become a minor item if they concern none.
 - **Figure** (only when there are 3+ options or the council split): a position map, roles × options, showing who backs what, in `D1`'s `figures`.
 - `rejected`: approaches the council dropped, with the reason, so the CEO can revive one.
 

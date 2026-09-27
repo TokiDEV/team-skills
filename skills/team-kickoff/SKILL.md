@@ -38,8 +38,8 @@ The PO synthesis produces a project brief: the agreed vision, the initial scope,
 Write the brief to `.council/decisions/YYYY-MM-DD-kickoff.md`. **REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the brief). Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*.
-- **Each direction choice** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the recommendation marked and the roles' arguments in `for`/`against`.
-- `tensions`: the tensions to revisit later.
+- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`.
+- `tensions`: direction choices with no majority, and the tensions to revisit later. A choice is either a decision or a tension, never both.
 
 Iterate: notes or changed choices → revise the brief and re-render. The CEO is satisfied when a pasted block comes back with nothing to revise.
 

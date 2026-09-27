@@ -54,7 +54,7 @@ Write the revised plan to the project's plan location (`docs/plans/YYYY-MM-DD-<t
 - `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
 - **Each plan step**: a routine decision (Approve/Decline). Add `code` when a step changes an existing interface.
 - **Each risk the reviewers raised that needs acceptance**: a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`.
-- `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4).
+- `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4), and risks the reviewers split on with no majority. A risk is either a decision or a tension, never both.
 - **Figure** (only when the steps aren't a straight line): the step dependency graph.
 
 Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft`, delete the run folder, and tell the user: *"`/clear`, then: execute `<plan path>`."* Execution starts from the plan file, not from a context holding the planning.

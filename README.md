@@ -45,7 +45,7 @@ Everything a run produces is plain Markdown under `.council/` in your project, s
 
 - **Separation of context.** Each role runs as its own agent and sees only what it needs. One context playing six roles gives you one opinion wearing six costumes.
 - **Evidence, attributed.** Every claim cites code, docs or a specialist skill, and is credited to the role that made it.
-- **Tensions are surfaced, not smoothed.** Disagreement is the useful output. Uncle Bob's small functions vs Ousterhout's deep modules is a choice for you to make, and the skill won't average it away.
+- **Tensions are surfaced, not smoothed.** Disagreement is the useful output. Uncle Bob's small functions vs Ousterhout's deep modules is a choice for you to make, and the skill won't average it away. Each question is decided in one place: a majority goes in the backlog with the dissent on its card, and a tension is only a conflict with no majority.
 - **The human decides.** Agents recommend; the CEO gate is where decisions happen, and Markdown stays the source of truth.
 - **KISS/YAGNI has teeth.** In `team-refactor`, an abstraction needs a second use case that exists today. Roadmap talk doesn't count.
 - **Token economy.** Every agent turn re-reads its whole context, so the cost is context size × turns. Panelists run on Sonnet with a tool budget and write to files instead of pasting into the orchestrator. Each gate hands off to a fresh session through its `.council/` record. Small steps are batched per executor (still one commit each).

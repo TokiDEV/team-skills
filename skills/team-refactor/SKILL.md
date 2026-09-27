@@ -133,8 +133,11 @@ about goes first. Each: current behavior, concrete impact, options]
 [Card id — gate reason. Kept so the next refactor doesn't relitigate it]
 
 ### Tensions for the CEO — at most 3
-[Only tensions that change what gets executed. Strongest version of each side, and a suggested default]
+[Only conflicts with no majority that change what gets executed. Strongest
+version of each side, each side's step, and a suggested default]
 ```
+
+A contested card is settled by its vote after Round 2. Only panelists who took a side count, and the Minimalist's verdict is one vote. When more than half back one move, that move is a backlog step and the dissent goes in its `against`. With no majority, the conflict is a tension, and neither side's step is in *Steps*. The tension names the slot where the winning side's step goes, and the step joins the backlog there once the CEO picks a side.
 
 The backlog holds at most 8 steps after Step 0. The rest go in a *Next run* list in the record, ranked. Each step costs a context load and a gate run, and a long backlog is how a review turns into a weekend of execution.
 
@@ -143,7 +146,7 @@ The caps are the synthesizer's job, not the CEO's: a gate with 13 findings and 4
 Architecture-level questions (new layers, changing a public contract) → recommend `team-council` instead of deciding here.
 
 ### 5. CEO gate
-**REQUIRED SUB-SKILL:** use `team-ceo-view` to present the backlog as a local HTML decision page. The *Found, not fixed* items, optional steps and tensions are major decisions; minor quirks are `minor: true, default: "leave"`. Include before/after `code` for every step. Give each weighty item `for`/`against` drawn from the panelists' cards and the Minimalist's verdict, with each point credited to its author. Put each metric on the step it measures, and each screenshot on the finding it shows. Tensions and gate-rejected cards go in `tensions` and `rejected`, so the CEO can side or revive. Write `summary` as labelled bullets: *Verdict*, *Weak spots*, *Found, not fixed*, *Recommendation*. Set `source` to the refactor record. Record the pasted decisions in the `.md`. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (superpowers:test-driven-development).
+**REQUIRED SUB-SKILL:** use `team-ceo-view` to present the backlog as a local HTML decision page. The *Found, not fixed* items, optional steps and tensions are major decisions; minor quirks are `minor: true, default: "leave"`. Include before/after `code` for every step. Give each weighty item `for`/`against` drawn from the panelists' cards and the Minimalist's verdict, with each point credited to its author. Put each metric on the step it measures, and each screenshot on the finding it shows. Tensions and gate-rejected cards go in `tensions` and `rejected`, so the CEO can side or revive. A tension's steps have no card of their own. Put their `code` on the tension. Write `summary` as labelled bullets: *Verdict*, *Weak spots*, *Found, not fixed*, *Recommendation*. Set `source` to the refactor record. Record the pasted decisions in the `.md`. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (superpowers:test-driven-development).
 
 **Hand off to a fresh session.** Write the brief, Feathers's Step 0 safety-net spec, the backlog with its Step Cards, and the CEO decisions to `.council/refactors/YYYY-MM-DD-<topic>.md` now, with `Status: approved, not executed`. Then tell the user: *"`/clear`, then: execute the refactor backlog in `<record path>`."* Execution then starts from the record, not from a context already holding the whole debate.
 

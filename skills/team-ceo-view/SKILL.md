@@ -45,7 +45,11 @@ Each caller owns *what* goes on the page; this skill owns *how* it's rendered an
 ## Triage before you render
 
 The page is for decisions, not an inventory. Before writing the JSON:
-- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and genuine tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click.
+- **One question, one card.** Sort every open question by the positions the roles hold after the last round. Only roles that took a side count.
+  - **Majority:** more than half of those roles back one option (2 of 3, 3 of 5). The question goes in `decisions` (the backlog), and the majority's option is `recommended`. The minority's case goes in `against`, and its option stays in `options` so the human can still pick it.
+  - **No majority** (1–1, 2–2, 1–1–1, 2–1–1): the question goes in `tensions` only, with one side per position. The synthesizer's suggested side is `recommended`.
+  - A question is never both a decision and a tension. If a tension's outcome would answer a decision, merge the two into the tension.
+- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click.
 - **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
 - **Order by stakes.** The item the human explicitly asked about goes first.
 
@@ -98,7 +102,7 @@ Field rules:
 - **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`.
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give every weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Only use arguments the panel actually made.
 - `options` defaults to Approve/Decline. Set `"recommended": "decline"` on the decision to recommend declining.
-- **Tensions** get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with <who>" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
+- **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with <who>" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
 - `metrics` show as before→after chips on their card. `better` (`higher` or `lower`) colors the change green or red. Page-level `metrics` are rejected by the renderer.
 - `code` is shown as before/after panes. Include it for every step that moves code, and keep each pane to about 15 lines.
