@@ -98,9 +98,11 @@ Keyboard: `←`/`→` move between cards, `Tab` cycles the options, `Enter` choo
 These are personal skills, shared as-is. Here is what has been exercised so far:
 
 - ✅ `team-refactor` up to and including the CEO gate (compared against a no-skill baseline on a billing fixture)
-- ✅ `team-ceo-view` rendering and the decision round-trip, including a gate built by a fresh agent
-- ⚠️ `team-refactor`'s execution phase (step 6) has not been run end-to-end yet
-- ⚠️ An agent filling in a *large* CEO page on its own has not been tested yet
+- ✅ `team-refactor` end to end on a real TypeScript/Vue project: a PR-scoped review (Step 0 pins proven to bite, then each step committed, final review passed) and a repo-wide review (Step 0 plus about 20 steps, final review passed)
+- ✅ `team-council` on a real architecture decision, recorded and later consumed by a refactor
+- ✅ `team-scan` refreshing an existing profile
+- ✅ `team-ceo-view` rendering and the decision round-trip, including large pages built by an agent on its own (up to 51 decisions, 3 tensions, 17 rejected items)
+- ⚠️ The token-economy changes (model tiers, agent contract, fresh-session handoffs, Step Batches) have been checked by an agent reading them, not yet on a live run. They came from a weekend of live runs where most of the tokens went to the orchestrator's growing context and to executing long backlogs, not to the debate itself.
 
 Issues and PRs are welcome.
 

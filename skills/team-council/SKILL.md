@@ -1,6 +1,6 @@
 ---
 name: team-council
-description: Dispatch a multi-perspective agent team (PO, CTO, UX, Philosopher, Wildcard + ad-hoc specialists) to debate a decision in two rounds, then synthesize consensus, tensions, and a recommendation for the human to decide — and record the decision. Use at decision points: choosing an approach, reviewing an architecture, a pre-implementation "are we sure?", or a multi-perspective review of a completed feature.
+description: 'Dispatch a multi-perspective agent team (PO, CTO, UX, Philosopher, Wildcard + ad-hoc specialists) to debate a decision in two rounds, then synthesize consensus, tensions, and a recommendation for the human to decide — and record the decision. Use at decision points: choosing an approach, reviewing an architecture, a pre-implementation "are we sure?", or a multi-perspective review of a completed feature.'
 ---
 
 # team-council
