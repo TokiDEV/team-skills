@@ -48,6 +48,7 @@ Everything a run produces is plain Markdown under `.council/` in your project, s
 - **Tensions are surfaced, not smoothed.** Disagreement is the useful output. Uncle Bob's small functions vs Ousterhout's deep modules is a choice for you to make, and the skill won't average it away.
 - **The human decides.** Agents recommend; the CEO gate is where decisions happen, and Markdown stays the source of truth.
 - **KISS/YAGNI has teeth.** In `team-refactor`, an abstraction needs a second use case that exists today. Roadmap talk doesn't count.
+- **Token economy.** Every agent turn re-reads its whole context, so the cost is context size × turns. Panelists run on Sonnet with a tool budget and write to files instead of pasting into the orchestrator. Each gate hands off to a fresh session through its `.council/` record. Small steps are batched per executor (still one commit each).
 
 ## Install
 

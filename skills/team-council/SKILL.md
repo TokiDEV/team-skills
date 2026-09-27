@@ -87,5 +87,24 @@ Write the CEO's pasted decisions (notes included) under the synthesis in `.counc
 
 ## Dispatch mechanics
 - Use parallel agent dispatch for each round (one agent per role). Keep each agent's context lean: profile + decision + role template + (round 2) the specific counterpart positions.
+- **Models and budgets.** Pass the model to every dispatch:
+
+  | Agent | Model | Tool budget |
+  |-------|-------|-------------|
+  | Round 1 roles, ad-hoc specialists | sonnet | ~12 |
+  | Round 2: Philosopher, conflicting pairs | sonnet | ~5 |
+  | Round 3: PO synthesis | opus | ~10 |
+
+- **Agent contract.** Append this block to every dispatch prompt, with its budget and run folder filled in. Every turn re-reads the whole context, so context size × turns is the bill, and the orchestrator is the longest-lived context of all.
+
+  ```markdown
+  ## How to work
+  - Budget: about <N> tool calls. Put several searches in one Bash call; Read a file once, whole.
+  - Write your full output to <run folder>/<round>-<role>.md.
+  - Reply with: the file path, your position in one line, and any questions for the CEO. Nothing else.
+  ```
+
+  The run folder is `.council/runs/YYYY-MM-DD-<topic>/`. Round 2 agents and the synthesizer read the Round 1 files themselves. The orchestrator reads only the synthesis file, and uses the one-line positions to find the conflicting pairs.
+- **After the decision is recorded**, delete the run folder and tell the user: *"`/clear`, then: run team-council-plan on `<decision path>`."* The plan starts from the record, not from a context holding the whole debate.
 - Attribute every specialist finding to the invoking role so evidence is traceable.
 - The council is standalone — it needs only a decision context and a profile; it does not require superpowers or GSD to be installed.

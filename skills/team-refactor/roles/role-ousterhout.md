@@ -25,7 +25,7 @@ Skeptical of splitting for its own sake. You measure a change by whether it redu
 {CODE_BRIEF}
 
 ## Your Job
-Read the code in scope (read-only). Return at most 5 Finding Cards: where depth is missing, and where proposed decomposition would hurt.
+Start from the Code Brief; open code in scope only to confirm evidence (read-only). Return at most 5 Finding Cards: where depth is missing, and where proposed decomposition would hurt.
 
 {FINDING_CARD_FORMAT}
 

@@ -42,7 +42,7 @@ Dispatch focused review agents against the draft:
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped.
 - **Ad-hoc specialist** — if the decision implicates a domain (e.g. UX for a UI change, a Performance Analyst for a perf change).
 
-Each reviewer cites evidence and flags concrete plan defects, not vibes.
+Each reviewer cites evidence and flags concrete plan defects, not vibes. Dispatch reviewers on `sonnet` with a budget of about 10 tool calls. Each writes its review to `.council/runs/YYYY-MM-DD-<topic>/review-<role>.md` and replies with the path plus one line per defect.
 
 ### 4. Reconcile
 Fold review feedback into a revised plan. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and note the tension explicitly rather than silently overriding it.
@@ -57,7 +57,7 @@ Write the revised plan to the project's plan location (`docs/plans/YYYY-MM-DD-<t
 - `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4).
 - **Figure** (only when the steps aren't a straight line): the step dependency graph.
 
-Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft`.
+Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft`, delete the run folder, and tell the user: *"`/clear`, then: execute `<plan path>`."* Execution starts from the plan file, not from a context holding the planning.
 
 ## Output: the plan
 Follow the project's plan format if one exists. Otherwise, a solid default:
@@ -73,8 +73,13 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Carried from the decision — what we knowingly gave up]
 
 ## Steps
-1. [Concrete, verifiable step]
+1. [Concrete, verifiable step] — Size: S|M|L
 2. ...
+
+## Execution economy
+- Implementers: sonnet for S and M steps, opus for L or design-heavy steps
+- Batches: consecutive S steps on overlapping files, at most 4 per implementer, one commit each
+- Reviews: sonnet for spec compliance, opus for the final whole-branch review; re-review only a fix that changed logic
 
 ## Risks & Mitigations
 [From CTO/PO review]
@@ -85,4 +90,5 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Notes
 - This skill plans; it does not implement. Hand off to `superpowers:executing-plans` / `subagent-driven-development` or the project's execution workflow.
+- Whoever executes reads the plan's *Execution economy* section and follows it: models, batches, and when to re-review.
 - Keep the plan traceable to the decision so future readers see both the "what" and the "how".

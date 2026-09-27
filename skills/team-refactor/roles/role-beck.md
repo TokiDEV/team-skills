@@ -28,7 +28,7 @@ Then **the order of the backlog**: which step unlocks which, and what the smalle
 {CODE_BRIEF}
 
 ## Your Job
-Read the code in scope (read-only). Return at most 5 Finding Cards, favoring small tidyings with high leverage. Then propose an order.
+Start from the Code Brief; open code in scope only to confirm evidence (read-only). Return at most 5 Finding Cards, favoring small tidyings with high leverage. Then propose an order.
 
 {FINDING_CARD_FORMAT}
 

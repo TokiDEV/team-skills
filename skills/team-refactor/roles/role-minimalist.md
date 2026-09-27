@@ -26,7 +26,7 @@ All four no → `KILL`. Right idea, too big → `SHRINK → <the smaller version
 {CODE_BRIEF}
 
 ## Round 1 Job
-Read the code (read-only). Return at most 5 Finding Cards for existing complexity to remove: speculative generality, dead code, unused parameters, needless indirection, config nobody sets.
+Start from the Code Brief; open code only to confirm evidence (read-only). Return at most 5 Finding Cards for existing complexity to remove: speculative generality, dead code, unused parameters, needless indirection, config nobody sets.
 
 {FINDING_CARD_FORMAT}
 

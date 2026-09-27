@@ -39,16 +39,30 @@ Built-in tensions worth surfacing, not smoothing: Uncle Bob's small functions �
 
 Every agent gets the minimum it needs and nothing else. This is what makes the panel a panel instead of one opinion wearing six costumes.
 
-| Agent | Receives | Never receives |
-|-------|----------|----------------|
-| Recon | scope, profile | — |
-| Panelist (R1) | role template + Code Brief + Finding Card format | other panelists' output, conversation history |
-| Minimalist gate (R2) | all Finding Cards | full R1 transcripts |
-| Tension pair (R2) | own + counterpart's cards only | the rest |
-| Synthesizer | cards + verdicts + tension replies | raw transcripts |
-| Executor | **one** Step Card + brief | other steps, the debate |
+| Agent | Model | Tool budget | Receives | Never receives |
+|-------|-------|-------------|----------|----------------|
+| Recon | sonnet | ~30 | scope, profile | — |
+| Panelist (R1) | sonnet | ~15 | role template + Code Brief + Finding Card format | other panelists' output, conversation history |
+| Minimalist gate (R2) | opus | ~10 | all Finding Cards | full R1 transcripts |
+| Tension pair (R2) | sonnet | ~5 | own + counterpart's cards only | the rest |
+| Synthesizer | opus | ~10 | cards + verdicts + tension replies | raw transcripts |
+| Executor | sonnet | — | **one** Step Batch + brief | other steps, the debate |
+| Final reviewer | opus | — | full diff + approved backlog | the debate |
 
-Never play the roles yourself in one context. Dispatch them.
+Never play the roles yourself in one context. Dispatch them, passing the model from the table.
+
+### Agent contract
+Append this block to every dispatch prompt, with its budget and run folder filled in. It keeps the orchestrator's context small: every turn re-reads the whole context, so context size × turns is the bill.
+
+```markdown
+## How to work
+- Start from the Code Brief. Open a file only to confirm or cite evidence.
+- Budget: about <N> tool calls. Put several searches in one Bash call; Read a file once, whole.
+- Write your full output to <run folder>/<your-id>.md.
+- Reply with: the file path, then one line per card or verdict (id + title). Nothing else.
+```
+
+The run folder is `.council/runs/YYYY-MM-DD-<topic>/`. Later agents (gate, pairs, synthesizer) read the files they need from it. The orchestrator reads only the synthesizer's file.
 
 ## Flow
 
@@ -58,8 +72,9 @@ Never play the roles yourself in one context. Dispatch them.
 2. Round 1 (blind) → 6 panelists in parallel → Finding Cards
 3. Round 2         → Minimalist gate on every card + tension pairs
 4. Synthesis       → Backlog + Found-not-fixed + Rejected + Tensions
-5. CEO gate        → approves steps, decides each anomaly
-6. Execute         → Step 0 safety net, then one step per fresh executor, gated
+5. CEO gate        → approves steps, decides each anomaly; record them
+   ── fresh session ──
+6. Execute         → Step 0 safety net, then one Step Batch per fresh executor, gated
 7. Record          → .council/refactors/YYYY-MM-DD-<topic>.md
 ```
 
@@ -67,18 +82,19 @@ Never play the roles yourself in one context. Dispatch them.
 - **Scope**: a path, module, or diff. "The whole repo" → ask the user to narrow it, or have Recon rank hotspots (churn × complexity) and propose the top one.
 - **Clean working tree** (`.council/` excepted; the record is committed alongside Step 0) and a **green test run**. Record the exact test/lint/typecheck commands.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
-- **Proportionality**: for a scope under ~150 lines, the orchestrator writes the Code Brief itself instead of dispatching Recon, and runs at most 2 tension pairs. The panel and the gate always run.
+- **Proportionality**: for a scope under ~150 lines, the orchestrator writes the Code Brief itself instead of dispatching Recon, and runs at most 2 tension pairs. The panel and the gate always run. Above ~3,000 lines, or more than one package, narrow the scope before dispatching the panel.
 
 ### 1. Recon → Code Brief
-One read-only agent (`deep-explore`/`Explore` if available) writes the brief — the *only* shared context for the panel. Keep it under ~60 lines:
+One read-only agent (`deep-explore`/`Explore` if available) writes the brief — the *only* shared context for the panel, so six panelists don't each re-read the same files. Keep it under ~60 lines, plus the excerpts:
 - Files in scope with line counts; public API and its callers (outside-in)
 - **Coverage map**: which branches/behaviors tests pin, which are unpinned
 - Hotspots: `git log` churn for these files
 - Quality-gate commands
 - Upcoming change, if the user named one (Beck sequences toward it)
+- **Excerpts**: the hotspot code itself, with `file:line` headers, at most ~200 lines in all
 
 ### 2. Round 1 — blind panel (parallel)
-Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROFILE}` (or "none"), `{SCOPE}`, `{CODE_BRIEF}`, `{FINDING_CARD_FORMAT}` (the block below). Each reads the code itself (read-only) and returns **at most 5 Finding Cards**, plus a *Leave alone* list and any *Behavior anomalies* spotted. The cap forces prioritization. Feathers also returns the **Step 0 safety-net spec**.
+Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROFILE}` (or "none"), `{SCOPE}`, `{CODE_BRIEF}`, `{FINDING_CARD_FORMAT}` (the block below), and append the agent contract. Each checks the code itself (read-only) within its budget and writes **at most 5 Finding Cards**, plus a *Leave alone* list and any *Behavior anomalies* spotted. The cap forces prioritization. Feathers also returns the **Step 0 safety-net spec**.
 
 ```markdown
 ### <ROLE>-<n>: <Smell name> in <file:lines>
@@ -96,7 +112,7 @@ Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROF
 - **Tension pairs**: where two cards conflict (same code, opposite moves), send each side the other's card for one direct reply. Agreeing roles skip.
 
 ### 4. Synthesis
-A separate synthesizer agent produces:
+A separate synthesizer agent produces the following, and copies Feathers's Step 0 safety-net spec in full under Step 0 (the orchestrator reads only this file):
 
 ```markdown
 ## Refactoring Backlog — <scope>
@@ -120,6 +136,8 @@ about goes first. Each: current behavior, concrete impact, options]
 [Only tensions that change what gets executed. Strongest version of each side, and a suggested default]
 ```
 
+The backlog holds at most 8 steps after Step 0. The rest go in a *Next run* list in the record, ranked. Each step costs a context load and a gate run, and a long backlog is how a review turns into a weekend of execution.
+
 The caps are the synthesizer's job, not the CEO's: a gate with 13 findings and 4 tensions gets rubber-stamped.
 
 Architecture-level questions (new layers, changing a public contract) → recommend `team-council` instead of deciding here.
@@ -127,10 +145,14 @@ Architecture-level questions (new layers, changing a public contract) → recomm
 ### 5. CEO gate
 **REQUIRED SUB-SKILL:** use `team-ceo-view` to present the backlog as a local HTML decision page. The *Found, not fixed* items, optional steps and tensions are major decisions; minor quirks are `minor: true, default: "leave"`. Include before/after `code` for every step. Give each weighty item `for`/`against` drawn from the panelists' cards and the Minimalist's verdict, with each point credited to its author. Put each metric on the step it measures, and each screenshot on the finding it shows. Tensions and gate-rejected cards go in `tensions` and `rejected`, so the CEO can side or revive. Write `summary` as labelled bullets: *Verdict*, *Weak spots*, *Found, not fixed*, *Recommendation*. Set `source` to the refactor record. Record the pasted decisions in the `.md`. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (superpowers:test-driven-development).
 
+**Hand off to a fresh session.** Write the brief, Feathers's Step 0 safety-net spec, the backlog with its Step Cards, and the CEO decisions to `.council/refactors/YYYY-MM-DD-<topic>.md` now, with `Status: approved, not executed`. Then tell the user: *"`/clear`, then: execute the refactor backlog in `<record path>`."* Execution then starts from the record, not from a context already holding the whole debate.
+
 ### 6. Execute
+Start from the record. If it isn't in context, read it; don't reread the run folder.
+
 **Step 0 — safety net** (Feathers): add characterization tests for every unpinned behavior the approved steps touch, run them green against the *untouched* code, then prove they bite: break the code deliberately (flip a rounding, a comparison, a constant), confirm a test fails, restore. Commit `test: characterize <scope>`.
 
-Then, for each approved step, dispatch a **fresh executor** with this Step Card:
+Then group the approved steps into **Step Batches**: consecutive steps in backlog order, size S, touching overlapping files, at most 4 per batch. Any M or L step is a batch of one. Dispatch a **fresh executor** per batch with its Step Cards and the brief:
 
 ```markdown
 ## Step <n>: <Named refactoring> — <target>
@@ -142,10 +164,10 @@ Commit: refactor(<scope>): <Named refactoring> in <target>
 On red: revert the step, report why, stop.
 ```
 
-Between steps, the orchestrator runs the gates itself. Last, one reviewer agent reads the full diff against the approved backlog: nothing smuggled in, nothing behavioral, no step skipped.
+The executor runs the steps in order and commits after each one, so Iron Laws 3 and 4 still hold per step. It replies with one line per step: commit hash, or `reverted — <reason>`. Between batches, the orchestrator runs the gates itself. Last, one reviewer agent (opus) reads the full diff against the approved backlog: nothing smuggled in, nothing behavioral, no step skipped.
 
 ### 7. Record
-Write `.council/refactors/YYYY-MM-DD-<topic>.md`: brief, backlog, CEO decisions, commits, rejected items, open anomalies. Future refactors read past records first.
+Complete `.council/refactors/YYYY-MM-DD-<topic>.md`: add the commits, rejected items, open anomalies and the *Next run* list, and set `Status: executed`. Delete `.council/runs/<run>/`: anything worth keeping is in the record by now. Future refactors read past records first.
 
 ## Rationalizations
 
@@ -156,7 +178,7 @@ Write `.council/refactors/YYYY-MM-DD-<topic>.md`: brief, backlog, CEO decisions,
 | "They said 'whatever, make it clean', so I can fix the rounding" | A vague aside isn't a decision on customer-facing money. Surface it, don't make the call. |
 | "I'll play the roles myself, it's faster" | One context gives one opinion. You'll get "all three agree" and no tension. |
 | "The tests pass, so it's safe" | Two tests on one branch pin nothing. Check the coverage map. |
-| "This step is tiny, I'll batch it with the next" | Batched steps lose the ability to revert one cleanly. |
+| "This step is tiny, I'll fold it into the next commit" | Folded steps lose the ability to revert one cleanly. Batch steps in one executor, never in one commit. |
 | "It went red, I'll just fix the test" | The test is the spec. Revert the step. |
 
 ## Red Flags — stop and return to the flow

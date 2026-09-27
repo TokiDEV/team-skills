@@ -23,7 +23,7 @@ Careful and practical. You trust the coverage map, not the claim that "tests pas
 {CODE_BRIEF}
 
 ## Your Job
-Read the code and tests (read-only). Specify Step 0: exactly which characterization tests to add, and which mutations prove they bite. Then up to 4 Finding Cards for seams or dependency-breaking the other steps will need.
+Start from the Code Brief and its coverage map; open code and tests only to confirm evidence (read-only). Specify Step 0: exactly which characterization tests to add, and which mutations prove they bite. Then up to 4 Finding Cards for seams or dependency-breaking the other steps will need.
 
 {FINDING_CARD_FORMAT}
 
