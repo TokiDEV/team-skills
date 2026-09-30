@@ -7,6 +7,8 @@ description: Turn a resolved council decision into a concrete implementation pla
 
 The second half of the council workflow. `team-council` decides **what**; `team-council-plan` produces the **how** — a reviewed implementation plan grounded in that decision.
 
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+
 ## Preconditions
 
 - **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, the council hasn't run — stop and point the user to `team-council` first.
@@ -26,13 +28,13 @@ Role review (parallel): CTO (technical soundness, sequencing, risk) + system ske
         ↓
 Reconcile review feedback → revised plan
         ↓
-Present plan to CEO for approval
+Write draft to docs/plans/YYYY-MM-DD-<topic>.md (or project's plan location)
         ↓
-Write plan to docs/plans/YYYY-MM-DD-<topic>.md (or project's plan location)
+Present plan to CEO → approved: remove Status: draft, hand off
 ```
 
 ### 1. Load context
-Read the decision file and the profile. Extract the accepted direction, the trade-offs the council explicitly accepted, and any dissenting views worth guarding against.
+Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the trade-offs the council explicitly accepted, and any dissenting views worth guarding against.
 
 ### 2. Draft the plan
 Produce a step-by-step implementation plan. If `superpowers:writing-plans` (or the project's planning skill) is available, follow its conventions. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
@@ -46,7 +48,7 @@ Dispatch focused review agents against the draft:
 
 **Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following the *Outcome* rules of `team-ceo-view`. A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 
-Each reviewer cites evidence and flags concrete plan defects, not vibes. Dispatch reviewers on `sonnet` with a budget of about 10 tool calls. Each writes its review to `.council/runs/YYYY-MM-DD-<topic>/review-<role>.md` and replies with the path plus one line per defect.
+Each reviewer cites evidence and flags concrete plan defects, not vibes. Dispatch reviewers on `sonnet` with a budget of about 10 tool calls and the agent contract (agent id `review-<role>`); each replies with one line per defect.
 
 ### 4. Reconcile
 Fold review feedback into a revised plan. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and note the tension explicitly rather than silently overriding it.
@@ -58,11 +60,11 @@ Write the revised plan to the project's plan location (`docs/plans/YYYY-MM-DD-<t
 - `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
 - `outcome`: the reviewers' sketches from step 3, `system` and/or `ui`, each with `before` and `after`.
 - **Each plan step**: a routine decision (Approve/Decline). Its `title` is the move; its `detail` gives only what the title lacks (impact, risk), or is omitted. The size goes in `tags` (`"S"`, `"M"`, `"L"`). Add `code` when a step changes an existing interface.
-- **Each risk the reviewers raised that needs acceptance, with a majority** (see *Triage* in `team-ceo-view`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`.
+- **Each risk the reviewers raised that needs acceptance, with a majority** (*Counting positions* in `team-protocol`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`.
 - `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4), and risks the reviewers split on with no majority. A risk is either a decision or a tension, never both.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.
 
-Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft`, delete the run folder, and tell the user: *"`/clear`, then: execute `<plan path>`."* Execution starts from the plan file, not from a context holding the planning.
+Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with superpowers:subagent-driven-development."* Execution starts from the plan file, not from a context holding the planning.
 
 ## Output: the plan
 Follow the project's plan format if one exists. Otherwise, a solid default:
@@ -96,7 +98,14 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [How we confirm each step and the whole works]
 ```
 
-## Notes
-- This skill plans; it does not implement. Hand off to `superpowers:executing-plans` / `subagent-driven-development` or the project's execution workflow.
-- Whoever executes reads the plan's *Execution economy* section and follows it: models, batches, and when to re-review.
-- Keep the plan traceable to the decision so future readers see both the "what" and the "how".
+## Execution
+
+This skill plans; it does not implement. **REQUIRED SUB-SKILL for the executing session:** `superpowers:subagent-driven-development` (or the project's own execution workflow), following the plan's *Execution economy* section: models, batches, and when to re-review.
+
+Without superpowers, execute from the plan file this way:
+1. Group the steps into batches as *Execution economy* says. Dispatch a fresh implementer per batch with its steps and the plan's *Goal* and *Outcome*, never the decision record.
+2. The implementer writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, or `blocked — <reason>`.
+3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.
+4. Last, one reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached.
+
+Set `Status: executed` on the plan when done. Keep it traceable to the decision so future readers see both the "what" and the "how".

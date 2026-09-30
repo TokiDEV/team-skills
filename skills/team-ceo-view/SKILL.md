@@ -5,7 +5,7 @@ description: Use when a team-* skill (team-refactor, team-council, team-council-
 
 # team-ceo-view
 
-Turns a CEO gate into a local HTML decision page. Under the summary, an **Outcome** block shows where the work lands: a mockup of the target screen, a diagram of the target system, or both, beside today's state. Every decision, tension and rejected idea is a card the human decides on. Each card carries its own evidence: arguments for and against, metrics, before/after code, figures and screenshots. A sidebar holds search, filters and an overview whose item chips jump to their cards. The human decides in the browser and pastes the decisions back.
+Turns a CEO gate into a local HTML decision page. Under the summary, an **Outcome** block shows where the work lands: a mockup of the target screen, a diagram of the target system, or both, beside today's state. Every decision, tension and rejected idea is a card the human decides on. Each card carries its own evidence: arguments for and against, metrics, before/after code, figures and screenshots. A sidebar holds search, filters and an overview whose item chips jump to their cards. The human decides in the browser and sends the decisions back with one click.
 
 **Markdown stays the source of truth.** Agents read and git diffs the `.md` record. The HTML is the human's view of the same gate, and never holds a decision the `.md` doesn't get.
 
@@ -14,9 +14,10 @@ Turns a CEO gate into a local HTML decision page. Under the summary, an **Outcom
 1. **Write the gate JSON** to `.council/gates/YYYY-MM-DD-<topic>.ceo.json` (create the folder if absent), with `source` set to the record it belongs to. Contract below.
    **Show the destination.** Fill `outcome` (see *Outcome* below) before the cards: the human approves where the work lands, not a list of steps.
    **Evidence goes on the item it supports.** Arguments, metrics, code and figures belong to the decision, tension or rejected item they concern, never to a page-level section. Copy every screenshot an item relies on into `.council/gates/YYYY-MM-DD-<topic>/`: scratchpad and `/tmp` are wiped after the session.
-2. **Render:** `node <this skill's directory>/render.js .council/gates/<file>.ceo.json` (`~/.claude/skills/team-ceo-view/` for a manual install; the plugin cache when installed as a plugin). It prints the `.html` path and rejects invalid JSON with a list of errors. It also rejects any item whose text mentions a screenshot or "figure N" but carries no `figures`. Re-rendering after the JSON changes gives the human a fresh set of decisions, so stale choices don't carry over onto edited items.
-3. **Open it:** `xdg-open <html>` (Linux) or `open <html>` (macOS). Tell the human the path, that the page has a **Copy decisions** button, and that `?` lists the keyboard shortcuts (`←`/`→` between cards, `Tab` through options, `Enter` to choose).
-4. **Wait** for the pasted block:
+2. **Check it:** `node <base directory>/render.js .council/gates/<file>.ceo.json`, where `<base directory>` is the one shown when this skill loaded ("Base directory for this skill"), for a manual and a plugin install alike. It writes the `.html` and prints its path, or rejects invalid JSON with a list of errors. It also rejects any item whose text mentions a screenshot or "figure N" but carries no `figures`. Fix and re-run until it passes. Re-rendering after the JSON changes gives the human a fresh set of decisions, so stale choices don't carry over onto edited items.
+3. **Serve it:** run the same command with `--serve`, **in the background** (Bash `run_in_background`, timeout 7200000). It serves the page on `127.0.0.1` and opens it in the browser. When the human clicks **Send to Claude**, it saves the block to `<gate>.decisions.txt`, prints it, and exits, which re-invokes you with the block as its output. Tell the human the page is open, and that `?` lists the keyboard shortcuts (`←`/`→` between cards, `Tab` through options, `Enter` to choose).
+   No background commands, or the server can't start → open the `.html` itself (`xdg-open` on Linux, `open` on macOS) and wait for the human to paste the block from **Copy decisions**.
+4. **Read the block** (the server's output, or the paste):
    ```
    CEO DECISIONS — <title>
    record: <path>
@@ -46,10 +47,7 @@ Each caller owns *what* goes on the page; this skill owns *how* it's rendered an
 ## Triage before you render
 
 The page is for decisions, not an inventory. Before writing the JSON:
-- **One question, one card.** Sort every open question by the positions the roles hold after the last round. Only roles that took a side count.
-  - **Majority:** more than half of those roles back one option (2 of 3, 3 of 5). The question goes in `decisions` (the backlog), and the majority's option is `recommended`. The minority's case goes in `against`, and its option stays in `options` so the human can still pick it.
-  - **No majority** (1–1, 2–2, 1–1–1, 2–1–1): the question goes in `tensions` only, with one side per position. The synthesizer's suggested side is `recommended`.
-  - A question is never both a decision and a tension. If a tension's outcome would answer a decision, merge the two into the tension.
+- **One question, one card.** Settle every open question by *Counting positions* in `team-protocol`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`.
 - **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click.
 - **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
 - **Order by stakes.** The item the human explicitly asked about goes first.

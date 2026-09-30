@@ -9,6 +9,8 @@ A panel of refactoring masters reviews a scoped piece of code in **isolated cont
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+
 ## Iron Laws
 
 1. **Behavior-preserving only.** Any observable change — outputs, rounding, error types, side effects, call order, emails, logs relied on — is a *Found, not fixed* item for the CEO. It is never a backlog step, even if the user said "fix it while you're there" or "whatever, make it clean".
@@ -22,7 +24,7 @@ A panel of refactoring masters reviews a scoped piece of code in **isolated cont
 
 ## The Panel
 
-Templates in `roles/`. A project may override any role via `.council/role-overrides/role-<name>.md` (project wins). Each role is a *lens on a body of work*, not an impersonation.
+Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens on a body of work*, not an impersonation.
 
 | Role | Canon | Signature question | Owns |
 |------|-------|--------------------|------|
@@ -46,23 +48,10 @@ Every agent gets the minimum it needs and nothing else. This is what makes the p
 | Minimalist gate (R2) | opus | ~10 | all Finding Cards | full R1 transcripts |
 | Tension pair (R2) | sonnet | ~5 | own + counterpart's cards only | the rest |
 | Synthesizer | opus | ~10 | cards + verdicts + tension replies | raw transcripts |
-| Executor | sonnet | — | **one** Step Batch + brief | other steps, the debate |
-| Final reviewer | opus | — | full diff + approved backlog | the debate |
+| Executor | sonnet | — | **one** Step Batch + the exec brief's header | other steps, the record, the debate |
+| Final reviewer | opus | — | full diff + exec brief | the debate |
 
-Never play the roles yourself in one context. Dispatch them, passing the model from the table.
-
-### Agent contract
-Append this block to every dispatch prompt, with its budget and run folder filled in. It keeps the orchestrator's context small: every turn re-reads the whole context, so context size × turns is the bill.
-
-```markdown
-## How to work
-- Start from the Code Brief. Open a file only to confirm or cite evidence.
-- Budget: about <N> tool calls. Put several searches in one Bash call; Read a file once, whole.
-- Write your full output to <run folder>/<your-id>.md.
-- Reply with: the file path, then one line per card or verdict (id + title). Nothing else.
-```
-
-The run folder is `.council/runs/YYYY-MM-DD-<topic>/`. Later agents (gate, pairs, synthesizer) read the files they need from it. The orchestrator reads only the synthesizer's file.
+Never play the roles yourself in one context. Dispatch them, passing the model from the table, with the `team-protocol` agent contract. Put this line first in its *How to work* block: `- Start from the Code Brief. Open a file only to confirm or cite evidence.`
 
 ## Flow
 
@@ -72,9 +61,9 @@ The run folder is `.council/runs/YYYY-MM-DD-<topic>/`. Later agents (gate, pairs
 2. Round 1 (blind) → 6 panelists in parallel → Finding Cards
 3. Round 2         → Minimalist gate on every card + tension pairs
 4. Synthesis       → Backlog + Found-not-fixed + Rejected + Tensions
-5. CEO gate        → approves steps, decides each anomaly; record them
+5. CEO gate        → approves steps, decides each anomaly; write record + exec brief
    ── fresh session ──
-6. Execute         → Step 0 safety net, then one Step Batch per fresh executor, gated
+6. Execute         → from the exec brief: Step 0 safety net, then one Step Batch per fresh executor, gated
 7. Record          → .council/refactors/YYYY-MM-DD-<topic>.md
 ```
 
@@ -109,10 +98,11 @@ Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROF
 
 ### 3. Round 2 — gate and tensions (parallel)
 - **Minimalist gate** (its Round 2 job, `{ALL_FINDING_CARDS}` filled) sees every card and returns one line each: `KEEP` | `SHRINK → <smaller version>` | `KILL — <reason>`. Kill test: no present pain removed, no second real use today, no faster read afterwards, not deeper than what it replaces.
+  The verdict is a gate, not a vote. `SHRINK` replaces the card with its smaller version. `KILL` sends the card to *Considered and rejected*, except when the card was proposed independently by two or more panelists (the gate lists these duplicates): blind convergence is evidence, so that card becomes a tension, Minimalist against its authors, for the CEO.
 - **Tension pairs**: where two cards conflict (same code, opposite moves), send each side the other's card for one direct reply. Agreeing roles skip.
 
 ### 4. Synthesis
-A separate synthesizer agent produces the following, and copies Feathers's Step 0 safety-net spec in full under Step 0 (the orchestrator reads only this file):
+A separate synthesizer agent produces the following. The orchestrator reads only this file, so it holds everything the gate page and the exec brief need:
 
 ```markdown
 ## Refactoring Backlog — <scope>
@@ -121,6 +111,14 @@ A separate synthesizer agent produces the following, and copies Feathers's Step 
 Step 0 is always the safety net. Then Beck's order: tidyings that make
 the next change easy → structural moves → deletions.
 | # | Named refactoring | Target | From cards | Size |
+
+### Step 0 — safety net
+[Feathers's safety-net spec, copied in full]
+
+### Step Cards
+[One per step, in the Step Card format of step 6, followed by its gate
+material: before/after code (≤ ~15 lines each), and `for`/`against`
+points from the cards and the Minimalist's verdict, each credited]
 
 ### Found, not fixed — top 5 by stakes (CEO decides each; default = leave as-is)
 [Money, public contract, user-visible output, data. Anything the user asked
@@ -134,28 +132,35 @@ about goes first. Each: current behavior, concrete impact, options]
 
 ### Tensions for the CEO — at most 3
 [Only conflicts with no majority that change what gets executed. Strongest
-version of each side, each side's step, and a suggested default]
+version of each side, each side's step as a Step Card, and a suggested default]
+
+### Next run
+[Kept steps beyond the cap of 8, ranked, one line each]
 ```
 
-A contested card is settled by its vote after Round 2. Only panelists who took a side count, and the Minimalist's verdict is one vote. When more than half back one move, that move is a backlog step and the dissent goes in its `against`. With no majority, the conflict is a tension, and neither side's step is in *Steps*. The tension names the slot where the winning side's step goes, and the step joins the backlog there once the CEO picks a side.
+A card the gate kept but two panelists conflict on is settled by *Counting positions* (`team-protocol`); a Finding Card's `Evidence` line is its evidence. A majority's move is a backlog step, with the dissent in its `against`. With no majority, the conflict is a tension, and neither side's step is in *Steps*. The tension names the slot where the winning side's step goes, and the step joins the backlog there once the CEO picks a side.
 
-The backlog holds at most 8 steps after Step 0. The rest go in a *Next run* list in the record, ranked. Each step costs a context load and a gate run, and a long backlog is how a review turns into a weekend of execution.
+The backlog holds at most 8 steps after Step 0. The rest go in *Next run*, ranked, and from there into the record. Each step costs a context load and a gate run, and a long backlog is how a review turns into a weekend of execution.
 
 The caps are the synthesizer's job, not the CEO's: a gate with 13 findings and 4 tensions gets rubber-stamped.
 
 Architecture-level questions (new layers, changing a public contract) → recommend `team-council` instead of deciding here.
 
 ### 5. CEO gate
-**REQUIRED SUB-SKILL:** use `team-ceo-view` to present the backlog as a local HTML decision page. The *Found, not fixed* items, optional steps and tensions are major decisions; minor quirks are `minor: true, default: "leave"`. Include before/after `code` for every step. When module boundaries move, add an `outcome` (`system` view: the module map today and after the approved steps). Give each weighty item `for`/`against` drawn from the panelists' cards and the Minimalist's verdict, with each point credited to its author. Put each metric on the step it measures, and each screenshot on the finding it shows. Tensions and gate-rejected cards go in `tensions` and `rejected`, so the CEO can side or revive. A tension's steps have no card of their own. Put their `code` on the tension. Write `summary` as labelled bullets: *Verdict*, *Weak spots*, *Found, not fixed*, *Recommendation*. Set `source` to the refactor record. Record the pasted decisions in the `.md`. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (superpowers:test-driven-development).
+**REQUIRED SUB-SKILL:** use `team-ceo-view` to present the backlog as a local HTML decision page. The *Found, not fixed* items, optional steps and tensions are major decisions; minor quirks are `minor: true, default: "leave"`. Take each step's before/after `code` and its credited `for`/`against` from its Step Card's gate material in the synthesis. When module boundaries move, add an `outcome` (`system` view: the module map today and after the approved steps). Put each metric on the step it measures, and each screenshot on the finding it shows. Tensions and gate-rejected cards go in `tensions` and `rejected`, so the CEO can side or revive. A tension's steps have no card of their own. Put their `code` on the tension. Write `summary` as labelled bullets: *Verdict*, *Weak spots*, *Found, not fixed*, *Recommendation*. Set `source` to the refactor record. Record the returned decisions in the `.md`. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (superpowers:test-driven-development).
 
-**Hand off to a fresh session.** Write the brief, Feathers's Step 0 safety-net spec, the backlog with its Step Cards, and the CEO decisions to `.council/refactors/YYYY-MM-DD-<topic>.md` now, with `Status: approved, not executed`. Then tell the user: *"`/clear`, then: execute the refactor backlog in `<record path>`."* Execution then starts from the record, not from a context already holding the whole debate.
+**Hand off to a fresh session.** Write two files now:
+- **The record**, `.council/refactors/YYYY-MM-DD-<topic>.md`, for humans and future refactors: `Status: approved, not executed`, the synthesis, the CEO decisions with their notes, rejected cards, tensions and the *Next run* list.
+- **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, for the executors and nothing else: a header (scope, quality-gate commands, fences for the whole run), Feathers's Step 0 spec, the approved Step Cards in order, and the approved `fix:` items. No debate, no arguments, no rejected items. Aim under ~150 lines.
+
+Then hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
 
 ### 6. Execute
-Start from the record. If it isn't in context, read it; don't reread the run folder.
+Start from the exec brief. Don't read the record or the run folder.
 
 **Step 0 — safety net** (Feathers): add characterization tests for every unpinned behavior the approved steps touch, run them green against the *untouched* code, then prove they bite: break the code deliberately (flip a rounding, a comparison, a constant), confirm a test fails, restore. Commit `test: characterize <scope>`.
 
-Then group the approved steps into **Step Batches**: consecutive steps in backlog order, size S, touching overlapping files, at most 4 per batch. Any M or L step is a batch of one. Dispatch a **fresh executor** per batch with its Step Cards and the brief:
+Then group the approved steps into **Step Batches**: consecutive steps in backlog order, size S, touching overlapping files, at most 4 per batch. Any M or L step is a batch of one. Dispatch a **fresh executor** per batch with its Step Cards and the exec brief's header:
 
 ```markdown
 ## Step <n>: <Named refactoring> — <target>
@@ -167,10 +172,10 @@ Commit: refactor(<scope>): <Named refactoring> in <target>
 On red: revert the step, report why, stop.
 ```
 
-The executor runs the steps in order and commits after each one, so Iron Laws 3 and 4 still hold per step. It replies with one line per step: commit hash, or `reverted — <reason>`. Between batches, the orchestrator runs the gates itself. Last, one reviewer agent (opus) reads the full diff against the approved backlog: nothing smuggled in, nothing behavioral, no step skipped.
+The executor runs the steps in order and commits after each one, so Iron Laws 3 and 4 still hold per step. It replies with one line per step: commit hash, or `reverted — <reason>`. Between batches, the orchestrator runs the gates itself. Last, one reviewer agent (opus) reads the full diff against the exec brief: nothing smuggled in, nothing behavioral, no step skipped.
 
 ### 7. Record
-Complete `.council/refactors/YYYY-MM-DD-<topic>.md`: add the commits, rejected items, open anomalies and the *Next run* list, and set `Status: executed`. Delete `.council/runs/<run>/`: anything worth keeping is in the record by now. Future refactors read past records first.
+Complete `.council/refactors/YYYY-MM-DD-<topic>.md`: add the commits (hash and step, one line each), the reverted steps with their reason, and any open anomalies, and set `Status: executed`. Delete the exec brief: anything worth keeping is in the record by now (the run folder went at the gate). Future refactors read past records first.
 
 ## Rationalizations
 

@@ -1,13 +1,17 @@
 #!/usr/bin/env node
-// Usage: node render.js <gate.json> [out.html]
+// Usage: node render.js <gate.json> [out.html] [--serve [--no-open]]
 // Validates a CEO-gate JSON, normalizes decisions, tensions and rejected items into one list of
 // decidable items, embeds images, and injects the result into template.html.
 // Output defaults to <gate>.html next to the JSON.
+// --serve: also serve the page on 127.0.0.1 and open it; when the human clicks "Send to Claude",
+// save the block to <gate>.decisions.txt, print it, and exit. --no-open skips opening the browser.
 const fs = require('fs');
 const path = require('path');
 
-const [src, outArg] = process.argv.slice(2);
-if (!src) { console.error('usage: node render.js <gate.json> [out.html]'); process.exit(2); }
+const args = process.argv.slice(2);
+const flags = new Set(args.filter(a => a.startsWith('--')));
+const [src, outArg] = args.filter(a => !a.startsWith('--'));
+if (!src) { console.error('usage: node render.js <gate.json> [out.html] [--serve [--no-open]]'); process.exit(2); }
 
 const data = JSON.parse(fs.readFileSync(src, 'utf8'));
 const baseDir = path.dirname(path.resolve(src));
@@ -200,3 +204,48 @@ const html = template.replace('<!--CEO_DATA-->', `<script type="application/json
 const out = outArg || src.replace(/(\.ceo)?\.json$/, '') + '.html';
 fs.writeFileSync(out, html);
 console.log(out);
+
+if (flags.has('--serve')) serve(html, out.replace(/\.html$/, '') + '.decisions.txt');
+
+// One page, one answer: the server lives until the first decisions block arrives.
+// The random path keeps other local pages from posting to it.
+function serve(page, decisionsFile) {
+  const http = require('http');
+  const token = require('crypto').randomBytes(12).toString('hex');
+  const server = http.createServer((req, res) => {
+    if (req.method === 'GET' && req.url === `/${token}/`) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(page);
+    }
+    if (req.method === 'POST' && req.url === `/${token}/decisions`) {
+      let body = '';
+      req.setEncoding('utf8');
+      req.on('data', chunk => { body += chunk; if (body.length > 1e6) req.destroy(); });
+      req.on('end', () => {
+        if (!body.startsWith('CEO DECISIONS')) { res.writeHead(400); return res.end('not a decisions block'); }
+        fs.writeFileSync(decisionsFile, body + '\n');
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('ok', () => {
+          console.log(`decisions saved to ${decisionsFile}\n\n${body}`);
+          server.close();
+          server.closeAllConnections?.();
+        });
+      });
+      return;
+    }
+    res.writeHead(404);
+    res.end();
+  });
+  server.listen(0, '127.0.0.1', () => {
+    const url = `http://127.0.0.1:${server.address().port}/${token}/`;
+    console.log(`serving ${url} (waiting for Send to Claude)`);
+    if (flags.has('--no-open')) return;
+    const { spawn } = require('child_process');
+    const [cmd, cmdArgs] = process.platform === 'darwin' ? ['open', [url]]
+      : process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]]
+      : ['xdg-open', [url]];
+    spawn(cmd, cmdArgs, { stdio: 'ignore', detached: true })
+      .on('error', () => console.log('could not open a browser: open the URL above'))
+      .unref();
+  });
+}

@@ -11,11 +11,13 @@ Produces the project profile that every council skill reads. Run it once per pro
 
 1. **Tech stack** — languages, frameworks, package manager, build tools, test runner. Read `package.json` / `pyproject.toml` / `Cargo.toml` / `go.mod` etc., lockfiles, and config files (`vite.config`, `tsconfig`, `vitest.config`, CI files).
 2. **Conventions** — `CLAUDE.md`, `AGENTS.md`, lint/format config (eslint, prettier, biome, ruff), architecture patterns, directory layout, naming conventions.
-3. **Available specialists by domain** — enumerate skills (`~/.claude/skills/`, `<project>/.claude/skills/`) and agents (`~/.claude/agents/`, `<project>/.claude/agents/`) and MCP servers, then map each to a team-role domain:
-   - **UX domain**: `impeccable` skill and its sub-commands (init, craft, shape, critique, audit, polish, animate, colorize, typeset, layout, delight, clarify, distill, bolder, quieter, adapt, harden, extract, onboard, optimize)
-   - **Technical domain**: superpowers:test-driven-development, superpowers:systematic-debugging, superpowers:subagent-driven-development, vue-best-practices, vue-testing-best-practices, vue-debug-guides, create-adaptable-composable, lint/typecheck commands, deep-explore agent
-   - **Process domain**: superpowers:brainstorming, superpowers:writing-plans, superpowers:executing-plans, GSD skills
-   - **Project-specific**: custom agents, MCP tools (e.g. a database MCP), project-local skills
+3. **Available specialists by domain** — take the skills, agent types and MCP servers your session lists (that covers personal, project and plugin installs alike), and map each to a team-role domain by what its description says it does:
+   - **UX domain**: interface design, visual critique or audit, accessibility, UX copy, motion
+   - **Technical domain**: testing, debugging, code search and exploration, language or framework best practices, plus the project's lint/typecheck/test commands
+   - **Process domain**: brainstorming, planning, executing plans, reviews
+   - **Project-specific**: agents, MCP servers and skills that only make sense for this project (a database MCP, a deploy skill)
+
+   Leave out what fits no domain (document formats, config helpers). The `team-*` skills themselves are not specialists.
 4. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
 5. **Team preferences** — memory files, feedback patterns, design docs, existing decisions under `.council/decisions/`.
 
