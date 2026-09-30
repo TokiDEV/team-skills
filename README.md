@@ -20,11 +20,17 @@
 
 ```mermaid
 flowchart LR
-    scan[team-scan<br/>project profile] --> council[team-council<br/>debate → decision]
-    scan --> refactor[team-refactor<br/>panel → backlog]
-    kickoff[team-kickoff<br/>new project] --> scan
+    subgraph protocol["team-protocol · shared rules: dispatch, counting, handoff"]
+        kickoff[team-kickoff<br/>new project]
+        council[team-council<br/>debate → decision]
+        plan[team-council-plan<br/>decision → plan]
+        refactor[team-refactor<br/>panel → backlog]
+    end
+    scan[team-scan<br/>project profile] --> council
+    scan --> refactor
+    kickoff --> scan
     kickoff --> council
-    council --> plan[team-council-plan<br/>decision → plan]
+    council --> plan
     council -. CEO gate .-> view((team-ceo-view))
     plan -. CEO gate .-> view
     kickoff -. CEO gate .-> view
