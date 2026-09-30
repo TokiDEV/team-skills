@@ -19,7 +19,7 @@ The second half of the council workflow. `team-council` decides **what**; `team-
 ```
 Load decision + profile
         ↓
-Draft plan (uses writing-plans conventions if available)
+Draft plan (the profile's planning skill conventions, if any)
         ↓
 Role review (parallel): CTO (technical soundness, sequencing, risk) + system sketch
                         PO  (scope, value, priority ordering)
@@ -37,7 +37,7 @@ Present plan to CEO → approved: remove Status: draft, hand off
 Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the trade-offs the council explicitly accepted, and any dissenting views worth guarding against.
 
 ### 2. Draft the plan
-Produce a step-by-step implementation plan. If `superpowers:writing-plans` (or the project's planning skill) is available, follow its conventions. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
+Produce a step-by-step implementation plan. If the project has a plan format, or the profile's Process domain lists a planning skill, follow its conventions. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
 
 ### 3. Role review (parallel)
 Dispatch focused review agents against the draft:
@@ -64,7 +64,7 @@ Write the revised plan to the project's plan location (`docs/plans/YYYY-MM-DD-<t
 - `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4), and risks the reviewers split on with no majority. A risk is either a decision or a tension, never both.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.
 
-Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with superpowers:subagent-driven-development."* Execution starts from the plan file, not from a context holding the planning.
+Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with `<plan-execution skill>`."* Name the skill the profile lists (see *Execution*); if it lists none, drop the "with" part. Execution starts from the plan file, not from a context holding the planning.
 
 ## Output: the plan
 Follow the project's plan format if one exists. Otherwise, a solid default:
@@ -100,9 +100,9 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Execution
 
-This skill plans; it does not implement. **REQUIRED SUB-SKILL for the executing session:** `superpowers:subagent-driven-development` (or the project's own execution workflow), following the plan's *Execution economy* section: models, batches, and when to re-review.
+This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy* section: models, batches, and when to re-review.
 
-Without superpowers, execute from the plan file this way:
+When the profile lists none, execute from the plan file this way:
 1. Group the steps into batches as *Execution economy* says. Dispatch a fresh implementer per batch with its steps and the plan's *Goal* and *Outcome*, never the decision record.
 2. The implementer writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, or `blocked — <reason>`.
 3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.

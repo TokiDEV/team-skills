@@ -123,4 +123,4 @@ Write the CEO's decisions (notes included) under the synthesis in `.council/deci
 
 - Keep each agent's context lean: profile + decision + role template + (Round 2) the specific counterpart positions.
 - Agent ids for the run folder: `r1-<role>`, `r2-<role>`, `synthesis`.
-- The council is standalone — it needs only a decision context and a profile; it does not require superpowers or GSD to be installed.
+- The council is standalone — it needs only a decision context and a profile; it requires no companion skill, and the roles use whatever specialists the profile lists.
