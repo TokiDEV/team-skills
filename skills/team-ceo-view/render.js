@@ -14,6 +14,11 @@ const baseDir = path.dirname(path.resolve(src));
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 // Text that points at visual evidence the human would expect to see next to it.
 const MENTIONS_VISUAL = /\b(screenshots?|screen ?captures?|captures? d'écran|fig(ure)?\.? ?\d+)\b/i;
+// Kinds whose gate approves something to build: the page must show where it lands.
+const NEEDS_OUTCOME = ['plan', 'kickoff'];
+const VIEWS = ['ui', 'system'];
+// Card text is read at a glance: past these lengths it is a report, not a card.
+const MAX = { detail: 240, why: 160, bullet: 120, bullets: 4 };
 
 const errors = [];
 if (!data.title) errors.push('missing "title"');
@@ -37,6 +42,12 @@ function embed(fig, where) {
     return;
   }
   const file = path.resolve(baseDir, fig.src);
+  if (path.extname(file).toLowerCase() === '.svg' && fs.existsSync(file)) {
+    // Inlined rather than embedded as <img>, so currentColor follows the page's text color.
+    fig.svg = fs.readFileSync(file, 'utf8').replace(/<\?xml[^>]*>\s*/, '');
+    delete fig.src;
+    return;
+  }
   const mime = MIME[path.extname(file).toLowerCase()];
   if (!mime) { errors.push(`${where}.src "${fig.src}" is not a supported image type`); return; }
   if (!fs.existsSync(file)) { errors.push(`${where}.src "${fig.src}" not found (resolved to ${file})`); return; }
@@ -56,6 +67,36 @@ function checkArguments(item, where) {
   });
 }
 
+// "Gold uses Math.floor…" → "gold uses math floor"
+const norm = t => String(t || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const words = t => norm(t).split(' ').filter(w => w.length > 2);
+const textOf = v => (Array.isArray(v) ? v.join('\n') : String(v || ''));
+
+// detail and why are a string ("- " lines become bullets) or an array of bullets.
+function checkText(item, key, where) {
+  const v = item[key];
+  if (v == null) return;
+  if (!Array.isArray(v) && typeof v !== 'string') { errors.push(`${where}.${key} must be a string or an array of bullets`); return; }
+  const text = textOf(v);
+  if (text.length > MAX[key]) errors.push(`${where}.${key} is ${text.length} characters (max ${MAX[key]}) — keep the facts the title lacks, as bullets`);
+  const bullets = Array.isArray(v) ? v : v.split('\n').filter(l => /^\s*[-•]\s/.test(l));
+  if (bullets.length > MAX.bullets) errors.push(`${where}.${key} has ${bullets.length} bullets (max ${MAX.bullets})`);
+  bullets.forEach((b, j) => { if (String(b).length > MAX.bullet) errors.push(`${where}.${key} bullet ${j + 1} is ${String(b).length} characters (max ${MAX.bullet})`); });
+}
+
+// Each field has one job: the title names the question, detail gives the facts, options are the answers.
+// Text that restates another field makes the human read the same thing twice.
+function checkEcho(item, where) {
+  const title = norm(item.title), detail = norm(textOf(item.detail));
+  if (detail && title && detail.startsWith(title)) errors.push(`${where} ("${item.id}") detail starts by repeating the title — give only what the title doesn't say`);
+  const dw = new Set(words(item.detail));
+  (item.options || []).forEach(o => {
+    const label = norm(o.label), lw = words(o.label);
+    if (label && label === title) errors.push(`${where} ("${item.id}") option "${o.label}" is the title — title the question, not an answer`);
+    if (lw.length >= 2 && lw.every(w => dw.has(w))) errors.push(`${where} ("${item.id}") detail describes option "${o.label}" — state the situation in detail, keep the answers in options`);
+  });
+}
+
 // Shared by every kind of item: figures (with the legacy "images" alias), arguments, and the visual-mention check.
 function finish(item, where) {
   item.figures = (item.figures || []).concat(item.images || []);
@@ -63,7 +104,10 @@ function finish(item, where) {
   item.figures.forEach((f, j) => embed(f, `${where}.figures[${j}]`));
   checkArguments(item, where);
   checkOptions(item.options, where);
-  const text = [item.title, item.detail, item.why].join(' ');
+  checkText(item, 'detail', where);
+  checkText(item, 'why', where);
+  checkEcho(item, where);
+  const text = [item.title, textOf(item.detail), textOf(item.why)].join(' ');
   if (MENTIONS_VISUAL.test(text) && !item.figures.length) {
     errors.push(`${where} ("${item.id}") mentions "${text.match(MENTIONS_VISUAL)[0]}" but has no "figures" — attach it or drop the reference`);
   }
@@ -128,9 +172,23 @@ items.forEach(it => {
 });
 (data.figures || []).forEach((f, i) => embed(f, `figures[${i}]`));
 
+// outcome: where the work lands, one entry per view it changes (ui mockup, system diagram).
+if (data.outcome != null && !Array.isArray(data.outcome)) errors.push('"outcome" must be an array of { "view", "after", "before"?, "caption" }');
+const outcome = Array.isArray(data.outcome) ? data.outcome : [];
+if (NEEDS_OUTCOME.includes(data.kind) && !outcome.length) {
+  errors.push(`kind "${data.kind}" needs "outcome": a mockup ("view": "ui") and/or a diagram ("view": "system") of the result`);
+}
+outcome.forEach((o, i) => {
+  const where = `outcome[${i}]`;
+  if (!VIEWS.includes(o.view)) errors.push(`${where}.view must be one of ${VIEWS.join(', ')}`);
+  if (!o.caption) errors.push(`${where} needs "caption": one line saying what to look at`);
+  if (!o.after) errors.push(`${where} needs "after": the target state`);
+  ['before', 'after'].forEach(k => { if (o[k]) embed(o[k], `${where}.${k}`); });
+});
+
 if (errors.length) { console.error('invalid gate JSON:\n- ' + errors.join('\n- ')); process.exit(1); }
 
-const page = { kind: data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, figures: data.figures || [], items };
+const page = { kind: data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, outcome, figures: data.figures || [], items };
 // Content hash: saved browser state is keyed by it, so an edited gate starts with fresh decisions.
 page._rev = require('crypto').createHash('sha1').update(JSON.stringify(page)).digest('hex').slice(0, 12);
 

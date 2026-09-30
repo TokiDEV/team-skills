@@ -128,8 +128,12 @@ dialog.help td:first-child { white-space: nowrap; }
 .tag { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); }
 .tag.warn { background: var(--warn-bg); color: var(--warn); }
 .tag.kind { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 10px; }
-.detail { color: var(--ink); margin-top: 8px; white-space: pre-wrap; }
-.why { color: var(--ink-2); font-size: 13px; margin-top: 6px; white-space: pre-wrap; }
+.detail { color: var(--ink); margin-top: 8px; }
+.why { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
+.detail p, .why p { margin: 0; }
+.detail ul, .why ul { margin: 2px 0 0; padding-left: 18px; }
+.detail code, .why code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
+.detail strong, .why strong { font-weight: 650; }
 .mchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .mchip { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
 .mchip b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -154,6 +158,18 @@ pre { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--code-
   overflow-x: auto; white-space: pre; }
 pre.before { background: var(--del); } pre.after { background: var(--add); }
 .figure { margin: 12px 0 0; }
+/* Outcome: where the work lands, today beside the target */
+.outcome { margin-top: 20px; }
+.outcome .oview { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 10px; }
+.outcome .ohead { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.outcome .ohead b { font-size: 14px; }
+.outcome .opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(640px, 100%), 1fr)); gap: 12px; margin-top: 6px; }
+.outcome .opane { min-width: 0; }
+.outcome .opane .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.outcome .opane.after .lbl { color: var(--accent); font-weight: 700; }
+.outcome .opane .figure, .outcome .opane .shots { margin-top: 4px; }
+.outcome .opane .shots { grid-template-columns: 1fr; }
+.outcome .shots img { max-height: 420px; }
 .figure .ftitle { font-size: 13px; font-weight: 600; }
 .figure .svgwrap { overflow-x: auto; }
 .figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); }
@@ -237,7 +253,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   <header id="head"></header>
   <main id="app"></main>
 </div>
-<script type="application/json" id="ceo-data">{"kind":"refactor","title":"Refactoring backlog — src/invoice.js","date":"2026-09-26","source":".council/refactors/2026-09-26-invoice.md","summary":[{"label":"Verdict","text":"invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."},{"label":"Weak spots","points":["The 20% tax rule is written out in three places","exportCsv() has no callers","The name 'grand' hides that it is the total including tax"]},{"label":"Found, not fixed","points":["Gold customers' discount rounds down while every other tier rounds to nearest"]},{"label":"Recommendation","points":["Approve S0–S4","Keep the gold rounding as-is and ask finance (F1)","Side with the Minimalist on T1"]}],"figures":[{"title":"Module map after the approved steps","svg":"\u003csvg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'>\u003crect x='20' y='45' width='190' height='60' rx='8'/>\u003ctext x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)\u003c/text>\u003crect x='300' y='30' width='220' height='90' rx='8'/>\u003ctext x='410' y='62' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js\u003c/text>\u003ctext x='410' y='86' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>TAX_RATE · totalWithTax\u003c/text>\u003crect x='610' y='45' width='190' height='60' rx='8' stroke-dasharray='5 4'/>\u003ctext x='705' y='80' text-anchor='middle' fill='currentColor' stroke='none'>computeDiscount()\u003c/text>\u003cpath d='M210 75 H300 M520 75 H610'/>\u003cpath d='M292 70 L300 75 L292 80 M602 70 L610 75 L602 80'/>\u003c/svg>"}],"items":[{"kind":"decision","id":"F1","group":"Found, not fixed","title":"Gold discount rounds down","tags":["money","behavior change"],"detail":"Gold uses Math.floor on the 10% discount; silver and bronze use Math.round. On a 49.95 € order the gold customer gets 4.99 € off instead of 5.00 €.","why":"Changes the amount on invoices customers have already received. Step 0 pins today's behavior either way.","for":[{"who":"Fowler","point":"One rounding rule for every tier removes a Repeated Switch."}],"against":[{"who":"Minimalist","point":"Customer-facing money: finance must sign off before we touch it."},{"who":"Feathers","point":"Pinned as-is in Step 0; fixing it is a separate fix: commit, test-first."}],"metrics":[{"label":"Tiers using floor","before":1,"after":0,"better":"lower"}],"code":{"before":"discount = Math.floor(total * 0.1 * 100) / 100","after":"discount = Math.round(total * 0.1 * 100) / 100"},"options":[{"value":"keep","label":"Keep floor + comment","recommended":true},{"value":"round","label":"Round like other tiers"},{"value":"ask","label":"Ask finance first","negative":true}],"figures":[]},{"kind":"decision","id":"S0","group":"Backlog","title":"Characterize invoice totals (safety net)","detail":"Pin 9 unpinned behaviors: each tier's discount, the 0 € order, tax on shipping, and the email subject line. Prove they bite by flipping the rounding and the tax constant.","for":[{"who":"Feathers","point":"Today's two tests only cover the silver path."}],"metrics":[{"label":"Pinned branches","before":2,"after":11,"better":"higher"}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S1","group":"Backlog","title":"Extract Constant: TAX_RATE","detail":"The 20% rate appears three times; one of them is written 0.2, the others 1.2.","for":[{"who":"Uncle Bob","point":"A tax change today means three edits."},{"who":"Minimalist","point":"KEEP: removes a present, bug-prone duplication."}],"code":{"before":"const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2","after":"const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S2","group":"Backlog","title":"Rename Variable: grand → totalWithTax","for":[{"who":"Uncle Bob","point":"'grand' is read 11 times and never says what it holds."}],"code":{"before":"const grand = net + tax\nsendInvoice(grand)","after":"const totalWithTax = net + tax\nsendInvoice(totalWithTax)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S3","group":"Backlog","title":"Remove Dead Code: exportCsv()","for":[{"who":"Minimalist","point":"No callers in the repo or in git history since it was added."}],"metrics":[{"label":"Lines","before":140,"after":112,"better":"lower"}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S4","group":"Backlog","title":"Extract Function: computeDiscount(tier, total)","detail":"Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.","for":[{"who":"Beck","point":"Make the change easy, then make the easy change: platinum lands next sprint."}],"against":[{"who":"Ousterhout","point":"Fine only if it takes the rounding with it; a shallow wrapper would leak it."}],"code":{"before":"if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …","after":"const discount = computeDiscount(tier, total)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"Q1","title":"Currency symbol printed after a space ('12,00 €')","minor":true,"default":"approve","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"Q2","title":"'Discount: -0.00' printed when there is no discount","minor":true,"default":"approve","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"sides":[{"who":"Uncle Bob","position":"Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh."},{"who":"Minimalist + Ousterhout","position":"After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.","recommended":true}],"kind":"tension","id":"T1","title":"Split invoice.js into calculate / format / send modules?","group":"Tensions","options":[{"value":"Uncle Bob","label":"Side with Uncle Bob","recommended":false},{"value":"Minimalist + Ousterhout","label":"Side with Minimalist + Ousterhout","recommended":true},{"value":"defer","label":"Defer","negative":true}],"figures":[]},{"id":"UB-4","title":"DiscountStrategy interface with one class per tier","kind":"rejected","group":"Considered and rejected","why":"Rejected because: One use today; the switch is not repeated anywhere. Killed by the Minimalist gate.","options":[{"value":"keep-rejected","label":"Keep rejected","recommended":true},{"value":"revive","label":"Revive"}],"default":"keep-rejected","figures":[]}],"_rev":"53b8a4339f5b"}</script>
+<script type="application/json" id="ceo-data">{"kind":"refactor","title":"Refactoring backlog — src/invoice.js","date":"2026-09-26","source":".council/refactors/2026-09-26-invoice.md","summary":[{"label":"Verdict","text":"invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."},{"label":"Weak spots","points":["The 20% tax rule is written out in three places","exportCsv() has no callers","The name 'grand' hides that it is the total including tax"]},{"label":"Found, not fixed","points":["Gold customers' discount rounds down while every other tier rounds to nearest"]},{"label":"Recommendation","points":["Approve S0–S4","Keep the gold rounding as-is and ask finance (F1)","Side with the Minimalist on T1"]}],"outcome":[{"view":"system","title":"invoice.js after the approved steps","caption":"The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.","before":{"svg":"\u003csvg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'>\u003crect x='20' y='45' width='190' height='60' rx='8'/>\u003ctext x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)\u003c/text>\u003crect x='300' y='20' width='300' height='110' rx='8'/>\u003ctext x='450' y='48' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js: one 140-line function\u003c/text>\u003ctext x='450' y='74' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>tax rule ×3 · tier switch · grand\u003c/text>\u003ctext x='450' y='98' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>format · email · exportCsv() (no caller)\u003c/text>\u003cpath d='M210 75 H300'/>\u003cpath d='M292 70 L300 75 L292 80'/>\u003c/svg>"},"after":{"svg":"\u003csvg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'>\u003crect x='20' y='45' width='190' height='60' rx='8'/>\u003ctext x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)\u003c/text>\u003crect x='300' y='30' width='220' height='90' rx='8'/>\u003ctext x='410' y='62' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js\u003c/text>\u003ctext x='410' y='86' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>TAX_RATE · totalWithTax\u003c/text>\u003crect x='610' y='45' width='190' height='60' rx='8' stroke-dasharray='5 4'/>\u003ctext x='705' y='80' text-anchor='middle' fill='currentColor' stroke='none'>computeDiscount()\u003c/text>\u003cpath d='M210 75 H300 M520 75 H610'/>\u003cpath d='M292 70 L300 75 L292 80 M602 70 L610 75 L602 80'/>\u003c/svg>"}}],"figures":[],"items":[{"kind":"decision","id":"F1","group":"Found, not fixed","title":"Gold discount rounds down","tags":["money","behavior change"],"detail":["Gold floors the 10 % discount; silver and bronze round","49.95 € order: **4.99 €** off instead of **5.00 €**"],"why":"Changes invoices customers already received. Step 0 pins today's behavior either way.","for":[{"who":"Fowler","point":"One rounding rule for every tier removes a Repeated Switch."}],"against":[{"who":"Minimalist","point":"Customer-facing money: finance must sign off before we touch it."},{"who":"Feathers","point":"Pinned as-is in Step 0; fixing it is a separate fix: commit, test-first."}],"metrics":[{"label":"Tiers using floor","before":1,"after":0,"better":"lower"}],"code":{"before":"discount = Math.floor(total * 0.1 * 100) / 100","after":"discount = Math.round(total * 0.1 * 100) / 100"},"options":[{"value":"keep","label":"Keep floor + comment","recommended":true},{"value":"round","label":"Round like other tiers"},{"value":"ask","label":"Ask finance first","negative":true}],"figures":[]},{"kind":"decision","id":"S0","group":"Backlog","title":"Characterize invoice totals (safety net)","detail":["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject","Proves they bite by flipping the rounding and the tax constant"],"for":[{"who":"Feathers","point":"Today's two tests only cover the silver path."}],"metrics":[{"label":"Pinned branches","before":2,"after":11,"better":"higher"}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S1","group":"Backlog","title":"Extract Constant: TAX_RATE","detail":"The 20 % rate is written three times: once `0.2`, twice `1.2`.","for":[{"who":"Uncle Bob","point":"A tax change today means three edits."},{"who":"Minimalist","point":"KEEP: removes a present, bug-prone duplication."}],"code":{"before":"const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2","after":"const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S2","group":"Backlog","title":"Rename Variable: grand → totalWithTax","for":[{"who":"Uncle Bob","point":"'grand' is read 11 times and never says what it holds."}],"code":{"before":"const grand = net + tax\nsendInvoice(grand)","after":"const totalWithTax = net + tax\nsendInvoice(totalWithTax)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S3","group":"Backlog","title":"Remove Dead Code: exportCsv()","for":[{"who":"Minimalist","point":"No callers in the repo or in git history since it was added."}],"metrics":[{"label":"Lines","before":140,"after":112,"better":"lower"}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S4","group":"Backlog","title":"Extract Function: computeDiscount(tier, total)","detail":"Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.","for":[{"who":"Beck","point":"Make the change easy, then make the easy change: platinum lands next sprint."}],"against":[{"who":"Ousterhout","point":"Fine only if it takes the rounding with it; a shallow wrapper would leak it."}],"code":{"before":"if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …","after":"const discount = computeDiscount(tier, total)"},"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"Q1","title":"Currency symbol printed after a space ('12,00 €')","minor":true,"default":"approve","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"Q2","title":"'Discount: -0.00' printed when there is no discount","minor":true,"default":"approve","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"sides":[{"who":"Uncle Bob","position":"Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh."},{"who":"Minimalist + Ousterhout","position":"After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.","recommended":true}],"kind":"tension","id":"T1","title":"Split invoice.js into calculate / format / send modules?","group":"Tensions","options":[{"value":"Uncle Bob","label":"Side with Uncle Bob","recommended":false},{"value":"Minimalist + Ousterhout","label":"Side with Minimalist + Ousterhout","recommended":true},{"value":"defer","label":"Defer","negative":true}],"figures":[]},{"id":"UB-4","title":"DiscountStrategy interface with one class per tier","kind":"rejected","group":"Considered and rejected","why":"Rejected because: One use today; the switch is not repeated anywhere. Killed by the Minimalist gate.","options":[{"value":"keep-rejected","label":"Keep rejected","recommended":true},{"value":"revive","label":"Revive"}],"default":"keep-rejected","figures":[]}],"_rev":"bae67d20b035"}</script>
 <script>
 (function () {
   var data = JSON.parse(document.getElementById('ceo-data').textContent);
@@ -270,6 +286,28 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     img.addEventListener('keydown', function (e) { if (e.key === 'Enter') open(); });
     return img;
   }
+  // detail and why: an array of bullets, or a string whose "- " lines are bullets.
+  // Inline `code` and **bold** are built as nodes, never as HTML.
+  function inline(parent, text) {
+    String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach(function (part) {
+      if (!part) return;
+      if (/^`[^`]+`$/.test(part)) parent.appendChild(el('code', null, part.slice(1, -1)));
+      else if (/^\*\*[^*]+\*\*$/.test(part)) parent.appendChild(el('strong', null, part.slice(2, -2)));
+      else parent.appendChild(document.createTextNode(part));
+    });
+    return parent;
+  }
+  function rich(cls, value) {
+    var box = el('div', cls), ul = null;
+    var lines = Array.isArray(value) ? value.map(function (b) { return '- ' + b; }) : String(value).split('\n');
+    lines.forEach(function (line) {
+      var m = /^\s*[-•]\s+(.*)$/.exec(line);
+      if (m) { if (!ul) { ul = el('ul'); box.appendChild(ul); } ul.appendChild(inline(el('li'), m[1])); }
+      else if (line.trim()) { ul = null; box.appendChild(inline(el('p'), line)); }
+    });
+    return box;
+  }
+
   // SVG figures render full width; raster figures share a thumbnail grid.
   function figures(list) {
     var box = el('div'), shots = null;
@@ -283,6 +321,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         var fg = el('figure', 'figure');
         if (f.title) fg.appendChild(el('div', 'ftitle', f.title));
         var holder = el('div', 'svgwrap'); holder.innerHTML = f.svg || ''; fg.appendChild(holder);
+        // One viewBox unit = one pixel, so font-size 12–13 renders at reading size; narrower screens scale down.
+        var svg = holder.querySelector('svg'), vb = svg && svg.viewBox && svg.viewBox.baseVal;
+        if (vb && vb.width) svg.style.width = vb.width + 'px';
         if (f.caption) fg.appendChild(el('figcaption', null, f.caption));
         box.appendChild(fg);
       }
@@ -301,17 +342,40 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var sum = el('div', 'summary'), ul = el('ul');
     data.summary.forEach(function (b) {
       var li = el('li');
-      if (typeof b === 'string') { li.textContent = b; }
+      if (typeof b === 'string') { inline(li, b); }
       else {
         if (b.label) li.appendChild(el('span', 'slabel', b.label + (b.text ? ': ' : '')));
-        if (b.text) li.appendChild(document.createTextNode(b.text));
+        if (b.text) inline(li, b.text);
         if (b.points && b.points.length) {
-          var sub = el('ul'); b.points.forEach(function (p) { sub.appendChild(el('li', null, p)); }); li.appendChild(sub);
+          var sub = el('ul'); b.points.forEach(function (p) { sub.appendChild(inline(el('li'), p)); }); li.appendChild(sub);
         }
       }
       ul.appendChild(li);
     });
     sum.appendChild(ul); head.appendChild(sum);
+  }
+  // Outcome, right under the summary: the human approves a destination, not a list of steps.
+  if (data.outcome && data.outcome.length) {
+    var oc = el('section', 'outcome');
+    oc.appendChild(el('h2', null, 'Outcome'));
+    data.outcome.forEach(function (o) {
+      var ov = el('div', 'oview'), oh = el('div', 'ohead');
+      oh.appendChild(el('span', 'tag kind', o.view === 'ui' ? 'mockup' : 'system'));
+      oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
+      ov.appendChild(oh);
+      ov.appendChild(el('figcaption', null, o.caption));
+      var panes = el('div', 'opanes');
+      [['before', 'Today'], ['after', o.before ? 'After' : 'Target']].forEach(function (p) {
+        if (!o[p[0]]) return;
+        var pane = el('div', 'opane ' + p[0]);
+        pane.appendChild(el('div', 'lbl', p[1]));
+        pane.appendChild(figures([o[p[0]]]));
+        panes.appendChild(pane);
+      });
+      ov.appendChild(panes);
+      oc.appendChild(ov);
+    });
+    head.appendChild(oc);
   }
   if (data.figures && data.figures.length) head.appendChild(figures(data.figures));
 
@@ -396,8 +460,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     c.appendChild(h);
     // Body areas: text and decide on the left, evidence on the right when the screen is wide enough.
     var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
-    if (it.detail) text.appendChild(el('div', 'detail', it.detail));
-    if (it.why) text.appendChild(el('div', 'why', it.why));
+    if (it.detail) text.appendChild(rich('detail', it.detail));
+    if (it.why) text.appendChild(rich('why', it.why));
     if (it.metrics && it.metrics.length) {
       var mc = el('div', 'mchips');
       it.metrics.forEach(function (m) {

@@ -19,8 +19,9 @@ Load decision + profile
         ↓
 Draft plan (uses writing-plans conventions if available)
         ↓
-Role review (parallel): CTO (technical soundness, sequencing, risk)
+Role review (parallel): CTO (technical soundness, sequencing, risk) + system sketch
                         PO  (scope, value, priority ordering)
+                        UX  (when a user sees a change) + screen mockup
                         + any specialist the decision implicates
         ↓
 Reconcile review feedback → revised plan
@@ -40,7 +41,10 @@ Produce a step-by-step implementation plan. If `superpowers:writing-plans` (or t
 Dispatch focused review agents against the draft:
 - **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates.
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped.
-- **Ad-hoc specialist** — if the decision implicates a domain (e.g. UX for a UI change, a Performance Analyst for a perf change).
+- **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy.
+- **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
+
+**Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following the *Outcome* rules of `team-ceo-view`. A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 
 Each reviewer cites evidence and flags concrete plan defects, not vibes. Dispatch reviewers on `sonnet` with a budget of about 10 tool calls. Each writes its review to `.council/runs/YYYY-MM-DD-<topic>/review-<role>.md` and replies with the path plus one line per defect.
 
@@ -52,10 +56,11 @@ Write the revised plan to the project's plan location (`docs/plans/YYYY-MM-DD-<t
 
 **REQUIRED SUB-SKILL:** use `team-ceo-view` for approval (`kind: "plan"`, `source` = the draft plan). Map it like this:
 - `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
-- **Each plan step**: a routine decision (Approve/Decline). Add `code` when a step changes an existing interface.
-- **Each risk the reviewers raised that needs acceptance**: a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`.
+- `outcome`: the reviewers' sketches from step 3, `system` and/or `ui`, each with `before` and `after`.
+- **Each plan step**: a routine decision (Approve/Decline). Its `title` is the move; its `detail` gives only what the title lacks (impact, risk), or is omitted. The size goes in `tags` (`"S"`, `"M"`, `"L"`). Add `code` when a step changes an existing interface.
+- **Each risk the reviewers raised that needs acceptance, with a majority** (see *Triage* in `team-ceo-view`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`.
 - `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (from step 4), and risks the reviewers split on with no majority. A risk is either a decision or a tension, never both.
-- **Figure** (only when the steps aren't a straight line): the step dependency graph.
+- No step dependency graph: the order is the executor's concern, and the human approves the destination.
 
 Declines or notes → revise the draft and re-render. On full approval, remove `Status: draft`, delete the run folder, and tell the user: *"`/clear`, then: execute `<plan path>`."* Execution starts from the plan file, not from a context holding the planning.
 
@@ -68,6 +73,9 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Goal
 [The decided direction, in one or two sentences]
+
+## Outcome
+[Links to the approved sketches in .council/gates/YYYY-MM-DD-<topic>/, one line each on what changes. The executor builds towards these]
 
 ## Accepted Trade-offs
 [Carried from the decision — what we knowingly gave up]

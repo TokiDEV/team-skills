@@ -13,7 +13,7 @@
 | [`team-council-plan`](skills/team-council-plan/SKILL.md) | Turns a recorded council decision into an implementation plan, which the CTO and PO roles vet before you approve it. |
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | Bootstraps a brand-new project: vision → scan → council → project brief → initial profile and `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | A panel of refactoring masters reviews scoped code blind: **Uncle Bob, Fowler, Beck, Feathers, Ousterhout**, and a **Minimalist** KISS/YAGNI gate that kills speculative abstractions. You approve the backlog, then it runs one behavior-preserving step per commit behind a characterization-test safety net. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate above as a self-contained HTML page. Each decision is a card that carries its own arguments, metrics, code diff and figures. You decide with the mouse or keyboard, then paste the decisions back into Claude. |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate above as a self-contained HTML page. An *Outcome* block shows where the work lands (a mockup of the target screen, a diagram of the target system) beside today's state. Each decision is a card that carries its own arguments, metrics, code diff and figures. You decide with the mouse or keyboard, then paste the decisions back into Claude. |
 
 ## How they fit together
 

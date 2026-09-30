@@ -9,12 +9,20 @@
     { "label": "Found, not fixed", "points": ["Gold customers' discount rounds down while every other tier rounds to nearest"] },
     { "label": "Recommendation", "points": ["Approve S0–S4", "Keep the gold rounding as-is and ask finance (F1)", "Side with the Minimalist on T1"] }
   ],
+  "outcome": [
+    {
+      "view": "system", "title": "invoice.js after the approved steps",
+      "caption": "The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.",
+      "before": { "svg": "<svg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'><rect x='20' y='45' width='190' height='60' rx='8'/><text x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)</text><rect x='300' y='20' width='300' height='110' rx='8'/><text x='450' y='48' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js: one 140-line function</text><text x='450' y='74' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>tax rule ×3 · tier switch · grand</text><text x='450' y='98' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>format · email · exportCsv() (no caller)</text><path d='M210 75 H300'/><path d='M292 70 L300 75 L292 80'/></svg>" },
+      "after": { "svg": "<svg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'><rect x='20' y='45' width='190' height='60' rx='8'/><text x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)</text><rect x='300' y='30' width='220' height='90' rx='8'/><text x='410' y='62' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js</text><text x='410' y='86' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>TAX_RATE · totalWithTax</text><rect x='610' y='45' width='190' height='60' rx='8' stroke-dasharray='5 4'/><text x='705' y='80' text-anchor='middle' fill='currentColor' stroke='none'>computeDiscount()</text><path d='M210 75 H300 M520 75 H610'/><path d='M292 70 L300 75 L292 80 M602 70 L610 75 L602 80'/></svg>" }
+    }
+  ],
   "decisions": [
     {
       "id": "F1", "group": "Found, not fixed", "title": "Gold discount rounds down",
       "tags": ["money", "behavior change"],
-      "detail": "Gold uses Math.floor on the 10% discount; silver and bronze use Math.round. On a 49.95 € order the gold customer gets 4.99 € off instead of 5.00 €.",
-      "why": "Changes the amount on invoices customers have already received. Step 0 pins today's behavior either way.",
+      "detail": ["Gold floors the 10 % discount; silver and bronze round", "49.95 € order: **4.99 €** off instead of **5.00 €**"],
+      "why": "Changes invoices customers already received. Step 0 pins today's behavior either way.",
       "for": [ { "who": "Fowler", "point": "One rounding rule for every tier removes a Repeated Switch." } ],
       "against": [ { "who": "Minimalist", "point": "Customer-facing money: finance must sign off before we touch it." },
                    { "who": "Feathers", "point": "Pinned as-is in Step 0; fixing it is a separate fix: commit, test-first." } ],
@@ -28,13 +36,13 @@
     },
     {
       "id": "S0", "group": "Backlog", "title": "Characterize invoice totals (safety net)",
-      "detail": "Pin 9 unpinned behaviors: each tier's discount, the 0 € order, tax on shipping, and the email subject line. Prove they bite by flipping the rounding and the tax constant.",
+      "detail": ["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject", "Proves they bite by flipping the rounding and the tax constant"],
       "for": [ { "who": "Feathers", "point": "Today's two tests only cover the silver path." } ],
       "metrics": [ { "label": "Pinned branches", "before": 2, "after": 11, "better": "higher" } ]
     },
     {
       "id": "S1", "group": "Backlog", "title": "Extract Constant: TAX_RATE",
-      "detail": "The 20% rate appears three times; one of them is written 0.2, the others 1.2.",
+      "detail": "The 20 % rate is written three times: once `0.2`, twice `1.2`.",
       "for": [ { "who": "Uncle Bob", "point": "A tax change today means three edits." }, { "who": "Minimalist", "point": "KEEP: removes a present, bug-prone duplication." } ],
       "code": { "before": "const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2", "after": "const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)" }
     },
@@ -69,11 +77,5 @@
   ],
   "rejected": [
     { "id": "UB-4", "title": "DiscountStrategy interface with one class per tier", "reason": "One use today; the switch is not repeated anywhere. Killed by the Minimalist gate." }
-  ],
-  "figures": [
-    {
-      "title": "Module map after the approved steps",
-      "svg": "<svg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'><rect x='20' y='45' width='190' height='60' rx='8'/><text x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)</text><rect x='300' y='30' width='220' height='90' rx='8'/><text x='410' y='62' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js</text><text x='410' y='86' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>TAX_RATE · totalWithTax</text><rect x='610' y='45' width='190' height='60' rx='8' stroke-dasharray='5 4'/><text x='705' y='80' text-anchor='middle' fill='currentColor' stroke='none'>computeDiscount()</text><path d='M210 75 H300 M520 75 H610'/><path d='M292 70 L300 75 L292 80 M602 70 L610 75 L602 80'/></svg>"
-    }
   ]
 }

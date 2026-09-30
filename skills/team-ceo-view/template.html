@@ -128,8 +128,12 @@ dialog.help td:first-child { white-space: nowrap; }
 .tag { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); }
 .tag.warn { background: var(--warn-bg); color: var(--warn); }
 .tag.kind { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 10px; }
-.detail { color: var(--ink); margin-top: 8px; white-space: pre-wrap; }
-.why { color: var(--ink-2); font-size: 13px; margin-top: 6px; white-space: pre-wrap; }
+.detail { color: var(--ink); margin-top: 8px; }
+.why { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
+.detail p, .why p { margin: 0; }
+.detail ul, .why ul { margin: 2px 0 0; padding-left: 18px; }
+.detail code, .why code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
+.detail strong, .why strong { font-weight: 650; }
 .mchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .mchip { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
 .mchip b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -154,6 +158,18 @@ pre { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--code-
   overflow-x: auto; white-space: pre; }
 pre.before { background: var(--del); } pre.after { background: var(--add); }
 .figure { margin: 12px 0 0; }
+/* Outcome: where the work lands, today beside the target */
+.outcome { margin-top: 20px; }
+.outcome .oview { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 10px; }
+.outcome .ohead { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.outcome .ohead b { font-size: 14px; }
+.outcome .opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(640px, 100%), 1fr)); gap: 12px; margin-top: 6px; }
+.outcome .opane { min-width: 0; }
+.outcome .opane .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.outcome .opane.after .lbl { color: var(--accent); font-weight: 700; }
+.outcome .opane .figure, .outcome .opane .shots { margin-top: 4px; }
+.outcome .opane .shots { grid-template-columns: 1fr; }
+.outcome .shots img { max-height: 420px; }
 .figure .ftitle { font-size: 13px; font-weight: 600; }
 .figure .svgwrap { overflow-x: auto; }
 .figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); }
@@ -270,6 +286,28 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     img.addEventListener('keydown', function (e) { if (e.key === 'Enter') open(); });
     return img;
   }
+  // detail and why: an array of bullets, or a string whose "- " lines are bullets.
+  // Inline `code` and **bold** are built as nodes, never as HTML.
+  function inline(parent, text) {
+    String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach(function (part) {
+      if (!part) return;
+      if (/^`[^`]+`$/.test(part)) parent.appendChild(el('code', null, part.slice(1, -1)));
+      else if (/^\*\*[^*]+\*\*$/.test(part)) parent.appendChild(el('strong', null, part.slice(2, -2)));
+      else parent.appendChild(document.createTextNode(part));
+    });
+    return parent;
+  }
+  function rich(cls, value) {
+    var box = el('div', cls), ul = null;
+    var lines = Array.isArray(value) ? value.map(function (b) { return '- ' + b; }) : String(value).split('\n');
+    lines.forEach(function (line) {
+      var m = /^\s*[-•]\s+(.*)$/.exec(line);
+      if (m) { if (!ul) { ul = el('ul'); box.appendChild(ul); } ul.appendChild(inline(el('li'), m[1])); }
+      else if (line.trim()) { ul = null; box.appendChild(inline(el('p'), line)); }
+    });
+    return box;
+  }
+
   // SVG figures render full width; raster figures share a thumbnail grid.
   function figures(list) {
     var box = el('div'), shots = null;
@@ -283,6 +321,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         var fg = el('figure', 'figure');
         if (f.title) fg.appendChild(el('div', 'ftitle', f.title));
         var holder = el('div', 'svgwrap'); holder.innerHTML = f.svg || ''; fg.appendChild(holder);
+        // One viewBox unit = one pixel, so font-size 12–13 renders at reading size; narrower screens scale down.
+        var svg = holder.querySelector('svg'), vb = svg && svg.viewBox && svg.viewBox.baseVal;
+        if (vb && vb.width) svg.style.width = vb.width + 'px';
         if (f.caption) fg.appendChild(el('figcaption', null, f.caption));
         box.appendChild(fg);
       }
@@ -301,17 +342,40 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var sum = el('div', 'summary'), ul = el('ul');
     data.summary.forEach(function (b) {
       var li = el('li');
-      if (typeof b === 'string') { li.textContent = b; }
+      if (typeof b === 'string') { inline(li, b); }
       else {
         if (b.label) li.appendChild(el('span', 'slabel', b.label + (b.text ? ': ' : '')));
-        if (b.text) li.appendChild(document.createTextNode(b.text));
+        if (b.text) inline(li, b.text);
         if (b.points && b.points.length) {
-          var sub = el('ul'); b.points.forEach(function (p) { sub.appendChild(el('li', null, p)); }); li.appendChild(sub);
+          var sub = el('ul'); b.points.forEach(function (p) { sub.appendChild(inline(el('li'), p)); }); li.appendChild(sub);
         }
       }
       ul.appendChild(li);
     });
     sum.appendChild(ul); head.appendChild(sum);
+  }
+  // Outcome, right under the summary: the human approves a destination, not a list of steps.
+  if (data.outcome && data.outcome.length) {
+    var oc = el('section', 'outcome');
+    oc.appendChild(el('h2', null, 'Outcome'));
+    data.outcome.forEach(function (o) {
+      var ov = el('div', 'oview'), oh = el('div', 'ohead');
+      oh.appendChild(el('span', 'tag kind', o.view === 'ui' ? 'mockup' : 'system'));
+      oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
+      ov.appendChild(oh);
+      ov.appendChild(el('figcaption', null, o.caption));
+      var panes = el('div', 'opanes');
+      [['before', 'Today'], ['after', o.before ? 'After' : 'Target']].forEach(function (p) {
+        if (!o[p[0]]) return;
+        var pane = el('div', 'opane ' + p[0]);
+        pane.appendChild(el('div', 'lbl', p[1]));
+        pane.appendChild(figures([o[p[0]]]));
+        panes.appendChild(pane);
+      });
+      ov.appendChild(panes);
+      oc.appendChild(ov);
+    });
+    head.appendChild(oc);
   }
   if (data.figures && data.figures.length) head.appendChild(figures(data.figures));
 
@@ -396,8 +460,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     c.appendChild(h);
     // Body areas: text and decide on the left, evidence on the right when the screen is wide enough.
     var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
-    if (it.detail) text.appendChild(el('div', 'detail', it.detail));
-    if (it.why) text.appendChild(el('div', 'why', it.why));
+    if (it.detail) text.appendChild(rich('detail', it.detail));
+    if (it.why) text.appendChild(rich('why', it.why));
     if (it.metrics && it.metrics.length) {
       var mc = el('div', 'mchips');
       it.metrics.forEach(function (m) {

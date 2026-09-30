@@ -81,7 +81,8 @@ belongs in that call, not here]
 ### CEO gate
 **REQUIRED SUB-SKILL:** use `team-ceo-view` to present the synthesis as a local HTML decision page (`kind: "council"`). Map it like this:
 - `summary` (labelled bullets): *Decision* (what is being decided), *Consensus*, *Recommendation* (the PO's pick and the trade-offs it accepts).
-- **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Put the consensus points in its `detail`, and the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.
+- `outcome` (when the PO's pick changes a screen or the system's shape): the synthesizer sketches where the pick lands, `ui` and/or `system`, today beside the target, into `.council/gates/YYYY-MM-DD-<topic>/`. When another option would land somewhere visibly different, add its `after` sketch to `D1`'s `figures`, captioned with the option's label, so the human compares destinations.
+- **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Its `title` is the question, and its `detail` the facts every option shares (≤ 3 bullets); the consensus points go there too when they fit. Put the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.
 - **More decisions**: one per Majority Call. The majority's option is `recommended`, and the minority's option stays in `options` with its case in `against`.
 - `tensions`: one per Key Tension, each side attributed by role, with the PO's suggested side `recommended`. A Key Tension has no decision card. If D1 itself has no majority, it becomes `T1` and the page has no `D1`.
 - Dissenting views worth noting go in the `against` of the decision they weigh on, or become a minor item if they concern none.

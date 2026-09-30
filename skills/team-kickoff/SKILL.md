@@ -32,11 +32,12 @@ Run `team-scan` on the target directory. On an empty directory it still detects 
 Invoke `team-council` with the vision as the decision context. The roles debate the shape of the project — scope, architecture direction, UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the council through its synthesis but **skip its CEO gate**: step 5 is the single gate for kickoff.
 
 ### 4. Synthesis → brief
-The PO synthesis produces a project brief: the agreed vision, the initial scope, the technical and UX direction, and the tensions to revisit later.
+The PO synthesis produces a project brief: the agreed vision, the initial scope, the technical and UX direction, and the tensions to revisit later. It also sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet.
 
 ### 5. CEO approval
 Write the brief to `.council/decisions/YYYY-MM-DD-kickoff.md`. **REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the brief). Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
+- `outcome`: the v1 sketches from step 4.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*.
 - **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`.
 - `tensions`: direction choices with no majority, and the tensions to revisit later. A choice is either a decision or a tension, never both.
