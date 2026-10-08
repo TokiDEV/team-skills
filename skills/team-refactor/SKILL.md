@@ -1,11 +1,11 @@
 ---
 name: team-refactor
-description: Use when code needs refactoring, cleanup, or a design-quality review — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, SOLID, KISS, YAGNI or clean code on existing code. Panel of refactoring masters with a KISS/YAGNI gate and a human approval gate.
+description: Use when code needs refactoring, cleanup, or a design-quality review — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code. Panel of refactoring lenses with a KISS/YAGNI gate and a human approval gate.
 ---
 
 # team-refactor
 
-A panel of refactoring masters reviews a scoped piece of code in **isolated contexts**, a KISS/YAGNI gate kills speculative work, the human (CEO) approves a backlog, then execution happens in tiny behavior-preserving steps. Same family as `team-council`: evidence-backed, attributed, recorded under `.council/`.
+A panel of refactoring lenses reviews a scoped piece of code in **isolated contexts**, a KISS/YAGNI gate kills speculative work, the human (CEO) approves a backlog, then execution happens in tiny behavior-preserving steps. Same family as `team-council`: evidence-backed, attributed, recorded under `.council/`.
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
@@ -26,16 +26,18 @@ A panel of refactoring masters reviews a scoped piece of code in **isolated cont
 
 Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens on a body of work*, not an impersonation.
 
-| Role | Canon | Signature question | Owns |
+| Role | Sources (a sample; all in the role file) | Signature question | Owns |
 |------|-------|--------------------|------|
-| **Uncle Bob** (`role-uncle-bob.md`) | Clean Code, Clean Architecture, SOLID | "How many reasons does this have to change?" | Responsibilities, naming, dependency direction |
-| **Fowler** (`role-fowler.md`) | *Refactoring* (2nd ed.), smell catalog | "Which smell, and which named refactoring removes it?" | Vocabulary, mechanics |
-| **Beck** (`role-beck.md`) | Simple Design, *Tidy First*, TDD | "What change is coming, and what tidying makes it easy?" | Sequencing, step size |
-| **Feathers** (`role-feathers.md`) | *Working Effectively with Legacy Code* | "How do we get this under test before we touch it?" | Safety net, seams |
-| **Ousterhout** (`role-ousterhout.md`) | *A Philosophy of Software Design* | "Is the interface simpler than what it hides?" | Depth; counterweight to over-splitting |
-| **Minimalist** (`role-minimalist.md`) | KISS, YAGNI, Metz, Rule of Three, Gall | "What breaks if we don't do this?" | **The gate** |
+| **Responsibilities** (`role-responsibilities.md`) | Martin, Liskov, Meyer, Wirfs-Brock | "How many reasons does this have to change?" | Responsibilities, naming, contracts, dependency direction |
+| **Mechanics** (`role-mechanics.md`) | Fowler, Opdyke, Metz & Owen, Lawall | "Which smell, and which named refactoring removes it?" | Vocabulary, mechanics |
+| **Sequencing** (`role-sequencing.md`) | Beck, Descartes, Ohno, the Mikado Method | "What change is coming, and what tidying makes it easy?" | Sequencing, step size |
+| **Safety Net** (`role-safety-net.md`) | Feathers, Bache, mutation testing, Claude Bernard | "How do we get this under test before we touch it?" | Safety net, seams |
+| **Depth** (`role-depth.md`) | Ousterhout, Parnas, Hermans, Simondon | "Is the interface simpler than what it hides?" | Depth; counterweight to over-splitting |
+| **Minimalist** (`role-minimalist.md`) | Jeffries, Metz, Saint-Exupéry, Wirth, Ockham | "What breaks if we don't do this?" | **The gate** |
 
-Built-in tensions worth surfacing, not smoothing: Uncle Bob's small functions ↔ Ousterhout's deep modules; Uncle Bob/Fowler's abstractions ↔ Minimalist's deletion.
+Card IDs carry the seat's prefix: RS, MC, SQ, SN, DP, and MN for the Minimalist.
+
+Built-in tensions worth surfacing, not smoothing: Responsibilities' small functions ↔ Depth's deep modules; Responsibilities/Mechanics' abstractions ↔ Minimalist's deletion.
 
 ## Separation of Context
 
@@ -79,15 +81,15 @@ One read-only agent (a code-exploration agent from the profile's Technical domai
 - **Coverage map**: which branches/behaviors tests pin, which are unpinned
 - Hotspots: `git log` churn for these files
 - Quality-gate commands
-- Upcoming change, if the user named one (Beck sequences toward it)
+- Upcoming change, if the user named one (Sequencing orders toward it)
 - **Excerpts**: the hotspot code itself, with `file:line` headers, at most ~200 lines in all
 
 ### 2. Round 1 — blind panel (parallel)
-Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROFILE}` (or "none"), `{SCOPE}`, `{CODE_BRIEF}`, `{FINDING_CARD_FORMAT}` (the block below), and append the agent contract. Each checks the code itself (read-only) within its budget and writes **at most 5 Finding Cards**, plus a *Leave alone* list and any *Behavior anomalies* spotted. The cap forces prioritization. Feathers also returns the **Step 0 safety-net spec**.
+Dispatch all 6 in one message. Fill each template's placeholders: `{PROJECT_PROFILE}` (or "none"), `{SCOPE}`, `{CODE_BRIEF}`, `{FINDING_CARD_FORMAT}` (the block below), and append the agent contract. Each checks the code itself (read-only) within its budget and writes **at most 5 Finding Cards**, plus a *Leave alone* list and any *Behavior anomalies* spotted. The cap forces prioritization. Safety Net also returns the **Step 0 safety-net spec**.
 
 ```markdown
 ### <ROLE>-<n>: <Smell name> in <file:lines>
-- Principle: <SRP | OCP | DIP | Simple Design rule | Depth | KISS | YAGNI | ...>
+- Principle: <SRP | OCP | DIP | Simple Design rule | Depth | KISS | YAGNI | ...> (<the source from your Sources it comes from>)
 - Evidence: <cited lines; what in the code shows it>
 - Refactoring: <named: Extract Function, Replace Conditional with Polymorphism, Guard Clause, Inline Class, Remove Dead Code, Sprout Method...>
 - Payoff: <a concrete, present gain — "adding a customer type touches 1 place instead of 3". Not "cleaner", not "more extensible">
@@ -108,12 +110,12 @@ A separate synthesizer agent produces the following. The orchestrator reads only
 ## Refactoring Backlog — <scope>
 
 ### Steps (in order)
-Step 0 is always the safety net. Then Beck's order: tidyings that make
+Step 0 is always the safety net. Then Sequencing's order: tidyings that make
 the next change easy → structural moves → deletions.
 | # | Named refactoring | Target | From cards | Size |
 
 ### Step 0 — safety net
-[Feathers's safety-net spec, copied in full]
+[Safety Net's spec, copied in full]
 
 ### Step Cards
 [One per step, in the Step Card format of step 6, followed by its gate
@@ -151,14 +153,14 @@ Architecture-level questions (new layers, changing a public contract) → recomm
 
 **Hand off to a fresh session.** Write two files now:
 - **The record**, `.council/refactors/YYYY-MM-DD-<topic>.md`, for humans and future refactors: `Status: approved, not executed`, the synthesis, the CEO decisions with their notes, rejected cards, tensions and the *Next run* list.
-- **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, for the executors and nothing else: a header (scope, quality-gate commands, fences for the whole run), Feathers's Step 0 spec, the approved Step Cards in order, and the approved `fix:` items. No debate, no arguments, no rejected items. Aim under ~150 lines.
+- **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, for the executors and nothing else: a header (scope, quality-gate commands, fences for the whole run), Safety Net's Step 0 spec, the approved Step Cards in order, and the approved `fix:` items. No debate, no arguments, no rejected items. Aim under ~150 lines.
 
 Then hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
 
 ### 6. Execute
 Start from the exec brief. Don't read the record or the run folder.
 
-**Step 0 — safety net** (Feathers): add characterization tests for every unpinned behavior the approved steps touch, run them green against the *untouched* code, then prove they bite: break the code deliberately (flip a rounding, a comparison, a constant), confirm a test fails, restore. Commit `test: characterize <scope>`.
+**Step 0 — safety net** (Safety Net): add characterization tests for every unpinned behavior the approved steps touch, run them green against the *untouched* code, then prove they bite: break the code deliberately (flip a rounding, a comparison, a constant), confirm a test fails, restore. Commit `test: characterize <scope>`.
 
 Then group the approved steps into **Step Batches**: consecutive steps in backlog order, size S, touching overlapping files, at most 4 per batch. Any M or L step is a batch of one. Dispatch a **fresh executor** per batch with its Step Cards and the exec brief's header:
 

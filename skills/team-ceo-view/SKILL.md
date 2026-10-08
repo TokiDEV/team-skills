@@ -24,7 +24,7 @@ Turns a CEO gate into a local HTML decision page. Under the summary, an **Outcom
    S1 = approve
    F1 = keep | note: add a comment explaining why
    T1 = Minimalist
-   UB-1a = revive
+   RS-1a = revive
    S9 = UNDECIDED
    ```
    `T*` lines are tension verdicts (the side the human took, or `defer`). A rejected item comes back as `keep-rejected` or `revive`, and a revived one re-enters the calling skill's flow as a new candidate.
@@ -112,7 +112,7 @@ The renderer rejects a `detail` or `why` over its length, a `detail` that opens 
       "tags": ["money", "behavior change"],
       "detail": ["What is true today", "What it costs, with the number in **bold** (screenshot 3)"],
       "why": "Why it needs a human decision, one line.",
-      "for": [ { "who": "Fowler", "point": "One rounding rule for every tier." } ],
+      "for": [ { "who": "Mechanics", "point": "One rounding rule for every tier." } ],
       "against": [ { "who": "Minimalist", "point": "Changes invoices already sent; finance must sign off." } ],
       "metrics": [ { "label": "Tiers using floor", "before": 1, "after": 0, "better": "lower" } ],
       "code": { "before": "Math.floor(total * 0.1)", "after": "Math.round(total * 0.1)" },
@@ -128,10 +128,10 @@ The renderer rejects a `detail` or `why` over its length, a `detail` that opens 
   ],
   "tensions": [
     { "id": "T1", "topic": "Extract buildInvoice?", "sides": [
-      { "who": "Uncle Bob + Ousterhout", "position": "Strongest case for…" },
+      { "who": "Responsibilities + Depth", "position": "Strongest case for…" },
       { "who": "Minimalist", "position": "Strongest case against…", "recommended": true } ] }
   ],
-  "rejected": [ { "id": "JO-3", "title": "Per-type rule table", "reason": "One use; hides the floor quirk" } ],
+  "rejected": [ { "id": "DP-3", "title": "Per-type rule table", "reason": "One use; hides the floor quirk" } ],
   "figures": [ { "title": "Vote spread", "svg": "<svg viewBox='0 0 800 160'>…</svg>" } ]
 }
 ```

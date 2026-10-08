@@ -16,17 +16,17 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 
 ## Roles
 
-Templates live in `roles/` next to this file. Each role is a lens on a body of work, like the panel in `team-refactor`.
+Templates live in `roles/` next to this file. Each role is a lens with its own `## Sources`, like the panel in `team-refactor`.
 
-| Role | Canon | Signature question | Specialists (from the profile) |
+| Role | Sources (a sample; all in the role file) | Signature question | Specialists (from the profile) |
 |------|-------|--------------------|--------------------------------|
-| **PO** (`role-po.md`) | Cagan, *Inspired*; Torres, *Continuous Discovery Habits* | "Which outcome does this move, and what is the cheapest way to learn if it will?" | Process domain, project docs, git history |
-| **CTO** (`role-cto.md`) | Brooks, *No Silver Bullet*; Nygard, *Release It!*; one-way vs two-way doors | "What is expensive to undo, and what will this cost to run and change?" | Technical domain, lint/typecheck/test commands |
-| **UX** (`role-ux.md`) | Norman, *The Design of Everyday Things*; Nielsen's heuristics; Krug | "Where does the user get stuck, and how do they know what happened?" | UX domain (e.g. `impeccable`) |
-| **Philosopher** (`role-philosopher.md`) | Rodin's method; Popper; Kahneman | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
-| **Wildcard** (`role-wildcard.md`) | Munger's inversion; Klein's pre-mortem | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
+| **PO** (`role-po.md`) | Cagan, Torres, Perri, Adžić, Osterwalder & Pigneur | "Which outcome does this move, and what is the cheapest way to learn if it will?" | Process domain, project docs, git history |
+| **CTO** (`role-cto.md`) | Brooks, Nygard, Kruchten & Ozkaya, Majors, Hamilton | "What is expensive to undo, and what will this cost to run and change?" | Technical domain, lint/typecheck/test commands |
+| **UX** (`role-ux.md`) | Norman, Nielsen, Holmes, Suchman, Bertin | "Where does the user get stuck, and how do they know what happened?" | UX domain (e.g. `impeccable`) |
+| **Philosopher** (`role-philosopher.md`) | Ibn al-Haytham, Popper, Bachelard, Longino, Gigerenzer | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
+| **Wildcard** (`role-wildcard.md`) | Munger, Klein, Altshuller, Meadows, Queneau | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
 
-**Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones.
+**Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones. Write each one 3–5 sources (see `team-protocol`).
 
 **Scope control**: each role may invoke only its allowed specialists. Never let a role invoke a tool that modifies state during debate.
 

@@ -11,7 +11,11 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 
 - **One agent per role, dispatched in parallel.** Never play the roles yourself in one context: one context gives one opinion wearing several costumes, and you'll get "everyone agrees" with no tension.
 - **Pass the model and budget** from the caller's table to every dispatch.
-- **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins.
+- **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins. `<name>` is the role's current file name: an override under a renamed role's old name is ignored (the README lists the renames).
+- **Roles are lenses.** A role is named after what it looks at, never after a person. This holds for built-in roles, ad-hoc specialists and project overrides.
+- **Sources.** Every role file has a `## Sources` section: 5–8 entries, one line each, a source and the question or test it brings. The list is varied on purpose, in gender, country, discipline and epoch. A source earns its place by changing what the agent does.
+- **Pick and declare.** The agent picks the 2–3 sources that best fit the case and is not bound to the others. It names the ones it used, where its caller's output format says.
+- **Ad-hoc specialists.** When you summon one, write it 3–5 sources by the same rule.
 - **Attribution.** Every finding is credited to the role that made it, including what a role got from a specialist skill.
 
 ## Run folder

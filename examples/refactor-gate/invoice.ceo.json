@@ -23,9 +23,9 @@
       "tags": ["money", "behavior change"],
       "detail": ["Gold floors the 10 % discount; silver and bronze round", "49.95 € order: **4.99 €** off instead of **5.00 €**"],
       "why": "Changes invoices customers already received. Step 0 pins today's behavior either way.",
-      "for": [ { "who": "Fowler", "point": "One rounding rule for every tier removes a Repeated Switch." } ],
+      "for": [ { "who": "Mechanics", "point": "One rounding rule for every tier removes a Repeated Switch." } ],
       "against": [ { "who": "Minimalist", "point": "Customer-facing money: finance must sign off before we touch it." },
-                   { "who": "Feathers", "point": "Pinned as-is in Step 0; fixing it is a separate fix: commit, test-first." } ],
+                   { "who": "Safety Net", "point": "Pinned as-is in Step 0; fixing it is a separate fix: commit, test-first." } ],
       "metrics": [ { "label": "Tiers using floor", "before": 1, "after": 0, "better": "lower" } ],
       "code": { "before": "discount = Math.floor(total * 0.1 * 100) / 100", "after": "discount = Math.round(total * 0.1 * 100) / 100" },
       "options": [
@@ -37,18 +37,18 @@
     {
       "id": "S0", "group": "Backlog", "title": "Characterize invoice totals (safety net)",
       "detail": ["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject", "Proves they bite by flipping the rounding and the tax constant"],
-      "for": [ { "who": "Feathers", "point": "Today's two tests only cover the silver path." } ],
+      "for": [ { "who": "Safety Net", "point": "Today's two tests only cover the silver path." } ],
       "metrics": [ { "label": "Pinned branches", "before": 2, "after": 11, "better": "higher" } ]
     },
     {
       "id": "S1", "group": "Backlog", "title": "Extract Constant: TAX_RATE",
       "detail": "The 20 % rate is written three times: once `0.2`, twice `1.2`.",
-      "for": [ { "who": "Uncle Bob", "point": "A tax change today means three edits." }, { "who": "Minimalist", "point": "KEEP: removes a present, bug-prone duplication." } ],
+      "for": [ { "who": "Responsibilities", "point": "A tax change today means three edits." }, { "who": "Minimalist", "point": "KEEP: removes a present, bug-prone duplication." } ],
       "code": { "before": "const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2", "after": "const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)" }
     },
     {
       "id": "S2", "group": "Backlog", "title": "Rename Variable: grand → totalWithTax",
-      "for": [ { "who": "Uncle Bob", "point": "'grand' is read 11 times and never says what it holds." } ],
+      "for": [ { "who": "Responsibilities", "point": "'grand' is read 11 times and never says what it holds." } ],
       "code": { "before": "const grand = net + tax\nsendInvoice(grand)", "after": "const totalWithTax = net + tax\nsendInvoice(totalWithTax)" }
     },
     {
@@ -59,8 +59,8 @@
     {
       "id": "S4", "group": "Backlog", "title": "Extract Function: computeDiscount(tier, total)",
       "detail": "Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.",
-      "for": [ { "who": "Beck", "point": "Make the change easy, then make the easy change: platinum lands next sprint." } ],
-      "against": [ { "who": "Ousterhout", "point": "Fine only if it takes the rounding with it; a shallow wrapper would leak it." } ],
+      "for": [ { "who": "Sequencing", "point": "Make the change easy, then make the easy change: platinum lands next sprint." } ],
+      "against": [ { "who": "Depth", "point": "Fine only if it takes the rounding with it; a shallow wrapper would leak it." } ],
       "code": { "before": "if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …", "after": "const discount = computeDiscount(tier, total)" }
     },
     { "id": "Q1", "title": "Currency symbol printed after a space ('12,00 €')", "minor": true, "default": "approve" },
@@ -70,12 +70,12 @@
     {
       "topic": "Split invoice.js into calculate / format / send modules?",
       "sides": [
-        { "who": "Uncle Bob", "position": "Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh." },
-        { "who": "Minimalist + Ousterhout", "position": "After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.", "recommended": true }
+        { "who": "Responsibilities", "position": "Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh." },
+        { "who": "Minimalist + Depth", "position": "After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.", "recommended": true }
       ]
     }
   ],
   "rejected": [
-    { "id": "UB-4", "title": "DiscountStrategy interface with one class per tier", "reason": "One use today; the switch is not repeated anywhere. Killed by the Minimalist gate." }
+    { "id": "RS-4", "title": "DiscountStrategy interface with one class per tier", "reason": "One use today; the switch is not repeated anywhere. Killed by the Minimalist gate." }
   ]
 }
