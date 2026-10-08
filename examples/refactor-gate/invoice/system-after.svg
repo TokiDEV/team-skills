@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 268" font-size="12">
+  <rect x="212" y="24" width="584" height="156" rx="8" fill="none" stroke-dasharray="5 4" style="stroke: var(--ink-2)"/>
+  <rect x="220" y="16" width="116" height="16" style="fill: var(--surface)"/>
+  <text x="228" y="28" style="fill: var(--ink-2); font-family: var(--mono)">src/invoice.js</text>
+
+  <path d="M174 102 H236" fill="none" style="stroke: var(--ink-2)"/>
+  <path d="M236 97 L244 102 L236 107 Z" style="fill: var(--ink-2)"/>
+  <path d="M494 128 H552" fill="none" style="stroke: var(--ink-2)"/>
+  <path d="M552 123 L560 128 L552 133 Z" style="fill: var(--ink-2)"/>
+
+  <rect x="24" y="82" width="150" height="40" rx="6" stroke="currentColor" style="fill: var(--surface)"/>
+  <text x="99" y="106" text-anchor="middle" fill="currentColor" style="font-family: var(--mono)">checkout.js</text>
+
+  <rect x="244" y="56" width="250" height="92" rx="6" stroke="currentColor" style="fill: var(--surface)"/>
+  <text x="369" y="84" text-anchor="middle" fill="currentColor" font-size="13" style="font-family: var(--mono)">invoice()</text>
+  <text x="369" y="108" text-anchor="middle" style="fill: var(--ink-2)">112 lines · one TAX_RATE</text>
+  <text x="369" y="126" text-anchor="middle" style="fill: var(--ink-2)">format · email</text>
+  <text x="494" y="48" text-anchor="end" font-size="11" fill="currentColor" style="font-family: var(--mono)">CHANGED</text>
+
+  <rect x="560" y="56" width="160" height="40" rx="6" stroke-dasharray="5 4" style="fill: var(--surface); stroke: var(--ink-2)"/>
+  <text x="640" y="80" text-anchor="middle" style="fill: var(--ink-2); font-family: var(--mono)">exportCsv()</text>
+  <text x="728" y="80" font-size="11" fill="currentColor" style="font-family: var(--mono)">REMOVED</text>
+
+  <rect x="560" y="108" width="160" height="40" rx="6" stroke-width="1.5" style="fill: var(--surface); stroke: var(--accent)"/>
+  <text x="640" y="132" text-anchor="middle" fill="currentColor" style="font-family: var(--mono)">computeDiscount()</text>
+  <text x="728" y="132" font-size="11" fill="currentColor" style="font-family: var(--mono)">NEW</text>
+
+  <text x="24" y="214" fill="currentColor"><tspan font-size="11" style="font-family: var(--mono)">NEW</tspan><tspan x="96">computeDiscount(tier, total): the tier switch and its rounding leave invoice()</tspan></text>
+  <text x="24" y="234" fill="currentColor"><tspan font-size="11" style="font-family: var(--mono)">REMOVED</tspan><tspan x="96">exportCsv(): no caller in the repo or its git history</tspan></text>
+  <text x="24" y="254" fill="currentColor"><tspan font-size="11" style="font-family: var(--mono)">CHANGED</tspan><tspan x="96">invoice(): 140 → 112 lines, one TAX_RATE in place of three tax literals</tspan></text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 196" font-size="12">
+  <rect x="212" y="24" width="584" height="156" rx="8" fill="none" stroke-dasharray="5 4" style="stroke: var(--ink-2)"/>
+  <rect x="220" y="16" width="116" height="16" style="fill: var(--surface)"/>
+  <text x="228" y="28" style="fill: var(--ink-2); font-family: var(--mono)">src/invoice.js</text>
+
+  <path d="M174 102 H236" fill="none" style="stroke: var(--ink-2)"/>
+  <path d="M236 97 L244 102 L236 107 Z" style="fill: var(--ink-2)"/>
+
+  <rect x="24" y="82" width="150" height="40" rx="6" stroke="currentColor" style="fill: var(--surface)"/>
+  <text x="99" y="106" text-anchor="middle" fill="currentColor" style="font-family: var(--mono)">checkout.js</text>
+
+  <rect x="244" y="56" width="250" height="92" rx="6" stroke="currentColor" style="fill: var(--surface)"/>
+  <text x="369" y="84" text-anchor="middle" fill="currentColor" font-size="13" style="font-family: var(--mono)">invoice()</text>
+  <text x="369" y="108" text-anchor="middle" style="fill: var(--ink-2)">140 lines · tax rule ×3</text>
+  <text x="369" y="126" text-anchor="middle" style="fill: var(--ink-2)">tier switch · format · email</text>
+
+  <rect x="560" y="56" width="160" height="40" rx="6" stroke="currentColor" style="fill: var(--surface)"/>
+  <text x="640" y="80" text-anchor="middle" fill="currentColor" style="font-family: var(--mono)">exportCsv()</text>
+</svg>

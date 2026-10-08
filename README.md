@@ -18,24 +18,7 @@
 
 ## How they fit together
 
-```mermaid
-flowchart LR
-    subgraph protocol["team-protocol · shared rules: dispatch, counting, handoff"]
-        kickoff[team-kickoff<br/>new project]
-        council[team-council<br/>debate → decision]
-        plan[team-council-plan<br/>decision → plan]
-        refactor[team-refactor<br/>panel → backlog]
-    end
-    scan[team-scan<br/>project profile] --> council
-    scan --> refactor
-    kickoff --> scan
-    kickoff --> council
-    council --> plan
-    council -. CEO gate .-> view((team-ceo-view))
-    plan -. CEO gate .-> view
-    kickoff -. CEO gate .-> view
-    refactor -. CEO gate .-> view
-```
+![team-scan writes the project profile that team-council and team-refactor read; team-kickoff runs team-scan, then team-council; team-council's decision feeds team-council-plan. All four skills run under team-protocol's shared rules, and each ends at a CEO gate rendered by team-ceo-view, where you decide.](docs/how-they-fit.svg)
 
 Everything a run produces is plain Markdown under `.council/` in your project, so it can be committed and diffed:
 

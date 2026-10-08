@@ -13,8 +13,8 @@
     {
       "view": "system", "title": "invoice.js after the approved steps",
       "caption": "The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.",
-      "before": { "svg": "<svg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'><rect x='20' y='45' width='190' height='60' rx='8'/><text x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)</text><rect x='300' y='20' width='300' height='110' rx='8'/><text x='450' y='48' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js: one 140-line function</text><text x='450' y='74' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>tax rule ×3 · tier switch · grand</text><text x='450' y='98' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>format · email · exportCsv() (no caller)</text><path d='M210 75 H300'/><path d='M292 70 L300 75 L292 80'/></svg>" },
-      "after": { "svg": "<svg viewBox='0 0 820 150' xmlns='http://www.w3.org/2000/svg' font-family='ui-sans-serif, system-ui' font-size='13' fill='none' stroke='currentColor'><rect x='20' y='45' width='190' height='60' rx='8'/><text x='115' y='80' text-anchor='middle' fill='currentColor' stroke='none'>checkout.js (caller)</text><rect x='300' y='30' width='220' height='90' rx='8'/><text x='410' y='62' text-anchor='middle' fill='currentColor' stroke='none'>invoice.js</text><text x='410' y='86' text-anchor='middle' fill='currentColor' stroke='none' opacity='.7'>TAX_RATE · totalWithTax</text><rect x='610' y='45' width='190' height='60' rx='8' stroke-dasharray='5 4'/><text x='705' y='80' text-anchor='middle' fill='currentColor' stroke='none'>computeDiscount()</text><path d='M210 75 H300 M520 75 H610'/><path d='M292 70 L300 75 L292 80 M602 70 L610 75 L602 80'/></svg>" }
+      "before": { "src": "invoice/system-before.svg" },
+      "after": { "src": "invoice/system-after.svg" }
     }
   ],
   "decisions": [
