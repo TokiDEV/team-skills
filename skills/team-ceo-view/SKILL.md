@@ -63,8 +63,9 @@ The page is for decisions, not an inventory. Before writing the JSON:
 
 - `after` is required. `before` goes in whenever something exists today; a kickoff has none.
 - `caption` (required): one line naming what changed, e.g. "Discount line moves under the subtotal; nothing else moves".
-- In `after`, draw new parts solid and labelled *new*, and removed parts dashed. Keep both diagrams on the same layout, so the change is what the eye catches.
 - Both views when both change. A figure is `{ "svg" }` or `{ "src" }` (rules below). A `.svg` file given as `src` is inlined, so an agent can write the sketch to the gate folder and point to it.
+
+**Before drawing any figure** (an outcome or an item's), read `figures.md` in this skill's base directory. It says whether to draw at all, picks the diagram type for what the figure shows, and holds the drawing rules, including the before/after grammar for a pair.
 
 ## Writing an item
 
@@ -148,5 +149,5 @@ Field rules:
 - `figures` entries take either `svg` or `src`:
   - `src` points to an image such as a screenshot. It must be **relative to the JSON file**; absolute, `/tmp` and URL paths are rejected. The renderer embeds the image, so the `.html` stays one file. A click opens it full size. The caption says what to look at, e.g. "knob 17.6 kHz, graph still at 1 kHz". (`images` is accepted as an old name for `figures`.)
   - `svg` is trusted inline SVG. The page is dark: use `currentColor` for strokes and text, and no light fills. Make the `viewBox` about 700–900 units wide with `font-size` 12–13, so the text renders at reading size; a narrower viewBox gets scaled up.
-- A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). The order the work runs in is the executor's concern, so a step dependency graph or a timeline has no place on the page.
+- A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`. The order the work runs in is the executor's concern, so a step dependency graph or a timeline has no place on the page.
 - Page-level `figures` are only for evidence that spans many items (it shows under the outcome). Anything about one item goes on that item.

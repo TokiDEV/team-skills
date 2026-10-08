@@ -46,7 +46,7 @@ Dispatch focused review agents against the draft:
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
 
-**Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following the *Outcome* rules of `team-ceo-view`. A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
+**Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following the *Outcome* rules of `team-ceo-view` and its `figures.md` (pass the reviewer its path: `../team-ceo-view/figures.md` from this skill's base directory). A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 
 Each reviewer cites evidence and flags concrete plan defects, not vibes. Dispatch reviewers on `sonnet` with a budget of about 10 tool calls and the agent contract (agent id `review-<role>`); each replies with one line per defect.
 
