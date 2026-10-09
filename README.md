@@ -98,8 +98,16 @@ These are personal skills, shared as-is. Here is what has been exercised so far:
 - ✅ `team-council` on a real architecture decision, recorded and later consumed by a refactor
 - ✅ `team-scan` refreshing an existing profile
 - ✅ `team-ceo-view` rendering and the decision round-trip, including large pages built by an agent on its own (up to 51 decisions, 3 tensions, 17 rejected items)
-- ⚠️ The token-economy changes (model tiers, agent contract, fresh-session handoffs, Step Batches) have been checked by an agent reading them, not yet on a live run. They came from a weekend of live runs where most of the tokens went to the orchestrator's growing context and to executing long backlogs, not to the debate itself.
-- ⚠️ Not yet on a live run either: the council's proportional roster and source-anchored roles, evidence-based counting, the Minimalist gate rule, the refactor exec brief, and `team-protocol`. `render.js --serve` has been tested end to end in a headless browser.
+- ✅ The token-economy changes, on a live 0.4.0 `team-refactor` run (a branch diff on a TypeScript backend, gate then a fresh execution session). Every agent ran on its table model, within its tool budget, wrote to the run folder and replied in 1–2.5k characters. The orchestrator opened only the synthesis, and execution started fresh from a 96-line exec brief. Compared with a pre-0.4.0 run on another project (different scope, so orders of magnitude only):
+  - the six panelists went from 15.7M tokens in 185 turns to 1.8M in 30;
+  - the largest executor went from 28.9M to 1.1M;
+  - the whole run went from about 104M to 17M.
+
+  The orchestrator is now the largest cost (57–62%), mostly a fixed context of about 60k tokens re-read on each of its 94 Opus turns, so its turn count is the next thing to cut.
+- ✅ On the same run: `team-protocol`, the refactor exec brief, and the Minimalist gate rule. The gate issued KILL and SHRINK verdicts, and a card three panelists had found was settled by counted positions (1–3), not sent to the CEO as a tension. The six panelists, the gate and one tension pair all sat.
+- ⚠️ Step Batches applied but not exercised: with 3 steps, one of them size M, there was nothing to group. Positions were counted, but the count was not written in the `3–1` tag form. Only one finding card named a source.
+- ⚠️ Not yet on a live run: the council's proportional roster and source-anchored council roles. `render.js --serve` has been tested end to end in a headless browser.
+- ⚠️ In a worktree whose git directory is outside the sandbox's write paths (a `.bare/` layout), executors cannot commit. On the live run they saved one patch per step, and the orchestrator rebuilt one commit per step outside the sandbox. Add that git directory to the sandbox's write paths.
 - ⚠️ Not yet on a live run, nor pressure-tested: the trigger-only descriptions, the rationalization and red-flag tables in `team-protocol`, `team-council` and `team-council-plan`, the framing interview in `team-kickoff` and `team-council`, the off-model seat, decision-record supersession, and the check-weakening review.
 
 Issues and PRs are welcome.
