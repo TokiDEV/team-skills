@@ -18,6 +18,21 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 - **Ad-hoc specialists.** When you summon one, write it 3–5 sources by the same rule.
 - **Attribution.** Every finding is credited to the role that made it, including what a role got from a specialist skill.
 
+## Off-model seat
+
+The roles share one model, so their agreement can be a shared prior (see *Counting positions*). A seat run on another vendor's model brings a different one. The caller names the seat that can go off-model; this section says how.
+
+- **Consent first.** The profile's *Other Models* lists the CLIs found. Run the seat off-model when its *Team Preferences* says `Off-model seat: yes`, or when the user says yes to the offer in your roster line: *"Philosopher on codex? It sends the brief to OpenAI."* With `no`, no CLI, or no user to ask (CI, a loop), stay on-model and say so in one line. Never call an external CLI without one of those yeses.
+- **Same inputs as on-model.** Write the role template, its brief and the agent contract to `<run folder>/<agent id>.prompt.md`. Replace the contract's "Write your full output" line with: `Your reply is your output; end it with a "## Summary" section of one line per position.`
+- **Read-only, through stdin.** Check the binary first (`<cli> --version`), then pipe the prompt file in and redirect the reply to the run folder. The prompt holds quotes, backticks and `$(...)`, so it never goes into a shell argument:
+  ```bash
+  codex exec --sandbox read-only -C <repo> - < <run folder>/<id>.prompt.md > <run folder>/<id>.md
+  gemini --approval-mode plan -p "" < <run folder>/<id>.prompt.md > <run folder>/<id>.md
+  ```
+  Flags change between versions: on an error, check `--help`. If it still fails, say so and run the seat on-model.
+- **Read only its Summary.** The orchestrator reads that section, not the whole reply.
+- **Counted like any other position**, by the same evidence rule. Credit it with its model, e.g. `Philosopher (codex)`, so the CEO can see where on-model and off-model positions part.
+
 ## Run folder
 
 `.council/runs/YYYY-MM-DD-<topic>/`. Every agent writes its full output there. Later agents (Round 2, gate, synthesizer) read the files they need from it. The orchestrator reads only the synthesis file, plus the one-line replies.
@@ -52,3 +67,23 @@ Each CEO gate ends a session. Write the record the next phase needs, delete the 
 *"`/clear`, then: <next command> `<path>`."*
 
 The next phase starts from that file, not from a context that holds the whole debate.
+
+## Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "I'll play the roles myself, it's faster" | One context gives one opinion wearing several costumes, and no tension. Dispatch them. |
+| "Four roles back it, that's a clear majority" | Count only positions with checkable evidence. Four uncited agents on one model are one prior counted four times. |
+| "I'll skim the transcripts to check the synthesis is fair" | Every file you read is re-read on every later turn. The synthesizer read them; you read its file. |
+| "It's close, I'll pick a side and call it a decision" | No majority makes it a tension. The synthesizer suggests a side; the CEO takes it. |
+| "We're on a roll, I'll keep going in this session" | The next phase would pay for this whole context on every turn. Write the record, then `/clear`. |
+| "The user won't mind the brief going to codex" | Sending their code to another vendor needs their yes, from the profile or from them. |
+
+## Red Flags
+
+- Writing a role's position, card or verdict yourself
+- Every role agreeing on everything
+- A count in `tags` that includes a position with no `file:line`, doc, output or measurement
+- Opening a run-folder file other than the synthesis
+- Starting the next phase in the session that ran the gate
+- An external model CLI called without a yes on record

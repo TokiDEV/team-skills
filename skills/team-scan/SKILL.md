@@ -1,6 +1,6 @@
 ---
 name: team-scan
-description: Scan a project to detect its stack, conventions, and available skills/agents, then write a reusable `.council/project-profile.md` consumed by team-council, team-council-plan, and team-kickoff. Use before running the council for the first time in a project, or to refresh the profile after the stack or tooling changes.
+description: Use before the first team-council, team-council-plan, team-kickoff or team-refactor run in a project, when `.council/project-profile.md` is missing, or when the stack, conventions, installed skills or agents have changed since the profile was written.
 ---
 
 # team-scan
@@ -18,8 +18,10 @@ Produces the project profile that every council skill reads. Run it once per pro
    - **Project-specific**: agents, MCP servers and skills that only make sense for this project (a database MCP, a deploy skill)
 
    Leave out what fits no domain (document formats, config helpers). The `team-*` skills themselves are not specialists.
-4. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
-5. **Team preferences** — memory files, feedback patterns, design docs, existing decisions under `.council/decisions/`.
+4. **Other models** — `codex` and `gemini` on PATH (`command -v`), with `--version`. Detect only: never send them a prompt here. The council's off-model seat (`team-protocol`) uses what you find.
+5. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
+6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
+7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
 
 ## Procedure
 
@@ -47,11 +49,19 @@ One line each: `<name> — what it is for` (e.g. "writes plans", "executes plans
 - Process: <mapped skills/agents>
 - Project-specific: <custom agents, MCP tools>
 
+## Other Models
+- `<cli> <version>` per CLI found, or "none"
+
 ## Project Phase
 - Maturity, git depth, existing plans/decisions
 
+## Decision Records
+- The project's own: location, format, numbering (e.g. "docs/adr/, MADR, NNNN-title.md"), or "none"
+- Council decisions: count and latest under .council/decisions/
+
 ## Team Preferences
 - Memory/feedback/design-doc signals worth carrying into council debates
+- Off-model seat: yes | no | ask (default: ask)
 ```
 
 ## Notes

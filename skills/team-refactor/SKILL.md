@@ -1,6 +1,6 @@
 ---
 name: team-refactor
-description: Use when code needs refactoring, cleanup, or a design-quality review — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code. Panel of refactoring lenses with a KISS/YAGNI gate and a human approval gate.
+description: Use when code needs refactoring, cleanup, or a design-quality review — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code.
 ---
 
 # team-refactor
@@ -174,7 +174,7 @@ Commit: refactor(<scope>): <Named refactoring> in <target>
 On red: revert the step, report why, stop.
 ```
 
-The executor runs the steps in order and commits after each one, so Iron Laws 3 and 4 still hold per step. It replies with one line per step: commit hash, or `reverted — <reason>`. Between batches, the orchestrator runs the gates itself. Last, one reviewer agent (opus) reads the full diff against the exec brief: nothing smuggled in, nothing behavioral, no step skipped.
+The executor runs the steps in order and commits after each one, so Iron Laws 3 and 4 still hold per step. It replies with one line per step: commit hash, or `reverted — <reason>`. Between batches, the orchestrator runs the gates itself. Last, one reviewer agent (opus) reads the full diff against the exec brief: nothing smuggled in, nothing behavioral, no step skipped, no check weakened (a lowered threshold, a skipped or deleted test, an assertion removed, a new `@ts-ignore`, `eslint-disable` or coverage ignore, a stub or empty `catch` where moved code used to be).
 
 ### 7. Record
 Complete `.council/refactors/YYYY-MM-DD-<topic>.md`: add the commits (hash and step, one line each), the reverted steps with their reason, and any open anomalies, and set `Status: executed`. Delete the exec brief: anything worth keeping is in the record by now (the run folder went at the gate). Future refactors read past records first.
@@ -190,12 +190,15 @@ Complete `.council/refactors/YYYY-MM-DD-<topic>.md`: add the commits (hash and s
 | "The tests pass, so it's safe" | Two tests on one branch pin nothing. Check the coverage map. |
 | "This step is tiny, I'll fold it into the next commit" | Folded steps lose the ability to revert one cleanly. Batch steps in one executor, never in one commit. |
 | "It went red, I'll just fix the test" | The test is the spec. Revert the step. |
+| "The linter trips on the moved code; one `eslint-disable` and it's green" | A silenced check lowers the bar the step is measured against. Revert, shrink the step, retry. |
 
 ## Red Flags — stop and return to the flow
 
 - Writing an interface, base class, registry or plugin point with one implementation
 - A commit message containing "and"
 - Changing an expected value in an existing test
+- A new `.skip`, `@ts-ignore`, `eslint-disable` or coverage ignore, or a threshold lowered in config
+- A stub, an empty `catch` or a `TODO` where moved code used to be
 - Editing a file outside the fence
 - Reasoning "they'll need this later"
 - Panel output where every role agrees on everything

@@ -1,6 +1,6 @@
 ---
 name: team-council-plan
-description: Turn a resolved council decision into a concrete implementation plan. Run AFTER team-council has reached a decision — it reads the recorded decision from `.council/decisions/`, drafts a step-by-step plan, and has the CTO/PO roles vet it before finalizing. Use when the council has decided WHAT to do and you now need the plan for HOW.
+description: Use when a council decision is recorded under `.council/decisions/` and the next step is planning how to carry it out, or when the user asks to plan the council's decision. Not for planning work the council never decided.
 ---
 
 # team-council-plan
@@ -108,6 +108,24 @@ When the profile lists none, execute from the plan file this way:
 1. Group the steps into batches as *Execution economy* says. Dispatch a fresh implementer per batch with its steps and the plan's *Goal* and *Outcome*, never the decision record.
 2. The implementer writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, or `blocked — <reason>`.
 3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.
-4. Last, one reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached.
+4. Last, one reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (a lowered threshold, a skipped or deleted test, a new `@ts-ignore` or `eslint-disable`, a stub or empty `catch` where the work should be).
 
 Set `Status: executed` on the plan when done. Keep it traceable to the decision so future readers see both the "what" and the "how".
+
+## Rationalizations
+
+The shared ones are in `team-protocol`. These are the planner's own.
+
+| Excuse | Reality |
+|--------|---------|
+| "The council's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Note the concern as a tension; a different direction is a new council. |
+| "This extra step is small and useful" | Nothing smuggled in, nothing dropped: that is what the PO reviewer checks. Raise it at the gate instead. |
+| "The reviewer can't sketch the outcome, so skip the figure" | A plan whose result can't be drawn doesn't say what it builds. Fix the plan. |
+| "It's approved, I'll start executing here" | Execution starts from the plan file, in a fresh session. |
+
+## Red Flags
+
+- A step that traces to nothing in the decision
+- A reviewer concern that is in neither the revised plan nor `tensions`
+- An accepted trade-off overridden without a note
+- Code written during planning

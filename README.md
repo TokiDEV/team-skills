@@ -8,7 +8,7 @@
 
 | Skill | What it does |
 |-------|--------------|
-| [`team-scan`](skills/team-scan/SKILL.md) | Detects a project's stack, conventions and available skills/agents, and writes `.council/project-profile.md`. Every other skill reads that profile. |
+| [`team-scan`](skills/team-scan/SKILL.md) | Detects a project's stack, conventions, available skills/agents, existing decision records and other model CLIs, and writes `.council/project-profile.md`. Every other skill reads that profile. |
 | [`team-council`](skills/team-council/SKILL.md) | A council of **PO, CTO, UX, Philosopher and Wildcard** (plus ad-hoc specialists), each a lens with its own sources (Torres, Majors, Holmes, Bachelard, Altshuller…), debates a decision. The roster and the number of rounds fit the decision: UX sits only when a user sees the change, and a reversible call gets one round. A PO synthesis then lays out consensus, tensions and a recommendation, and the decision is recorded. |
 | [`team-council-plan`](skills/team-council-plan/SKILL.md) | Turns a recorded council decision into an implementation plan, which the CTO and PO roles vet before you approve it. |
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | Bootstraps a brand-new project: vision → scan → council → project brief → initial profile and `CLAUDE.md`. |
@@ -38,7 +38,7 @@ Everything a run produces is plain Markdown under `.council/` in your project, s
 ## Design principles
 
 - **Separation of context.** Each role runs as its own agent and sees only what it needs. One context playing six roles gives you one opinion wearing six costumes.
-- **Evidence, attributed, counted.** Every claim cites code, docs or a specialist skill, and is credited to the role that made it. The roles share one model, so a head count alone measures a shared prior: only a position with checkable evidence counts toward a majority.
+- **Evidence, attributed, counted.** Every claim cites code, docs or a specialist skill, and is credited to the role that made it. The roles share one model, so a head count alone measures a shared prior: only a position with checkable evidence counts toward a majority. With your yes, the council's Philosopher can sit on another vendor's model (Codex or Gemini CLI, read-only) to bring a different prior.
 - **Tensions are surfaced, not smoothed.** Disagreement is the useful output. Responsibilities' small functions vs Depth's deep modules is a choice for you to make, and the skill won't average it away. Each question is decided in one place: a majority goes in the backlog with the dissent on its card, and a tension is only a conflict with no majority.
 - **The human decides.** Agents recommend; the CEO gate is where decisions happen, and Markdown stays the source of truth.
 - **KISS/YAGNI has teeth.** In `team-refactor`, an abstraction needs a second use case that exists today. Roadmap talk doesn't count. The Minimalist's KILL is a gate, not a vote: only a card two panelists found independently goes to you as a tension.
@@ -100,6 +100,7 @@ These are personal skills, shared as-is. Here is what has been exercised so far:
 - ✅ `team-ceo-view` rendering and the decision round-trip, including large pages built by an agent on its own (up to 51 decisions, 3 tensions, 17 rejected items)
 - ⚠️ The token-economy changes (model tiers, agent contract, fresh-session handoffs, Step Batches) have been checked by an agent reading them, not yet on a live run. They came from a weekend of live runs where most of the tokens went to the orchestrator's growing context and to executing long backlogs, not to the debate itself.
 - ⚠️ Not yet on a live run either: the council's proportional roster and source-anchored roles, evidence-based counting, the Minimalist gate rule, the refactor exec brief, and `team-protocol`. `render.js --serve` has been tested end to end in a headless browser.
+- ⚠️ Not yet on a live run, nor pressure-tested: the trigger-only descriptions, the rationalization and red-flag tables in `team-protocol`, `team-council` and `team-council-plan`, the framing interview in `team-kickoff` and `team-council`, the off-model seat, decision-record supersession, and the check-weakening review.
 
 Issues and PRs are welcome.
 

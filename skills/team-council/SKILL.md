@@ -1,6 +1,6 @@
 ---
 name: team-council
-description: 'Dispatch a multi-perspective agent team (PO, CTO, UX, Philosopher, Wildcard + ad-hoc specialists) to debate a decision, then synthesize consensus, majority calls, tensions, and a recommendation for the human to decide — and record the decision. Use at decision points: choosing an approach, reviewing an architecture, a pre-implementation "are we sure?", or a multi-perspective review of a completed feature.'
+description: 'Use at a decision point that deserves more than one perspective: choosing between approaches, reviewing an architecture, an "are we sure?" before implementing, or reviewing a finished feature from several angles. Also when the user asks for the council, a debate, or a PO, CTO or UX view on a choice.'
 ---
 
 # team-council
@@ -12,7 +12,8 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 ## Preconditions
 
 - **Project profile**: read `.council/project-profile.md`. If missing, run `team-scan` first (or offer to).
-- **Decision context**: a clear statement of what is being decided. If the user hasn't framed it, ask one or two questions to sharpen it before dispatching.
+- **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it: the question, the options on the table, what is out of scope, and whether it is reversible, plus your confidence in that read (a percentage). Below ~70%, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
+- **Earlier decisions**: look in `.council/decisions/`, and in the project's decision records the profile lists, for one on the same question. If there is one, every role gets it as context, and the new record supersedes it.
 
 ## Roles
 
@@ -38,6 +39,8 @@ PO, CTO and Philosopher always sit. Add:
 - **Specialists** as above.
 
 Tell the user the roster in one line before dispatching, with the reason for each role left out ("UX out: no user-facing change"). The user can add any role back. The page's *Decision* bullet names who sat.
+
+**Off-model seat**: the Philosopher, whose job is to test what everyone else assumed. When the profile lists a model CLI, follow *Off-model seat* in `team-protocol` and add its offer to the roster line. The seat stays off-model in both rounds.
 
 ### Depth: how many rounds
 
@@ -110,7 +113,11 @@ lack of evidence. A minority on a Majority Call belongs in that call]
 The Round 1 question pause stays in chat; those answers are free text.
 
 ### Decision recording
-Write the CEO's decisions (notes included) under the synthesis in `.council/decisions/YYYY-MM-DD-<topic>.md` (create `.council/decisions/` if absent). This decision is later consumed by `team-council-plan`. Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<decision path>`."*
+Write the CEO's decisions (notes included) under the synthesis in `.council/decisions/YYYY-MM-DD-<topic>.md` (create `.council/decisions/` if absent). This decision is later consumed by `team-council-plan`.
+- **Supersession**: when it replaces an earlier decision, put `Supersedes: <path>` at the top and add `Superseded by: <path>` to the old record. Never delete or rewrite the old one: it says why the project once chose otherwise.
+- **The project's decision records**: when the profile lists them, also add one there in their format (location, numbering, headings), holding the context, the decision, its consequences and a link to the council record. `.council/decisions/` stays the record `team-council-plan` reads.
+
+Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<decision path>`."*
 
 ## Dispatch mechanics
 
@@ -124,3 +131,24 @@ Write the CEO's decisions (notes included) under the synthesis in `.council/deci
 - Keep each agent's context lean: profile + decision + role template + (Round 2) the specific counterpart positions.
 - Agent ids for the run folder: `r1-<role>`, `r2-<role>`, `synthesis`.
 - The council is standalone — it needs only a decision context and a profile; it requires no companion skill, and the roles use whatever specialists the profile lists.
+
+## Rationalizations
+
+The shared ones are in `team-protocol`. These are the council's own.
+
+| Excuse | Reality |
+|--------|---------|
+| "The answer is obvious, one round will do" | Depth follows reversibility, not confidence. Unsure means two rounds. |
+| "No screen changes, so UX sits out" | An API's ergonomics, an error message or a line of copy is something a user meets. UX sits. |
+| "The user already knows what they want, the council is a formality" | Then the council's job is to find what would prove them wrong. That is the Philosopher's question. |
+| "The framing is clear enough, I'll skip the restate" | Every role inherits the framing. A one-line restate and a yes cost less than a debate on the wrong question. |
+| "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours. |
+
+## Red Flags
+
+- Dispatching before the framing got an explicit yes
+- UX left out of a change that users or API callers will meet
+- A recommendation that names no trade-off it accepts
+- An earlier decision on the same question that no role was given
+- A role editing files during the debate
+- A decision recorded that the CEO didn't take
