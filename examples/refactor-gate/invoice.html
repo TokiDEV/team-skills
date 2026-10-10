@@ -600,12 +600,23 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   // Keyboard navigation
   var order = [];
   sections.forEach(function (sec) { sec.items.forEach(function (it) { order.push(it.id); }); });
-  function visibleIds() { return order.filter(function (id) { return cards[id].card.offsetParent !== null; }); }
+  // Cards in a collapsed fold count: reaching one opens its fold (see setCurrent).
+  function visibleIds() {
+    return order.filter(function (id) {
+      var c = cards[id].card, fold = c.closest('details');
+      return !c.hidden && !(fold && fold.hidden);
+    });
+  }
+  var navFold = null; // a fold the keyboard opened, closed again when the keyboard leaves it
   function setCurrent(id, scroll) {
     if (cur && cards[cur]) { cards[cur].card.classList.remove('current'); chipsById[cur].classList.remove('cur'); }
     // Leaving a card drops focus from its options, so Enter can't choose on the card left behind.
     if (id !== cur && document.activeElement && document.activeElement.closest && document.activeElement.closest('.card')) document.activeElement.blur();
-    cur = id; if (!id) return;
+    cur = id;
+    var fold = id ? cards[id].card.closest('details') : null;
+    if (navFold && navFold !== fold) { navFold.open = false; navFold = null; }
+    if (fold && !fold.open) { fold.open = true; navFold = fold; }
+    if (!id) return;
     cards[id].card.classList.add('current'); chipsById[id].classList.add('cur');
     if (scroll) cards[id].card.scrollIntoView({ block: 'start' });
     // Keep the chip visible in the sidebar, only while the sidebar is sticky (on narrow screens it scrolls with the page).
@@ -629,7 +640,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   function undecided(id) { return !choiceOf(id); }
   var help = el('dialog', 'help');
   help.innerHTML = '<h3>Keyboard</h3><table>' + [
-    ['<kbd>→</kbd> / <kbd>←</kbd>', 'Next / previous card (also <kbd>j</kbd> / <kbd>k</kbd>)'],
+    ['<kbd>→</kbd> / <kbd>←</kbd>', 'Next / previous card, folded ones included (also <kbd>j</kbd> / <kbd>k</kbd>)'],
     ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', 'Cycle through the current card\'s options'],
     ['<kbd>Enter</kbd>', 'Choose the highlighted option (again to clear)'],
     ['<kbd>u</kbd>', 'Next undecided card'],
@@ -694,6 +705,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var c = cards[id]; if (!c) return;
     if (c.card.hidden) clear.click();
     var fold = c.card.closest('details'); if (fold) fold.open = true;
+    navFold = null; // opened on purpose: it stays open
     setCurrent(id, false);
     c.card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     c.card.classList.add('flash'); setTimeout(function () { c.card.classList.remove('flash'); }, 1200);
@@ -774,6 +786,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: output() }).then(function (r) {
         if (!r.ok) throw new Error(r.status);
         toast.textContent = 'Sent. Claude has your decisions; you can close this tab.';
+        // Browsers let a script close a tab that has a single page in its history, as one opened by render.js has.
+        // Elsewhere close() does nothing and the toast stays.
+        window.close();
       }).catch(function () {
         send.disabled = false;
         toast.textContent = 'Could not reach Claude. Use Copy decisions and paste instead.';

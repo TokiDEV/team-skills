@@ -1,0 +1,11 @@
+# Counting positions
+
+What the synthesizer, the gate writer and the record writer apply. A copy sits in the run folder.
+
+Every question the roles disagree on is settled by their positions after the last round:
+
+1. **A position counts only if it carries checkable evidence**: a `file:line`, a doc, a command's output, a measurement, or a quoted claim from another role that it refutes. The roles share one model and one brief, so a head count alone measures a shared prior, not independent evidence. An uncounted position is still shown, credited, on its card. A position that a CEO answer contradicts counts only if its role sat again after that answer.
+2. **Majority**: more than half of the counted positions back one option. The question becomes a **decision**: the majority's option is recommended, the minority's option stays among the options, and its strongest case goes in `against`.
+3. **No majority** (1–1, 2–2, 1–1–1, 2–1–1, or nothing counted): the question becomes a **tension**, one side per position, with the synthesizer's suggested side recommended.
+4. A question is a decision or a tension, never both. If a tension's outcome would answer a decision, merge the decision into the tension.
+5. Put the count in the item's `tags`, counted positions only: `3–1`, or `2–1 (+1 unbacked)`.

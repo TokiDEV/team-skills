@@ -8,15 +8,15 @@
 
 | Skill | What it does |
 |-------|--------------|
-| [`team-scan`](skills/team-scan/SKILL.md) | Detects a project's stack, conventions, available skills/agents, existing decision records and other model CLIs, and writes `.council/project-profile.md`. Every other skill reads that profile. |
-| [`team-council`](skills/team-council/SKILL.md) | A council of **PO, CTO, UX, Philosopher and Wildcard** (plus ad-hoc specialists), each a lens with its own sources (Torres, Majors, Holmes, Bachelard, Altshuller…), debates a decision. The roster and the number of rounds fit the decision: UX sits only when a user sees the change, and a reversible call gets one round. A PO synthesis then lays out consensus, tensions and a recommendation, and the decision is recorded. |
-| [`team-council-plan`](skills/team-council-plan/SKILL.md) | Turns a recorded council decision into an implementation plan, which the CTO and PO roles vet before you approve it. |
+| [`team-scan`](skills/team-scan/SKILL.md) | Profiles a project (stack, conventions, skills, agents, decision records, other model CLIs) into `.council/project-profile.md`, which every other skill reads. |
+| [`team-council`](skills/team-council/SKILL.md) | **PO, CTO, UX, Philosopher and Wildcard**, each a lens with its own sources, debate a decision. The roster and the rounds fit the decision. A PO synthesis gives consensus, tensions and a recommendation, and the decision is recorded. |
+| [`team-council-plan`](skills/team-council-plan/SKILL.md) | Turns a recorded decision into an implementation plan, reviewed by the CTO, PO and UX roles before you approve it. |
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | Bootstraps a brand-new project: vision → scan → council → project brief → initial profile and `CLAUDE.md`. |
-| [`team-refactor`](skills/team-refactor/SKILL.md) | A panel of refactoring lenses reviews scoped code blind: **Responsibilities, Mechanics, Sequencing, Safety Net, Depth**, and a **Minimalist** KISS/YAGNI gate that kills speculative abstractions. You approve the backlog, then it runs one behavior-preserving step per commit behind a characterization-test safety net. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate above as a self-contained HTML page. An *Outcome* block shows where the work lands (a mockup of the target screen, a diagram of the target system) beside today's state. Each decision is a card that carries its own arguments, metrics, code diff and figures. Figures follow a drawing guide (architecture, sequence, dependency graph, story map, quadrant…) adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design). You decide with the mouse or keyboard, then click **Send to Claude**: a one-shot local server hands your decisions straight back to the session. |
-| [`team-protocol`](skills/team-protocol/SKILL.md) | The rules the others share: agent dispatch and contract, the run folder, how positions are counted, and the fresh-session handoff. You don't invoke it; the other skills load it. |
+| [`team-refactor`](skills/team-refactor/SKILL.md) | **Responsibilities, Mechanics, Sequencing, Safety Net and Depth** review scoped code blind, and a **Minimalist** KISS/YAGNI gate kills speculative abstractions. You approve the backlog; it then runs one behavior-preserving step per commit behind characterization tests. |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). **Send to Claude** hands your decisions back to the session. |
+| [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, the agent contract, counting positions, the handoff. The other skills load it. |
 
-**0.4.0: seats renamed.** Roles are named after what they look at, and each carries its own sources. Uncle Bob → Responsibilities, Fowler → Mechanics, Beck → Sequencing, Feathers → Safety Net, Ousterhout → Depth. An override under an old name is ignored, so rename it in `.council/role-overrides/`: `role-uncle-bob.md` → `role-responsibilities.md`, `role-fowler.md` → `role-mechanics.md`, `role-beck.md` → `role-sequencing.md`, `role-feathers.md` → `role-safety-net.md`, `role-ousterhout.md` → `role-depth.md`.
+**Upgrading from before 0.4.0:** rename overrides in `.council/role-overrides/` (`role-uncle-bob.md` → `role-responsibilities.md`, `fowler` → `mechanics`, `beck` → `sequencing`, `feathers` → `safety-net`, `ousterhout` → `depth`); old names are ignored.
 
 ## How they fit together
 
@@ -37,12 +37,12 @@ Everything a run produces is plain Markdown under `.council/` in your project, s
 
 ## Design principles
 
-- **Separation of context.** Each role runs as its own agent and sees only what it needs. One context playing six roles gives you one opinion wearing six costumes.
-- **Evidence, attributed, counted.** Every claim cites code, docs or a specialist skill, and is credited to the role that made it. The roles share one model, so a head count alone measures a shared prior: only a position with checkable evidence counts toward a majority. With your yes, the council's Philosopher can sit on another vendor's model (Codex or Gemini CLI, read-only) to bring a different prior.
-- **Tensions are surfaced, not smoothed.** Disagreement is the useful output. Responsibilities' small functions vs Depth's deep modules is a choice for you to make, and the skill won't average it away. Each question is decided in one place: a majority goes in the backlog with the dissent on its card, and a tension is only a conflict with no majority.
-- **The human decides.** Agents recommend; the CEO gate is where decisions happen, and Markdown stays the source of truth.
-- **KISS/YAGNI has teeth.** In `team-refactor`, an abstraction needs a second use case that exists today. Roadmap talk doesn't count. The Minimalist's KILL is a gate, not a vote: only a card two panelists found independently goes to you as a tension.
-- **Token economy.** Every agent turn re-reads its whole context, so the cost is context size × turns. Panelists run on Sonnet with a tool budget and write to files instead of pasting into the orchestrator. The council seats only the roles a decision needs. Each gate hands off to a fresh session through a file: the refactor executor reads a short exec brief, not the whole record. Small steps are batched per executor (still one commit each).
+- **Separation of context.** Each role is its own agent. One context playing six roles is one opinion in six costumes.
+- **Evidence, counted.** Every claim cites code, docs or a skill, credited to its role. The roles share one model, so only positions with checkable evidence count toward a majority. With your yes, the Philosopher can sit on another vendor's model.
+- **Tensions surfaced, not smoothed.** A majority goes in the backlog with its dissent; a conflict with no majority goes to you.
+- **The human decides.** Agents recommend; the CEO gate decides; Markdown stays the source of truth.
+- **KISS/YAGNI has teeth.** An abstraction needs a second use case that exists today. The Minimalist's KILL is a gate, not a vote.
+- **Token economy.** Cost is context size × turns. Agents run on Sonnet with a tool budget and write to files; writer agents build pages, records and plans; each gate hands off to a fresh session through a short file.
 
 ## Install
 
@@ -83,32 +83,24 @@ Or invoke one directly: `/team-refactor src/billing/invoice.js` after a manual i
 
 ```bash
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json
-# or serve it, as the skills do: Send to Claude prints the decisions and exits
+# or serve it, as the skills do: Send to Claude prints the decisions, exits and closes the tab
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --serve
 ```
 
-Keyboard: `←`/`→` move between cards, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next undecided card, and `?` lists every shortcut.
+Keyboard: `←`/`→` move between cards (a folded group opens as you reach it), `Tab` cycles the options, `Enter` chooses, `u` jumps to the next undecided card, and `?` lists every shortcut.
 
 ## Status
 
-These are personal skills, shared as-is. Here is what has been exercised so far:
+Personal skills, shared as-is. Exercised on live runs:
 
-- ✅ `team-refactor` up to and including the CEO gate (compared against a no-skill baseline on a billing fixture)
-- ✅ `team-refactor` end to end on a real TypeScript/Vue project: a PR-scoped review (Step 0 pins proven to bite, then each step committed, final review passed) and a repo-wide review (Step 0 plus about 20 steps, final review passed)
-- ✅ `team-council` on a real architecture decision, recorded and later consumed by a refactor
-- ✅ `team-scan` refreshing an existing profile
-- ✅ `team-ceo-view` rendering and the decision round-trip, including large pages built by an agent on its own (up to 51 decisions, 3 tensions, 17 rejected items)
-- ✅ The token-economy changes, on a live 0.4.0 `team-refactor` run (a branch diff on a TypeScript backend, gate then a fresh execution session). Every agent ran on its table model, within its tool budget, wrote to the run folder and replied in 1–2.5k characters. The orchestrator opened only the synthesis, and execution started fresh from a 96-line exec brief. Compared with a pre-0.4.0 run on another project (different scope, so orders of magnitude only):
-  - the six panelists went from 15.7M tokens in 185 turns to 1.8M in 30;
-  - the largest executor went from 28.9M to 1.1M;
-  - the whole run went from about 104M to 17M.
-
-  The orchestrator is now the largest cost (57–62%), mostly a fixed context of about 60k tokens re-read on each of its 94 Opus turns, so its turn count is the next thing to cut.
-- ✅ On the same run: `team-protocol`, the refactor exec brief, and the Minimalist gate rule. The gate issued KILL and SHRINK verdicts, and a card three panelists had found was settled by counted positions (1–3), not sent to the CEO as a tension. The six panelists, the gate and one tension pair all sat.
-- ⚠️ Step Batches applied but not exercised: with 3 steps, one of them size M, there was nothing to group. Positions were counted, but the count was not written in the `3–1` tag form. Only one finding card named a source.
-- ⚠️ Not yet on a live run: the council's proportional roster and source-anchored council roles. `render.js --serve` has been tested end to end in a headless browser.
-- ⚠️ In a worktree whose git directory is outside the sandbox's write paths (a `.bare/` layout), executors cannot commit. On the live run they saved one patch per step, and the orchestrator rebuilt one commit per step outside the sandbox. Add that git directory to the sandbox's write paths.
-- ⚠️ Not yet on a live run, nor pressure-tested: the trigger-only descriptions, the rationalization and red-flag tables in `team-protocol`, `team-council` and `team-council-plan`, the framing interview in `team-kickoff` and `team-council`, the off-model seat, decision-record supersession, and the check-weakening review.
+- ✅ `team-refactor` end to end on two TypeScript projects, PR-scoped and repo-wide, Step Batches included
+- ✅ `team-council` on an architecture decision and a product decision: framing interview, fitted roster, counted positions
+- ✅ `team-council-plan` from the product decision, including an amendment at the plan gate and a partial re-gate
+- ✅ `team-scan`, and `team-ceo-view` with the `--serve` round trip (pages of up to 51 decisions)
+- ✅ Token economy: a refactor run went from about 104M tokens to 16M (different scopes), the orchestrator from about 60% of the cost to 26%
+- ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
+- ⚠️ Not yet live: `team-kickoff`'s interview, an off-model seat, record supersession
+- ⚠️ In a `.bare/` worktree, add the git directory to the sandbox's write paths, or executors can't commit
 
 Issues and PRs are welcome.
 

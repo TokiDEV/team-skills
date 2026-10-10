@@ -12,7 +12,13 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 ## Preconditions
 
 - **Project profile**: read `.council/project-profile.md`. If missing, run `team-scan` first (or offer to).
-- **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it: the question, the options on the table, what is out of scope, and whether it is reversible, plus your confidence in that read (a percentage). Below ~70%, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
+- **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it:
+  - the question, the options on the table, what is out of scope, and whether it is reversible;
+  - **the facts every role will assume**: who the user is, their platform and locale (OS, language, keyboard layout), and what the work may add: fixes only, or new features too. Back each one with a file or the profile, or mark it *unchecked*;
+  - the answer you expect from the user to each open sub-question;
+  - your confidence in that read (a percentage).
+
+  Every *unchecked* fact and every expected answer you can't fill is a question. Below ~70%, or with any such question left, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
 - **Earlier decisions**: look in `.council/decisions/`, and in the project's decision records the profile lists, for one on the same question. If there is one, every role gets it as context, and the new record supersedes it.
 
 ## Roles
@@ -29,6 +35,8 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 
 **Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones. Write each one 3–5 sources (see `team-protocol`).
 
+**Evidence pass**: when the question rests on facts nobody has observed (what the app does today, which commands exist, what a measurement gives), one agent gathers them before Round 1 (agent id `evidence`). Its file goes to every role as a shared input, and its open questions join the question pause. It leaves the project tree as it found it (`team-protocol` agent contract).
+
 **Scope control**: each role may invoke only its allowed specialists. Never let a role invoke a tool that modifies state during debate.
 
 ### Roster: who sits
@@ -44,7 +52,7 @@ Tell the user the roster in one line before dispatching, with the reason for eac
 
 ### Depth: how many rounds
 
-- **One round** when the decision is reversible: undone by reverting one commit, with no public contract, data migration or money involved. Round 1, then the synthesis on sonnet. No Round 2.
+- **One round** when the decision is reversible: undone by reverting one commit, with no public contract, data migration or money involved. Round 1, then the synthesis on sonnet. No Round 2, except for a seat a CEO answer contradicts: it alone sits again (sonnet, ~5) before the synthesis.
 - **Two rounds** otherwise: the full flow below.
 
 When unsure, it is two rounds.
@@ -52,10 +60,13 @@ When unsure, it is two rounds.
 ## Flow
 
 ```
+Evidence pass       → only when the question rests on unobserved facts
 Round 1 (parallel)  → the roster: independent position + specialist evidence
-Question pause      → PO curates agents' flagged questions, attributed → CEO answers
+Question pause      → orchestrator groups agents' flagged questions, attributed → CEO answers
 Round 2 (parallel)  → two-round depth only: Philosopher (sees all R1) + conflicting pairs
+                      + every seat a CEO answer contradicts
 Synthesis           → PO synthesis agent → consensus / majority calls / tensions / recommendation
+Gate page           → gate writer builds and renders it from the synthesis
 CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
 
@@ -63,59 +74,36 @@ CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). Agents invoke domain specialists as relevant. Agents may flag questions for the human.
 
 ### Question pause
-Collect flagged questions, present them grouped and attributed by role. If none were flagged, proceed straight on. Feed answers into Round 2 (or the synthesis at one-round depth).
+Collect flagged questions, present them grouped and attributed by role. If none were flagged, proceed straight on.
+
+Save the answers to `<run folder>/ceo-answers.md` in this shape, and feed that file into Round 2 (or the synthesis at one-round depth):
+
+```markdown
+## Q<n>: <the question, as asked>
+Answer: <the user's words, verbatim>
+Reading: <your interpretation, if any — a reading, not a fact>
+Claims to check: <any fact about the code or the product the answer asserts>
+```
+
+An answer binds as the user's preference. A claim it makes about the code is something for Round 2 to check, not a fact.
 
 ### Round 2 — targeted debate (parallel)
 Identify tensions from the Round 1 one-line positions:
 - **Philosopher always participates** — sees all Round 1 output, applies Socratic analysis.
 - **Conflicting pairs** see each other's positions and respond directly.
-- **Agents in agreement skip Round 2.**
+- **Every seat a CEO answer contradicts** sits again, with the answers file. So does a seat whose agreement you can't confirm from its one-line replies.
+- **The other seats skip Round 2.**
+
+Round 2 prompts repeat the role file's *Output Format*, sources line included. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
 
 ### Synthesis
-A dedicated synthesis agent (separate call from the Round 1 PO) reads everything and produces the summary below. Each open question goes in exactly one section, settled by *Counting positions* in `team-protocol`.
-
-```markdown
-## Council Summary
-
-### Decision: [what was being decided; who sat, and at which depth]
-
-### Consensus Points
-[Where every role that spoke agrees]
-
-### Majority Calls
-[One per question with a majority: the question, the majority's option and
-who backs it, then the minority's option, who holds it and its strongest case]
-
-### Key Tensions
-[Only questions with no majority: each side's strongest version and who
-holds it, then the PO's suggested side and why]
-
-### PO Recommendation
-[The overall direction and the trade-offs it accepts. Refer to Majority
-Calls and Key Tensions by id; don't restate them]
-
-### Dissenting Views Worth Noting
-[Concerns not tied to a question above, and positions left uncounted for
-lack of evidence. A minority on a Majority Call belongs in that call]
-```
+A dedicated synthesis agent (separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
 
 ### CEO gate
-**REQUIRED SUB-SKILL:** use `team-ceo-view` to present the synthesis as a local HTML decision page (`kind: "council"`). Map it like this:
-- `summary` (labelled bullets): *Decision* (what is being decided, and who sat), *Consensus*, *Recommendation* (the PO's pick and the trade-offs it accepts).
-- `outcome` (when the PO's pick changes a screen or the system's shape): the synthesizer sketches where the pick lands, `ui` and/or `system`, today beside the target, into `.council/gates/YYYY-MM-DD-<topic>/`, drawn by `figures.md` of `team-ceo-view` (`../team-ceo-view/figures.md` from this skill's base directory). When another option would land somewhere visibly different, add its `after` sketch to `D1`'s `figures`, captioned with the option's label, so the human compares destinations.
-- **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Its `title` is the question, and its `detail` the facts every option shares (≤ 3 bullets); the consensus points go there too when they fit. Put the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.
-- **More decisions**: one per Majority Call. The majority's option is `recommended`, and the minority's option stays in `options` with its case in `against`.
-- `tensions`: one per Key Tension, each side attributed by role, with the PO's suggested side `recommended`. A Key Tension has no decision card. If D1 itself has no majority, it becomes `T1` and the page has no `D1`.
-- Dissenting views worth noting go in the `against` of the decision they weigh on, or become a minor item if they concern none.
-- **Figure** (only when there are 3+ options or the council split): a position map, roles × options, showing who backs what, in `D1`'s `figures`.
-- `rejected`: approaches the council dropped, with the reason, so the CEO can revive one.
-
-The Round 1 question pause stays in chat; those answers are free text.
+**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block. The Round 1 question pause stays in chat; those answers are free text.
 
 ### Decision recording
-Write the CEO's decisions (notes included) under the synthesis in `.council/decisions/YYYY-MM-DD-<topic>.md` (create `.council/decisions/` if absent). This decision is later consumed by `team-council-plan`.
-- **Supersession**: when it replaces an earlier decision, put `Supersedes: <path>` at the top and add `Superseded by: <path>` to the old record. Never delete or rewrite the old one: it says why the project once chose otherwise.
-- **The project's decision records**: when the profile lists them, also add one there in their format (location, numbering, headings), holding the context, the decision, its consequences and a link to the council record. `.council/decisions/` stays the record `team-council-plan` reads.
+The record writer records the CEO's decisions by `templates.md` § *Decision record*, including supersession, corrections and the project's own decision records. `team-council-plan` reads this record next.
 
 Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<decision path>`."*
 
@@ -123,13 +111,16 @@ Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<de
 
 | Agent | Model | Tool budget |
 |-------|-------|-------------|
+| Evidence pass | sonnet | ~15 |
 | Round 1 roles, ad-hoc specialists | sonnet | ~12 |
-| Round 2: Philosopher, conflicting pairs | sonnet | ~5 |
+| Round 2: Philosopher, conflicting pairs, contradicted seats | sonnet | ~5 |
 | Synthesis, two-round depth | opus | ~10 |
 | Synthesis, one-round depth | sonnet | ~10 |
+| Gate writer (JSON, sketches, render) | sonnet | ~15 |
+| Record writer | sonnet | ~8 |
 
-- Keep each agent's context lean: profile + decision + role template + (Round 2) the specific counterpart positions.
-- Agent ids for the run folder: `r1-<role>`, `r2-<role>`, `synthesis`.
+- Keep each agent's context lean: profile + decision + role template + (Round 2) the specific counterpart positions. Writers get their `templates.md` section, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
+- Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.
 - The council is standalone — it needs only a decision context and a profile; it requires no companion skill, and the roles use whatever specialists the profile lists.
 
 ## Rationalizations
@@ -142,11 +133,16 @@ The shared ones are in `team-protocol`. These are the council's own.
 | "No screen changes, so UX sits out" | An API's ergonomics, an error message or a line of copy is something a user meets. UX sits. |
 | "The user already knows what they want, the council is a formality" | Then the council's job is to find what would prove them wrong. That is the Philosopher's question. |
 | "The framing is clear enough, I'll skip the restate" | Every role inherits the framing. A one-line restate and a yes cost less than a debate on the wrong question. |
+| "Everyone uses QWERTY / English / a Mac" | That is an environment fact every role will build on. Check it or ask. |
+| "Their answer settles it, I'll record it as fact" | The answer binds as a preference. What it says about the code goes to Round 2 to check. |
 | "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours. |
 
 ## Red Flags
 
 - Dispatching before the framing got an explicit yes
+- A framing with an *unchecked* environment fact nobody asked about
+- A seat whose Round 1 position a CEO answer contradicts, counted without sitting again
+- A record whose `Status:` still says it awaits the CEO
 - UX left out of a change that users or API callers will meet
 - A recommendation that names no trade-off it accepts
 - An earlier decision on the same question that no role was given
