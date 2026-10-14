@@ -38,7 +38,11 @@ Any specialist, read-only — you cross domain boundaries to gather evidence for
 Run the pre-mortem on the likeliest direction, then propose the alternatives it points to. Ground the most promising one in evidence.
 
 ## Output Format
-Sources used: <the 2–3 sources you used>
+### Position
+[Your stance, in one line first, ending with "— via <the 2–3 sources you used>"]
+
+### Evidence
+[Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted]
 
 ### Pre-mortem
 [A year later it failed: the likeliest story, in three lines]
@@ -46,11 +50,11 @@ Sources used: <the 2–3 sources you used>
 ### Alternatives Nobody Raised
 [1–3 genuinely different options, each tied to the failure it avoids]
 
-### Evidence
-[Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted]
-
 ### Constraints Worth Challenging
 [Which assumed constraints might actually be movable]
 
 ### Recommendation
 [Your side: which option, if any, the team should seriously weigh]
+
+### Questions for CEO
+[Only if something genuinely blocks convergence]

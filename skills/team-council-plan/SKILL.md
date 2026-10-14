@@ -7,12 +7,12 @@ description: Use when a council decision is recorded under `.council/decisions/`
 
 The second half of the council workflow. `team-council` decides **what**; `team-council-plan` produces the **how** — a reviewed implementation plan grounded in that decision.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, the handoff, execution and weakened checks.
 
 ## Preconditions
 
 - **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, the council hasn't run — stop and point the user to `team-council` first.
-- **Project profile**: read `.council/project-profile.md` (run `team-scan` if missing).
+- **Project profile**: read `.council/project-profile.md`. Required: if it is missing, offer `team-scan` and stop until it has run.
 
 ## Flow
 
@@ -47,7 +47,7 @@ Writers type in a settled design. Before any draft, list:
 ### 2. Draft the plan
 Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
 
-Writers and fixers write the plan files at the project's plan location (`docs/plans/YYYY-MM-DD-<topic>.md` by default, sub-plans beside it), not in the run folder, and reply by the agent contract. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
+Writers and fixers write the plan files at the project's plan location (`docs/plans/YYYY-MM-DD-<topic>.md` by default, sub-plans beside it), not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
 
 A plan that fits one file is drafted by one writer. A plan large enough to split into sub-plans splits along interfaces, in this order:
 1. **The index** (one writer): the sub-plans, their order, and the **cross-plan contract**: every name, signature, id and type one sub-plan exports and another uses.
@@ -70,10 +70,10 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 | Record writer (amendments) | sonnet | ~8 |
 
 ### 4. Reconcile
-Fold review feedback into a revised plan through fresh fixers, each given the defect lines for its file. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and note the tension explicitly rather than silently overriding it.
+Fold review feedback into a revised plan through fresh fixers, each given the defect lines for its file. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*). Never override the trade-off silently.
 
 ### 5. Approve & write
-The revised plan sits at the project's plan location (`docs/plans/YYYY-MM-DD-<topic>.md` by default) with `Status: draft` at the top. Reference the source decision file there too, so the two stay linked.
+The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top, so the two stay linked.
 
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block.
 
@@ -91,11 +91,11 @@ On full approval, remove `Status: draft` and hand off (`team-protocol`): *"`/cle
 
 This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy* section: models, batches, and when to re-review.
 
-When the profile lists none, execute from the plan file this way:
-1. Group the steps into batches as *Execution economy* says (if the plan has none: consecutive S steps on overlapping files, at most 4 per batch, sonnet implementers, opus for L steps). Dispatch a fresh implementer per batch with its steps and the plan's *Goal* and *Outcome*, never the decision record.
+When the profile lists none, execute from the plan file by `team-protocol` § *Execution*, with these rules of its own:
+1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Implementers run on sonnet, opus for an L step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
 2. The implementer writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, or `blocked — <reason>`.
 3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.
-4. Last, one reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (a lowered threshold, a skipped or deleted test, a new `@ts-ignore` or `eslint-disable`, a stub or empty `catch` where the work should be).
+4. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh implementers as `fixup!` commits (`team-protocol` § *Execution*).
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
 
@@ -107,7 +107,7 @@ The shared ones are in `team-protocol`. These are the planner's own.
 
 | Excuse | Reality |
 |--------|---------|
-| "The council's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Note the concern as a tension, or put the minority option on the gate as `reverses council D<n>`. Only the CEO amends the decision; a wholly different direction is a new council. |
+| "The council's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Record the concern in the `against` of the step it concerns, or put the minority option on the gate as `reverses council D<n>`. Only the CEO amends the decision; a wholly different direction is a new council. |
 | "The writers can start now and align on names later" | Consumers that guess the keystone's API get rewritten. Freeze the contract first. |
 | "I'll leave that design question to the writer" | A writer who meets an open question guesses, and the gate undoes the guess. Settle it before drafting. |
 | "This extra step is small and useful" | Nothing smuggled in, nothing dropped: that is what the PO reviewer checks. Raise it at the gate instead. |
@@ -120,6 +120,6 @@ The shared ones are in `team-protocol`. These are the planner's own.
 - A consumer writer dispatched before the contract it codes against is frozen
 - A writer guessing a human-only input (a capture, a probe result)
 - An amended step re-gated without a review
-- A reviewer concern that is in neither the revised plan nor `tensions`
+- A reviewer concern that is in neither the revised plan nor the gate (an `against`, a minor item or a tension)
 - An accepted trade-off overridden without a note
 - Code written during planning

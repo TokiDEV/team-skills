@@ -9,7 +9,7 @@ A panel of four seats reviews a diff, a path or a module in **isolated contexts*
 
 **Core principle:** a finding reaches the human only after an agent other than its author tried to prove it wrong. A review that cries wolf gets ignored.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, the handoff, execution and weakened checks.
 
 ## Lanes
 
@@ -20,7 +20,7 @@ A panel of four seats reviews a diff, a path or a module in **isolated contexts*
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
 | **`team-review`** | Can this change merge as is? | Code exists; fixes change behavior |
 
-**The fix decides the lane, not the topic.** A fix that changes behavior (a bug, a hole, a swallowed error, a missing test, a gap with the request, a slow path) is review's. A named, behavior-preserving refactoring is refactor's. A misleading name the diff introduces is review's (a one-click rename); moving or extracting code to fix it is refactor's.
+**The fix decides the lane, not the topic.** A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is review's; a characterization test of unchanged behavior is refactor's (its Step 0). A named, behavior-preserving refactoring is refactor's. A misleading name the diff introduces is review's (a one-click rename); moving or extracting code to fix it is refactor's.
 
 **Hunting vs stumbling.** The seats hunt only in this lane. Structural trouble they stumble on goes to one *For team-refactor* list (≤ ~5 lines, unverified, no decision, no extra agent).
 
@@ -34,6 +34,8 @@ A panel of four seats reviews a diff, a path or a module in **isolated contexts*
 6. **The human submits a review; Claude never posts one.** A shared review stays pending until the human submits it.
 
 **Violating the letter of these laws is violating their spirit.**
+
+Laws 3 and 4 are the master text of the diff-scope and structure lines every seat file repeats (a role file is its agent's whole prompt). Change them here first, then in each seat's `roles/role-*.md`.
 
 ## The Panel
 
@@ -51,7 +53,7 @@ Card IDs carry the seat's prefix: CR, SE, IN, CF; the verifier's verdicts are ke
 
 ## Separation of Context
 
-Every agent gets the minimum it needs and nothing else. `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
+Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
 
 | Agent | Model | Tool budget | Receives | Writes by `templates.md` |
 |-------|-------|-------------|----------|--------------------------|
@@ -64,7 +66,7 @@ Every agent gets the minimum it needs and nothing else. `templates.md` (copied i
 | Executor | sonnet | — | **one** batch of Fix cards + the exec brief's header | *Fix card* |
 | Final reviewer | opus | — | full diff + exec brief | *Final review* |
 
-No agent receives the conversation, the raw transcripts or another seat's output. The verifier receives each card's title, location, scenario and fix — never its Evidence or Refutation lines. Put this line first in each seat's *How to work* block: `- Start from the Review Brief. Open a file only to confirm or cite evidence.` Seats and the verifier also get `team-protocol`'s *leave the project tree as you found it* line.
+The verifier receives each card's title, location, scenario and fix — never its Evidence or Refutation lines. Put this line first in each seat's *How to work* block: `- Start from the Review Brief. Open a file only to confirm or cite evidence.` Seats and the verifier also get `team-protocol`'s *leave the project tree as you found it* line.
 
 ## Flow
 
@@ -79,14 +81,14 @@ No agent receives the conversation, the raw transcripts or another seat's output
 ```
 
 ### 0. Preconditions
-- **Scope**: a diff (a branch, an MR/PR), a path or module, or the whole repo. The whole repo → dispatch Recon first to rank zones (churn × complexity × exposure), then ask the user to pick: each option with its size and main risk, one marked *(Recommended)*, one per zone. Review a diff at its head: check it out first. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
+- **Scope**: a diff (a branch, an MR/PR), a path or module, or the whole repo, sized by `team-protocol` § *Code scope*, counting changed lines. To narrow it, Recon ranks zones by churn × complexity × exposure, one option per zone. Review a diff at its head: check it out first. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
 - **Owner**: `git -C <checkout> log --format=%ae <base>..HEAD | sort -u` against `git -C <checkout> config user.email`. Only yours → own branch; none yours → someone else's; mixed, or a shared account → ask. A path or module → audit.
 - **MR/PR**: take the host from `git -C <checkout> remote get-url origin` (`<origin URL>`). GitHub: `gh pr view <branch> -R <owner/repo> --json number,headRefOid,baseRefName`; GitLab: `glab mr view <branch> -R <origin URL> --output json` (the `iid`). Then get its refs and diff with the commands of team-ceo-view's SKILL.md, *Share* → `as: review` → *Refs and diff*, writing the diff to the run folder instead of `$TMPDIR`. Recon reads them from there.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
 - **Red tests do not block.** Recon records them; they become a finding.
 
 ### 1. Recon → Review Brief
-One agent writes the brief by `templates.md` § *Review Brief*. It must be able to write files: a general-purpose agent, or a code-exploration agent from the profile's Technical domain that has Write. The built-in `Explore` has no Write; if you use it, save its reply to the run folder yourself. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1.
+One agent writes the brief by `templates.md` § *Review Brief*, following the Recon rules of `team-protocol` § *Code scope*. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1.
 
 ### 2. Round 1 — blind seats (parallel)
 Dispatch all 4 in one message, agent ids `seat-correctness`, `seat-security`, `seat-intent`, `seat-craft`. In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{REVIEW_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
@@ -106,17 +108,17 @@ A separate synthesizer agent writes the review by `templates.md` § *Synthesis*:
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; it is share-ready whoever owns the branch. Serve it with `--channels` as team-ceo-view's SKILL.md step 3 says.
 
 ### 6. Deliver
-**Someone else's branch.** The human curates on the page (declines false positives, adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. A declined finding is not posted; the review body carries the verdict, *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* (a confirmed blocker or major) or *Comment* from the verdict. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder.
+**Someone else's branch.** The human curates on the page (declines false positives, adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A declined finding is not posted; the review body carries the verdict, *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* (a confirmed blocker or major) or *Comment* from the verdict. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder.
 
-**Own branch, audit.** Read the decisions block (team-ceo-view steps 4–5). The record writer writes the record and the exec brief. Above ~5 fixes, hand off (`team-protocol`): *"`/clear`, then: execute the review fixes in `<exec brief path>`."* Otherwise go on here.
+**Own branch, audit.** Read the decisions block (team-ceo-view steps 4–5). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-ceo-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes: *"`/clear`, then: execute the review fixes in `<exec brief path>`."*
 
-**Execute** from the exec brief, on a clean tree; don't read the record or the run folder. Group the Fix cards into batches: consecutive cards on overlapping files, at most 4 per batch. Dispatch **one fresh executor (sonnet) per batch** with its Fix cards and the exec brief's header. Each fix goes test-first (`superpowers:test-driven-development`, or the profile's TDD skill when it lists one), one commit per finding; the executor replies one line per finding: the commit hash, or `blocked — <reason>`. After each batch, run the exec brief's quality gates: red → revert the fix that broke them, report it, go on with the next batch.
+**Execute** by `team-protocol` § *Execution*, from the exec brief, on a clean tree. The steps are the Fix cards; each executor (sonnet) gets its batch's Fix cards and the exec brief's header. Each fix goes test-first (`superpowers:test-driven-development`, or the profile's TDD skill when it lists one), one commit per finding; the executor replies one line per finding: the commit hash, or `blocked — <reason>`. After each batch, run the exec brief's quality gates: red → `git revert` that fix's commit yourself (a revert is not a patch), report it, and go on with the next batch.
 
-Last, one reviewer agent (opus) runs § *Final review*. Every `fix` finding goes to a fresh executor with the reviewer's report and the Fix card it names; it commits a `fixup!` of that finding's commit. The record writer completes the record (`Status: executed`). Delete the exec brief and the run folder. Future reviews read past records first: an audit's known debt is not reopened.
+Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their finding's commit (`team-protocol` § *Execution*), each with the Fix card it names. The record writer completes the record (`Status: executed`). Delete the exec brief and the run folder. Future reviews read past records first: an audit's known debt is not reopened.
 
 ## Proportionality
 
-Under ~150 changed lines, write the Review Brief yourself (`templates.md` § *Review Brief*) instead of dispatching Recon. The 4 seats and the verifier always run: a small diff is where a confident wrong finding costs the most trust. Above ~3,000 lines or more than one package, narrow the scope before dispatching the seats.
+By `team-protocol` § *Code scope*, counting changed lines, the brief being the Review Brief (`templates.md` § *Review Brief*). The 4 seats and the verifier always run: a small diff is where a confident wrong finding costs the most trust.
 
 ## Rationalizations
 
@@ -132,6 +134,7 @@ The shared ones are in `team-protocol`. These are the review's own.
 | "The tests are red, stop the review" | Red is a finding, not a blocker for the review. |
 | "The fix is obvious, the test can come after" | A test written after the fix never failed: it proves nothing about the defect. |
 | "The verifier was unsure, but I'd keep it" | `UNSURE` goes to *Not raised*. The gate shows only what survived a refutation. |
+| "Only two fixes, I'll run them here" | The gate's session holds the whole review, and every executor dispatch re-reads it. Own branch and audit always hand off. |
 
 ## Red Flags — stop and re-read the laws
 

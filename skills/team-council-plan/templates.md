@@ -2,6 +2,8 @@
 
 What each agent produces. The orchestrator copies this file into the run folder and points each agent to its section.
 
+A pointer to a `team-protocol` section means that section of `team-protocol.md`, copied beside this file.
+
 ## Plan (writers)
 
 Follow the project's plan format if one exists, adding `Status: draft`, the decision file's path, and the final-review bullet of *Verification* below. Otherwise:
@@ -26,7 +28,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Execution economy
 - Implementers: sonnet for S and M steps, opus for L or design-heavy steps
-- Batches: consecutive S steps on overlapping files, at most 4 per implementer, one commit each
+- Batches: [the batch rule of `team-protocol` § *Execution*, written out in full, or the project's own], one commit per step
 - Reviews: sonnet for spec compliance, opus for the final whole-branch review; re-review only a fix that changed logic
 
 ## Risks & Mitigations
@@ -35,7 +37,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Verification
 [How we confirm each step and the whole works]
 - After the final review, offer `team-review` on the executed diff (own branch); its intent is this plan and the decision record
-- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, no check weakened (a lowered threshold, a skipped or deleted test, a new `@ts-ignore` or `eslint-disable`, a stub or empty `catch` where the work should be)
+- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, no check weakened: [every item of `team-protocol` § *Weakened checks*, written out: the executing session may not load team-protocol]
 ```
 
 ## Review (reviewers)
@@ -56,7 +58,8 @@ Build the page (`kind: "plan"`, `source` = the draft plan) by `team-ceo-view`'s 
 - `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`.
 - **Each plan step**: a routine decision (Approve/Decline). Its `title` is the move; its `detail` gives only what the title lacks (impact, risk), or is omitted. The size goes in `tags` (`"S"`, `"M"`, `"L"`). Add `code` when a step changes an existing interface.
 - **Each risk the reviewers raised that needs acceptance, with a majority** (`counting.md`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`. When the risk reopens a question the council decided, add the council's minority option too, labelled `reverses council D<n>` with the council record's id.
-- `tensions`: reviewer concerns kept in tension with the council's accepted trade-off (your dispatch lists them), and risks the reviewers split on with no majority. A risk is either a decision or a tension, never both.
+- **Each reviewer concern kept against the council's accepted trade-off** (your dispatch lists them): in the `against` of the step or risk it concerns, or a minor item when it concerns none.
+- `tensions`: only risks the reviewers split on with no majority, by `counting.md`.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.
 
 If `.council/gates/` is gitignored, also copy the approved sketches next to the plan (e.g. `docs/plans/YYYY-MM-DD-<topic>/`) and link those copies from its `## Outcome`: executors in a worktree see only committed files.

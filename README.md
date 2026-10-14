@@ -15,7 +15,7 @@
 | [`team-refactor`](skills/team-refactor/SKILL.md) | **Responsibilities, Mechanics, Sequencing, Safety Net and Depth** review scoped code blind for its structure, and a **Minimalist** KISS/YAGNI gate kills speculative abstractions. You approve the backlog; it then runs one behavior-preserving step per commit behind characterization tests. Suspected bugs go to `team-review`. |
 | [`team-review`](skills/team-review/SKILL.md) | **Correctness, Security, Intent and Craft** review a diff or a module blind, and a **Verifier** tries to refute every finding before it is raised. You curate the few that survive, then share them as a review on the merge/pull request, or have them fixed test-first. |
 | [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). **Send to Claude** hands your decisions back to the session. **Share**, on review gates only, turns the gate into a page for the owner of the branch you reviewed: they decide alone, starting from your choices, and copy a prompt for their own coding agent. Share asks what they get (the file, a claude.ai link, or a review on the merge/pull request that you submit) and where it goes (you send it, a merge/pull request comment, a prepared email or Slack message). |
-| [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, the agent contract, counting positions, the handoff. The other skills load it. |
+| [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, writers, the agent contract, counting positions, code scope, the handoff, execution, weakened checks, the off-model seat and `auto-accept`. The other skills load it. |
 
 ## Which skill?
 
@@ -28,25 +28,26 @@
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
 | `team-review` | Can this change merge as is? | Code exists; fixes change behavior |
 
-The fix decides the lane. A fix that changes behavior (a bug, a hole, a swallowed error, a missing test) is `team-review`'s; a named, behavior-preserving refactoring is `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision.
+The fix decides the lane ([the full rule](skills/team-review/SKILL.md#lanes)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision.
 
 ## How they fit together
 
 ![team-scan writes the project profile that team-council, team-refactor and team-review read. team-kickoff runs team-scan, then team-council, and team-council's decision feeds team-council-plan. team-refactor and team-review hand each other work in both directions: suspected bugs go to review, structure goes to refactor. team-council-plan offers team-review after its plan is executed. All five skills run under team-protocol's shared rules, and each ends at a CEO gate rendered by team-ceo-view, where you decide; only team-review's gate has Share, to the branch owner.](docs/how-they-fit.svg)
 
-Everything a run produces is plain Markdown under `.council/` in your project, so it can be committed and diffed:
+Everything a run produces is plain Markdown in your project, under `.council/` except the plan, so it can be committed and diffed:
 
 ```
 .council/
 ├── project-profile.md          # team-scan
-├── decisions/YYYY-MM-DD-*.md   # team-council, team-kickoff
+├── decisions/YYYY-MM-DD-*.md   # team-council; team-kickoff's project brief
 ├── refactors/YYYY-MM-DD-*.md   # team-refactor: the record
-│   └── *.exec.md               # the executor's brief, deleted after execution
+│   └── *.exec.md               # the executors' brief, deleted after execution
 ├── reviews/YYYY-MM-DD-*.md     # team-review: the record
-│   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution, like the refactor one
-├── runs/<run>/                 # agent outputs during a run, deleted at its gate
-├── gates/*.ceo.json → *.html   # team-ceo-view (regenerable), + *.decisions.txt, *.share.html (review gates)
+│   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution
+├── runs/<run>/                 # agent outputs during a run, deleted at its gate; execution gets a fresh one
+├── gates/                      # team-ceo-view: each gate's JSON, page and what it leaves beside them (list: its SKILL.md, Gate artifacts)
 └── role-overrides/role-*.md    # optional: override any role per project
+docs/plans/YYYY-MM-DD-*.md      # team-council-plan: the plan (or your project's plan location)
 ```
 
 ## Design principles
@@ -57,7 +58,7 @@ Everything a run produces is plain Markdown under `.council/` in your project, s
 - **The human decides.** Agents recommend; the CEO gate decides; Markdown stays the source of truth.
 - **Refuted before raised.** A finding reaches you only after an agent other than its author tried to prove it wrong. A review that cries wolf gets ignored.
 - **KISS/YAGNI has teeth.** An abstraction needs a second use case that exists today. The Minimalist's KILL is a gate, not a vote.
-- **Token economy.** Cost is context size × turns. Agents run on Sonnet with a tool budget and write to files; writer agents build pages, records and plans; each gate hands off to a fresh session through a short file.
+- **Token economy.** Cost is context size × turns. Agents run on Sonnet by default, and each skill's table names the few on Opus (e.g. the synthesis of a two-round debate, the verifier, final reviews). Each has a tool budget and writes to files; writer agents build pages, records and plans; each gate hands off to a fresh session through a short file.
 
 ## Install
 
@@ -136,6 +137,7 @@ Personal skills, shared as-is. Exercised on live runs:
 - ✅ Token economy: a refactor run went from about 104M tokens to 16M (different scopes), the orchestrator from about 60% of the cost to 26%
 - ⚠️ 0.7.0 adds team-review, and sharing a review gate with the branch owner (Share button, --share, a pending review on the MR/PR); not yet run live
 - ⚠️ 0.8.0 adds per-run `auto-accept` (`--accept-recommended`); not yet run live
+- ⚠️ 0.8.1 gives each rule several skills shared one home in `team-protocol` (weakened checks, execution, code scope, writers) and resolves the contradictions an audit found; team-review now always hands its fixes to a fresh session. No renderer change; not yet run live
 - ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
 - ⚠️ Not yet live: `team-kickoff`'s interview, an off-model seat, record supersession
 - ⚠️ In a `.bare/` worktree, add the git directory to the sandbox's write paths, or executors can't commit

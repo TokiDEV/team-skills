@@ -10,7 +10,7 @@ For the agent that writes a gate's JSON. Your dispatch gives the gate's path, it
 
 The page is for decisions, not an inventory. Before writing the JSON:
 - **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`. Two cards where a choice on one makes the other moot are one question: merge them into one card whose options are the coherent combinations. Cards that only rely on each other stay separate and carry `needs`.
-- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click.
+- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click. On a review gate, a finding whose recommended fix no seat and no verifier contests is routine, whatever its severity: it stays a decision card, which **Accept recommended** handles like any routine item, and does not count toward the cap.
 - **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
 - **Order by stakes.** The item the human explicitly asked about goes first.
 
@@ -36,7 +36,7 @@ Each field has one job, so no two say the same thing:
 | Field | Its job | Shape |
 |-------|---------|-------|
 | `title` | The question (when `options` are custom) or the move (Approve/Decline) | ≤ 8 words |
-| `detail` | The facts the title lacks: what is true today and what it costs | ≤ 3 bullets or one sentence; ≤ 240 characters |
+| `detail` | The facts the title lacks: what is true today and what it costs | ≤ 3 bullets (4 is the hard limit), ≤ 120 characters each, or one sentence; ≤ 240 characters in all |
 | `why` | Why a human must decide it | One line; ≤ 160 characters |
 | `options` | The answers, each a different outcome | ≤ 5 words each |
 
@@ -51,7 +51,7 @@ Each field has one job, so no two say the same thing:
   "options": [ { "value": "keep", "label": "Keep floor + comment" }, { "value": "round", "label": "Round like other tiers" } ] }
 ```
 
-The renderer rejects a `detail` or `why` over its length, a `detail` that opens with the title, an option label that repeats the title, and a `detail` that holds every word of an option label.
+The renderer rejects a `detail` or `why` over its length, with more than 4 bullets or a bullet over 120 characters, a `detail` that opens with the title, an option label that repeats the title, and a `detail` that holds every word of an option label.
 
 ## JSON contract
 
@@ -100,14 +100,14 @@ The renderer rejects a `detail` or `why` over its length, a `detail` that opens 
 }
 ```
 
-Field rules:
+## Field rules
 - Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`. Ids are unique across decisions, tensions and rejected items.
 - `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets, and end with the recommendation. The renderer rejects a string summary.
 - **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`.
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give every weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Only use arguments the panel actually made.
 - `needs`: ids of the items this one relies on, such as refactoring steps that rely on the characterization tests, or a step built on an earlier one. A reliance, not a hard requirement: the page shows the link both ways and flags a chosen item whose needs are not chosen, and Claude asks about it before acting. Unknown ids are rejected.
 - `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card when the gate is shared as a review on the merge/pull request; a card without it goes in the review's body.
-- `suggestion`: `{ "lines", "text" }`, on an item or one of its options: the exact replacement for the `lines` lines starting at `at.line`. Only for a small, certain fix on lines the change touches (a rename, a constant, a guard): the reader applies it in one click from the review. Anything bigger stays in the brief.
+- `suggestion`: `{ "lines", "text" }`, on an item or one of its options: the exact replacement for the `lines` lines starting at `at.line`, up to ~10 lines. Only for a small, certain fix on lines the change touches (a rename, a constant, a guard), written from the reviewed commit: the reader applies it in one click from the review, as written, so never guess. Anything bigger stays in the brief.
 - `options` defaults to Approve/Decline. Set `"recommended": "decline"` on the decision to recommend declining.
 - **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with <who>" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
@@ -148,11 +148,7 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **Verify**: the exact command, and what green looks like.
 - **Commit**: the message, in the repo's convention.
 
-**`needs`** (array of ids): on a finding whose fix assumes another finding is fixed first. When the reader keeps the finding but not what it needs, the prompt tells their agent to ask first. The renderer rejects unknown ids.
-
-**`at`** (`{ "path", "line" }`): the file and line the finding points to, at the reviewed commit. A card without `at` lands in the body of a review instead of on its line.
-
-**`suggestion`**: add one where the fix is a replacement of a few lines (up to ~10) at the card's `at`, and you can write the exact new text from the reviewed commit. Never guess: a suggestion applies as written.
+**`needs`, `at`, `suggestion`**: by *Field rules*. What sharing adds: when the reader keeps a finding but not what it `needs`, the prompt tells their agent to ask first.
 
 **Rules**
 - **Only what the review found.** Where the review left the *how* open (a fix whose mechanics nobody settled), the brief says so and ends: "Ask me before doing this, with the options you see."

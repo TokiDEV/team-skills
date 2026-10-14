@@ -2,18 +2,20 @@
 
 What each agent writes. The orchestrator copies this file into the run folder and points each agent to its section.
 
+A pointer to a `team-protocol` section means that section of `team-protocol.md`, and one to a `counting.md` section that section of `counting.md`: both are copied beside this file.
+
 ## Code Brief (Recon)
 
-The *only* shared context for the panel, so six panelists don't each re-read the same files. Under ~60 lines, plus the excerpts:
+The *only* shared context for the panel, so six panelists don't each re-read the same files. Its length and its gate-command rule: `team-protocol` § *Code scope*. It holds:
 - Files in scope with line counts; public API and its callers (outside-in)
 - **Coverage map**: which branches/behaviors tests pin, which are unpinned
 - Hotspots: `git log` churn for these files
-- Quality-gate commands, **verbatim as you ran them**, each with its result. No placeholders: a command nobody ran is not a gate.
+- Quality-gate commands, each with its result (`team-protocol` § *Code scope*).
 - Known flakes: any test that failed and then passed on a rerun during your runs, with its name
 - Upcoming change, if the user named one (Sequencing orders toward it)
 - For a diff scope: the changed line ranges per file (`git diff --unified=0`), so panelists can tell new code from old.
 - Static-analysis leads: if the profile lists dead-code or import-cycle tools, run them on the scope and list their hits as leads. A lead is not a finding: static analysis misses dynamic imports, config references and codegen, so a panelist verifies each by hand before citing it.
-- **Excerpts**: the hotspot code itself, with `file:line` headers, at most ~200 lines in all
+- **Excerpts**: the hotspot code itself, with `file:line` headers
 
 ## Finding Card (panelists)
 
@@ -28,12 +30,12 @@ At most 5 cards: the cap forces prioritization. Then a *Leave alone* list and an
 - Payoff: <a concrete, present gain — "adding a customer type touches 1 place instead of 3". Not "cleaner", not "more extensible">
 - Cost/risk: <S|M|L> — <what could break>
 - Safety net: <pinned by <tests> | needs characterization of <behavior>>
-- Confidence: <high|med|low> (high only if you traced the code path, can name where it bites, and the refutation failed; a low card never becomes a step)
+- Confidence: <high|med|low> (by `counting.md` § *Confidence*; a low card goes to *Leave alone*, never a step)
 ```
 
 ## Synthesis (synthesizer)
 
-Under ~300 lines. The gate writer and the record writer read only this file, so it holds everything the gate page and the exec brief need.
+Its length and its readers: `team-protocol` § *Writers*. It holds everything the gate page and the exec brief need.
 
 ```markdown
 ## Refactoring Backlog — <scope>
@@ -89,9 +91,9 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis:
 
 From the synthesis and the decisions block, write two files:
 - **The record**, `.council/refactors/YYYY-MM-DD-<topic>.md`, for humans and future refactors: `Status: approved, not executed`, the synthesis, the CEO decisions with their notes, rejected cards, tensions and the *Next run* list.
-- **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, for the executors and nothing else: a header (scope, the quality-gate commands copied verbatim from the Code Brief, known flakes, fences for the whole run), Safety Net's Step 0 spec, and the approved Step Cards in order. No debate, no arguments, no rejected items. Aim under ~150 lines.
+- **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, by `team-protocol` § *Writers*: the header takes its quality-gate commands from the Code Brief and also lists the known flakes; then Safety Net's Step 0 spec, then the approved Step Cards in order.
 
-After execution, from the executors' and the reviewer's reply lines: add the commits (hash and step, one line each), the reverted steps with their reason, and add the reviewer's `note` findings to *For team-review*. Set `Status: executed`.
+After execution, complete the record by `team-protocol` § *Writers*; the reviewer's `note` findings go to *For team-review*.
 
 ## Step Card (synthesizer, executors)
 
@@ -113,6 +115,6 @@ Rerun the *Verify* commands, then read the full diff against the exec brief:
 - nothing smuggled in, nothing behavioral, no step skipped;
 - one named refactoring per commit: a subject naming two refactorings, or joined by "and", fails;
 - no formatting outside the changed lines;
-- no check weakened: a lowered threshold, a skipped or deleted test, an assertion removed, a new `@ts-ignore`, `eslint-disable` or coverage ignore, a stub or empty `catch` where moved code used to be.
+- no check weakened (`team-protocol` § *Weakened checks*); here also no existing test's expected value changed at all, and no `TODO` where moved code used to be.
 
 Tag each finding `fix` or `note`, with the step it belongs to.

@@ -37,11 +37,20 @@ Turns a CEO gate into a local HTML decision page: where the work lands beside to
    A `mode: auto-accept` block → also ask about every item tagged `corrects <premise>`, whatever its choice: the human has not seen what the page found. All these questions go in one chat message.
 5. **Record** the decisions (with notes) into the `.md` record through the calling skill's record writer, then continue the calling skill's flow. A `mode: auto-accept` block: the writer adds *"Auto-accepted: every recommendation taken without opening the page"* to the record, beside any answers given in chat.
 
-The files stay local; nothing is uploaded unless the human shares the gate. `.council/gates/` can be committed or gitignored: the decisions live in the `.md` record, and the page regenerates from its JSON.
+**Gate artifacts.** Everything a gate leaves sits in `.council/gates/` and stays local; nothing is uploaded unless the human shares the gate. `<gate>` is the gate JSON's path without `.ceo.json`:
+- `<gate>.ceo.json`: the gate JSON (step 1). `<gate>.html`: the page rendered from it (step 2).
+- `<gate>.decisions.txt`: the decisions block, saved by **Send to Claude** or `--accept-recommended`.
+- `<gate>.share.txt`: the `CEO SHARE` block, saved by the Share dialog.
+- `<gate>.share.html` (`--share`) and `<gate>.share.artifact.html` (`--artifact`): the page for the reader.
+- `<gate>.review.github.json` or `<gate>.review.gitlab/`: the pending review (`--review=`).
+- `<topic>-plan-r<N>.ceo.json`: a team-council-plan re-gate after an amendment, with its own `.html` and `.decisions.txt`.
+- `YYYY-MM-DD-<topic>/`: the sketches and screenshots the page embeds.
+
+`.council/gates/` can be committed or gitignored: the decisions live in the `.md` record, and the page regenerates from its JSON.
 
 ## Share
 
-For a team-review gate whose branch belongs to someone else. They decide and act on their own; nothing comes back. team-review's record writer records the share (Status: shared); there is no exec brief and no execution. Asked to share any other gate: say sharing is for team-review gates, and offer its page file (`<gate>.html`) to send as is.
+For a team-review gate. On someone else's branch, Share hands the review to the branch owner; on your own branch or an audit, it hands the audit to the module's owner, or a fix to a colleague. The reader decides and acts on their own; nothing comes back. team-review's record writer records the share (Status: shared); there is no exec brief and no execution. Asked to share any other gate: say sharing is for team-review gates, and offer its page file (`<gate>.html`) to send as is.
 
 1. **Render**: `node <base directory>/render.js <gate.json> --share`, plus `--preset=<gate>.share.txt` when the share came from the dialog (the server printed that path). The gate is share-ready already (`contract.md` § *Share fields*); if the render rejects it, fix the JSON by that section and re-run. No separate writer.
 2. **Check before delivering.** The gate writer already applied *No customer data*; this is the second look. Look at every screenshot (`figures`, `outcome`) and every code pane in the gate JSON for customer data: names, emails, phone numbers, amounts tied to a person, tokens. If any may hold some, list them to the human and wait.

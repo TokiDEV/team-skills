@@ -11,7 +11,7 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 
 ## Preconditions
 
-- **Project profile**: read `.council/project-profile.md`. If missing, run `team-scan` first (or offer to).
+- **Project profile**: read `.council/project-profile.md`. Required: if it is missing, offer `team-scan` and stop until it has run.
 - **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it:
   - the question, the options on the table, what is out of scope, and whether it is reversible;
   - **the facts every role will assume**: who the user is, their platform and locale (OS, language, keyboard layout), and what the work may add: fixes only, or new features too. Back each one with a file or the profile, or mark it *unchecked*;
@@ -71,7 +71,7 @@ CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
 
 ### Round 1 — independent positions (parallel)
-Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). Agents invoke domain specialists as relevant. Agents may flag questions for the human.
+Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke domain specialists as relevant. Agents may flag questions for the human.
 
 ### Question pause
 Collect flagged questions, present them grouped and attributed by role. If none were flagged, proceed straight on.
@@ -89,12 +89,12 @@ An answer binds as the user's preference. A claim it makes about the code is som
 
 ### Round 2 — targeted debate (parallel)
 Identify tensions from the Round 1 one-line positions:
-- **Philosopher always participates** — sees all Round 1 output, applies Socratic analysis.
+- **At two-round depth, the Philosopher always participates** — sees all Round 1 output, applies Socratic analysis.
 - **Conflicting pairs** see each other's positions and respond directly.
 - **Every seat a CEO answer contradicts** sits again, with the answers file. So does a seat whose agreement you can't confirm from its one-line replies.
 - **The other seats skip Round 2.**
 
-Round 2 prompts repeat the role file's *Output Format*, sources line included. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
+Round 2 prompts repeat the role file's *Output Format*, its *Position* line's sources included. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
 
 ### Synthesis
 A dedicated synthesis agent (separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
@@ -135,7 +135,7 @@ The shared ones are in `team-protocol`. These are the council's own.
 | "The framing is clear enough, I'll skip the restate" | Every role inherits the framing. A one-line restate and a yes cost less than a debate on the wrong question. |
 | "Everyone uses QWERTY / English / a Mac" | That is an environment fact every role will build on. Check it or ask. |
 | "Their answer settles it, I'll record it as fact" | The answer binds as a preference. What it says about the code goes to Round 2 to check. |
-| "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours. Skipping the page takes `auto-accept` said when invoking the run (`team-protocol` § *Auto-accept*). |
+| "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours (`team-protocol` § *Auto-accept*). |
 
 ## Red Flags
 

@@ -9,12 +9,12 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, the handoff, execution and weakened checks.
 
 ## Iron Laws
 
 1. **Behavior-preserving only.** Any observable change — outputs, rounding, error types, side effects, call order, emails, logs relied on — is a *For team-review* item. It is never a backlog step, even if the user said "fix it while you're there" or "whatever, make it clean".
-2. **No safety net, no refactor.** Code the step touches must be pinned by tests first, and the tests must be proven to bite (see Step 0).
+2. **No safety net, no refactor.** Code the step touches must be pinned by tests first, and the tests must be proven to bite (see Step 0). Characterization tests of unchanged behavior are this skill's work; a missing test for new or changed behavior is team-review's.
 3. **One named refactoring per commit.** Structure and behavior never share a commit (Beck, *Tidy First*).
 4. **Red means revert.** A failing gate after a step → `git checkout` the step, shrink it, retry. Never debug forward.
 5. **An abstraction needs a present second case.** Roadmap talk ("we plan to add providers"), TODOs, and "might" are not cases. Two real call sites today, or it doesn't exist.
@@ -39,7 +39,7 @@ Card IDs carry the seat's prefix: RS, MC, SQ, SN, DP, and MN for the Minimalist.
 
 ## Separation of Context
 
-Every agent gets the minimum it needs and nothing else. This is what makes the panel a panel instead of one opinion wearing six costumes. `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
+Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
 
 | Agent | Model | Tool budget | Receives | Writes by `templates.md` |
 |-------|-------|-------------|----------|--------------------------|
@@ -53,7 +53,7 @@ Every agent gets the minimum it needs and nothing else. This is what makes the p
 | Executor | sonnet | — | **one** Step Batch + the exec brief's header | *Step Card* |
 | Final reviewer | opus | — | full diff + exec brief | *Final review* |
 
-No agent receives the conversation, the raw transcripts or another panelist's Round 1 output. Put this line first in each panelist's *How to work* block: `- Start from the Code Brief. Open a file only to confirm or cite evidence.`
+Put this line first in each panelist's *How to work* block: `- Start from the Code Brief. Open a file only to confirm or cite evidence.`
 
 ## Flow
 
@@ -70,13 +70,13 @@ No agent receives the conversation, the raw transcripts or another panelist's Ro
 ```
 
 ### 0. Preconditions
-- **Scope**: a path, module, or diff. "The whole repo", or a branch over the size cap below → dispatch Recon first to rank hotspots (churn × complexity, with the smells it sees). Then ask the user to pick, with Recon's ranking in the question: each option carries its size, its main smell and its risk, one option is marked *(Recommended)*, and one is "all of them, one run each". When the scope is a diff (a branch, a merge request), the panel flags only smells the diff introduces or worsens. A smell in code the diff leaves untouched is listed once under *Leave alone*, never a card.
+- **Scope**: a path, module, or diff, sized by `team-protocol` § *Code scope*, counting the lines in scope. To narrow it, Recon ranks hotspots by churn × complexity, with the smells it sees; each option also names its main smell, and one more option is "all of them, one run each". When the scope is a diff (a branch, a merge request), the panel flags only smells the diff introduces or worsens. A smell in code the diff leaves untouched is listed once under *Leave alone*, never a card.
 - **Clean working tree** (`.council/` excepted; the record is committed alongside Step 0) and a **green test run**.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
-- **Proportionality**: for a scope under ~150 lines, write the Code Brief yourself (`templates.md` § *Code Brief*) instead of dispatching Recon, and run at most 2 tension pairs. The panel and the gate always run. Above ~3,000 lines, or more than one package, narrow the scope before dispatching the panel.
+- **Proportionality**: by `team-protocol` § *Code scope*, the brief being the Code Brief (`templates.md` § *Code Brief*). The panel and the gate always run. A scope small enough that you write the brief yourself also runs at most 2 tension pairs.
 
 ### 1. Recon → Code Brief
-One agent writes the brief by `templates.md` § *Code Brief*. It must be able to write files: a general-purpose agent, or a code-exploration agent from the profile's Technical domain that has Write. The built-in `Explore` has no Write; if you use it, save its reply to the run folder yourself.
+One agent writes the brief by `templates.md` § *Code Brief*, following the Recon rules of `team-protocol` § *Code scope*.
 
 ### 2. Round 1 — blind panel (parallel)
 Dispatch all 6 in one message. In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{CODE_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
@@ -94,13 +94,13 @@ A separate synthesizer agent writes the backlog by `templates.md` § *Synthesis*
 Then the record writer writes the record and the exec brief, and you hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
 
 ### 6. Execute
-Start from the exec brief. Don't read the record or the run folder. Copy `templates.md` into a fresh run folder for the executors and the reviewer.
+Execute by `team-protocol` § *Execution*, from the exec brief. The steps are the approved Step Cards, sized S, M or L; each executor gets its batch's Step Cards and the exec brief's header.
 
 **Step 0 — safety net** (Safety Net): add characterization tests for every unpinned behavior the approved steps touch, run them green against the *untouched* code, then prove they bite: break the code deliberately (flip a rounding, a comparison, a constant), confirm a test fails, restore. Commit `test: characterize <scope>`.
 
-Then group the approved steps into **Step Batches**: consecutive steps in backlog order, size S, touching overlapping files, at most 4 per batch. Any M or L step is a batch of one. Dispatch a **fresh executor** per batch with its Step Cards and the exec brief's header. It commits each step on its own, so Iron Laws 3 and 4 still hold per step.
+Then group the approved steps into **Step Batches** and dispatch a fresh executor per batch (`team-protocol` § *Execution*). It commits each step on its own, so Iron Laws 3 and 4 still hold per step.
 
-Last, one reviewer agent runs § *Final review*. Every `fix` finding goes to a fresh executor with the reviewer's report and the Step Cards it names. It commits each fix as a `fixup!` of its step, so `git rebase --autosquash` folds it in before the push, and the reviewer re-checks only a fix that changed logic. Don't fix or dismiss findings yourself: your context is the most expensive one in the run.
+Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their step (`team-protocol` § *Execution*), each with the Step Card it names.
 
 ### 7. Record
 The record writer completes the record (§ *Record and exec brief*). Delete the exec brief and the run folder: anything worth keeping is in the record by now. Future refactors read past records first.
@@ -119,14 +119,13 @@ The shared ones are in `team-protocol`. These are the refactor's own.
 | "Parameterize and move are one gesture" | Two refactorings are two steps and two commits, so each one can be reverted alone. |
 | "It went red, I'll just fix the test" | The test is the spec. Revert the step. |
 | "It passed on a rerun, it's a flake" | Only a test the exec brief lists as a known flake. Any other red reverts. |
-| "The linter trips on the moved code; one `eslint-disable` and it's green" | A silenced check lowers the bar the step is measured against. Revert, shrink the step, retry. |
+| "The linter trips on the moved code; one `eslint-disable` and it's green" | That is a weakened check (`team-protocol` § *Weakened checks*): it lowers the bar the step is measured against. Revert, shrink the step, retry. |
 
 ## Red Flags — stop and return to the flow
 
 - Writing an interface, base class, registry or plugin point with one implementation
 - A commit message containing "and"
 - Changing an expected value in an existing test
-- A new `.skip`, `@ts-ignore`, `eslint-disable` or coverage ignore, or a threshold lowered in config
-- A stub, an empty `catch` or a `TODO` where moved code used to be
+- A weakened check (`team-protocol` § *Weakened checks*), or a `TODO` where moved code used to be
 - Editing a file outside the fence
 - Reasoning "they'll need this later"

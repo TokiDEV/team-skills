@@ -41,25 +41,63 @@ The council debates the vision you bring back, so get the one the user holds, no
 The confirmed restate is the council's decision context, and *Out of scope* is its fence.
 
 ### 2. Scan
-Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools, and records the intended stack from the vision.
+Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools. The intended stack is not in the profile yet: step 6 adds it from the council's conclusions.
 
 ### 3. Council on the vision
 Invoke `team-council` with the confirmed restate as its decision framing (the user already said yes to it, so skip the council's framing questions), with every role seated and at two-round depth: a vision is open and not cheap to reverse. The roles debate the shape of the project — scope, architecture direction, UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the council through its synthesis but **skip its CEO gate**: step 5 is the single gate for kickoff.
 
 ### 4. Synthesis → brief
-The PO synthesis produces a project brief: the agreed vision, the initial scope, the technical and UX direction, and the tensions to revisit later. A gate writer (sonnet, ~15) then sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet. Copy `team-ceo-view`'s `contract.md` and `figures.md` into the run folder first (`team-protocol`); the writer draws by `figures.md` and builds the page by `contract.md` and the mapping in step 5.
+The council's synthesizer writes its *Council Summary* (team-council's `templates.md` § *Synthesis*): the agreed vision, the initial scope, the technical and UX direction. Points it defers past v1 go to the brief's *To revisit* (step 5), not to `tensions`. A gate writer (sonnet, ~15) then sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet. Copy `team-ceo-view`'s `contract.md` and `figures.md` into the run folder first (`team-protocol`); the writer draws by `figures.md` and builds the page by `contract.md` and the mapping in step 5.
 
 ### 5. CEO approval
-A record writer (sonnet, ~8) writes the brief to `.council/decisions/YYYY-MM-DD-kickoff.md`. **REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the brief); the gate writer builds and renders the page. Map it like this:
+A record writer (sonnet, ~8) writes the brief to `.council/decisions/YYYY-MM-DD-kickoff.md` in team-council's *Decision record* shape (its `templates.md` § *Decision record*, copied in the council's run folder), so `team-council-plan` reads it like any decision:
+
+```markdown
+# Kickoff — <project>
+Status: draft
+
+## What
+[The confirmed restate's line, in the user's words]
+
+## Who
+[The confirmed restate's line]
+
+## Environment
+[The confirmed restate's line: platform, OS, language, keyboard layout]
+
+## Why
+[The confirmed restate's line]
+
+## Success
+[The confirmed restate's line]
+
+## Constraint
+[The confirmed restate's line]
+
+## Out of scope
+[The confirmed restate's line]
+
+## Council Summary
+[The council's synthesis, as written]
+
+## To revisit
+[Points the council defers past v1, and its dissenting views worth noting: what, who raised it, what would reopen it. A choice with no majority goes to `tensions`, not here]
+
+## CEO decisions
+[Each gate item with its choice and the CEO's note]
+```
+
+**REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the brief); the gate writer builds and renders the page. Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
 - `outcome`: the v1 sketches from step 4.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*.
 - **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`.
-- `tensions`: direction choices with no majority, and the tensions to revisit later. A choice is either a decision or a tension, never both.
+- `tensions`: direction choices with no majority, by `counting.md`. *To revisit* stays in the brief, off the page.
 
 Iterate: notes or changed choices → the record writer revises the brief, the gate writer re-renders. The CEO is satisfied when a decisions block comes back with nothing to revise; the record writer then sets `Status: decided YYYY-MM-DD` on the brief.
 
 ### 6. Write foundations
+A foundations writer (sonnet, ~10) writes both, from the brief and the scan's profile:
 - `.council/project-profile.md` — the profile (from team-scan, enriched by the council's conclusions about intended stack and conventions).
 - `CLAUDE.md` — initial project instructions: quality gates, design context, principles, conventions the council agreed on.
 
