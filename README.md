@@ -17,8 +17,6 @@
 | [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). **Send to Claude** hands your decisions back to the session. **Share**, on review gates only, turns the gate into a page for the owner of the branch you reviewed: they decide alone, starting from your choices, and copy a prompt for their own coding agent. Share asks what they get (the file, a claude.ai link, or a review on the merge/pull request that you submit) and where it goes (you send it, a merge/pull request comment, a prepared email or Slack message). |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, the agent contract, counting positions, the handoff. The other skills load it. |
 
-**Upgrading from before 0.4.0:** rename overrides in `.council/role-overrides/` (`role-uncle-bob.md` → `role-responsibilities.md`, `fowler` → `mechanics`, `beck` → `sequencing`, `feathers` → `safety-net`, `ousterhout` → `depth`); old names are ignored.
-
 ## Which skill?
 
 ![A review gate of the refund route, with the security blocker's card open](docs/review-gate.png)
@@ -97,6 +95,8 @@ Ask in plain language; the skills trigger on intent:
 
 Or invoke one directly: `/team-refactor src/billing/invoice.js` after a manual install, or `/team-skills:team-refactor …` after a plugin install.
 
+Add `auto-accept` to skip the page at every gate of that run: each recommendation is taken, and Claude asks in chat only about what has none, what relies on a declined item, and what corrects something you said. The record says it was auto-accepted. It lasts one run, and never applies to a review you share with a branch owner.
+
 ## Try the CEO view
 
 [`examples/refactor-gate/`](examples/refactor-gate) holds a sample gate JSON and the page rendered from it. Download `invoice.html` and open it in a browser, or re-render it:
@@ -105,6 +105,8 @@ Or invoke one directly: `/team-refactor src/billing/invoice.js` after a manual i
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json
 # or serve it, as the skills do: Send to Claude prints the decisions, exits and closes the tab
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --serve
+# or auto-accept it: no page, the block of recommended choices is printed and saved to invoice.decisions.txt
+node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --accept-recommended
 ```
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.ceo.json`, its page, and what Share makes from it. Share is for review gates, where the branch owner decides alone, starting from your choices, with **Copy prompt** in place of Send: a standalone file, or `--artifact` for a claude.ai Artifact.
@@ -133,6 +135,7 @@ Personal skills, shared as-is. Exercised on live runs:
 - ✅ `team-scan`, and `team-ceo-view` with the `--serve` round trip (pages of up to 51 decisions)
 - ✅ Token economy: a refactor run went from about 104M tokens to 16M (different scopes), the orchestrator from about 60% of the cost to 26%
 - ⚠️ 0.7.0 adds team-review, and sharing a review gate with the branch owner (Share button, --share, a pending review on the MR/PR); not yet run live
+- ⚠️ 0.8.0 adds per-run `auto-accept` (`--accept-recommended`); not yet run live
 - ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
 - ⚠️ Not yet live: `team-kickoff`'s interview, an off-model seat, record supersession
 - ⚠️ In a `.bare/` worktree, add the git directory to the sandbox's write paths, or executors can't commit

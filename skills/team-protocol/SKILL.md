@@ -14,7 +14,7 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 - **Pass the model and budget** from the caller's table to every dispatch.
 - **Skill files go into the run folder first.** The skill's base directory (`~/.claude/skills/…` or the plugin cache) is outside the project, so an agent's Read there waits on a permission prompt. Before the first dispatch, copy every skill file an agent will Read into the run folder with one Bash call: the caller's `templates.md`, the role files (the caller's `roles/`, or `team-council/roles/` for plan reviewers), this skill's `counting.md`, and `team-ceo-view`'s `contract.md` and `figures.md` for any agent that builds a page or draws a sketch. E.g. `cp <base directory>/{templates.md,roles/role-*.md} <base directory>/../team-protocol/counting.md <base directory>/../team-ceo-view/{contract.md,figures.md} <run folder>/`. Then point each agent to its copy. A script run through Bash (`render.js`) needs no copy, and a project override (`.council/role-overrides/`) is already inside the project.
 - **Writers keep the orchestrator short.** Gate JSON, decision and refactor records, exec briefs and plans are written by agents (from the synthesis file, the decisions block or a reviewer's lines). The orchestrator writes prompts and small run-folder notes, serves the page, and passes the decisions block on. Each caller's table gives these writers a model and a budget.
-- **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins. `<name>` is the role's current file name: an override under a renamed role's old name is ignored (the README lists the renames).
+- **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins. `<name>` is the role's current file name: an override under a renamed role's old name is ignored.
 - **Roles are lenses.** A role is named after what it looks at, never after a person. This holds for built-in roles, ad-hoc specialists and project overrides.
 - **Sources.** Every role file has a `## Sources` section: 5–8 entries, one line each, a source and the question or test it brings. The list is varied on purpose, in gender, country, discipline and epoch. A source earns its place by changing what the agent does.
 - **Pick and declare.** The agent picks the 2–3 sources that best fit the case and is not bound to the others. It names the ones it used, where its caller's output format says.
@@ -59,6 +59,10 @@ Each CEO gate ends a session. Write the record the next phase needs and delete t
 
 The next phase starts from that file, not from a context that holds the whole debate.
 
+## Auto-accept
+
+The human may invoke a run with `auto-accept` (e.g. `/team-refactor src/invoice.js auto-accept`). Every gate of that run then skips the page: `team-ceo-view` takes each recommendation and asks in chat only about what has none, what relies on a declined item, and what corrects a premise. It lasts that run only, and only the invocation turns it on: "just decide" mid-run, a profile line or a previous run's choice does not. Everything else stays: the question pause, the record, the handoff. A team-review gate on someone else's branch still goes to its owner.
+
 ## Rationalizations
 
 | Excuse | Reality |
@@ -84,3 +88,4 @@ The next phase starts from that file, not from a context that holds the whole de
 - Opening a run-folder file other than the synthesis
 - Starting the next phase in the session that ran the gate
 - An external model CLI called without a yes on record
+- A gate auto-accepted in a run the human did not invoke with `auto-accept`

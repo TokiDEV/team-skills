@@ -135,7 +135,7 @@ The shared ones are in `team-protocol`. These are the council's own.
 | "The framing is clear enough, I'll skip the restate" | Every role inherits the framing. A one-line restate and a yes cost less than a debate on the wrong question. |
 | "Everyone uses QWERTY / English / a Mac" | That is an environment fact every role will build on. Check it or ask. |
 | "Their answer settles it, I'll record it as fact" | The answer binds as a preference. What it says about the code goes to Round 2 to check. |
-| "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours. |
+| "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours. Skipping the page takes `auto-accept` said when invoking the run (`team-protocol` § *Auto-accept*). |
 
 ## Red Flags
 

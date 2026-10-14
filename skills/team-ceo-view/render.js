@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// Usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --share [--artifact] [--preset=<block.txt>]]
+// Usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --accept-recommended | --share [--artifact] [--preset=<block.txt>]]
 // Validates a CEO-gate JSON, normalizes decisions, tensions and rejected items into one list of
 // decidable items, embeds images, and injects the result into template.html.
 // Output defaults to <gate>.html next to the JSON, <gate>.share.html with --share, <gate>.share.artifact.html with --artifact.
 // --serve: also serve the page on 127.0.0.1 and open it; when the human clicks "Send to Claude",
 // save the block to <gate>.decisions.txt, print it, and exit; "Share" saves its block (the choices so far)
 // to <gate>.share.txt instead. --no-open skips opening the browser.
+// --accept-recommended: an auto-accept run. No server: every card takes its default, else its recommended option, and the
+// block (with a "mode: auto-accept" line) is saved to <gate>.decisions.txt and printed after the page path.
 // --channels=<json> (with --serve): availability of the Share dialog's choices, detected by Claude:
 // { link?: true | 'why not', review?: true | { label } | 'why not and how to fix' }.
 // --share: a review gate (kind "review") as a page the branch owner acts on alone; it needs "preamble" and briefs (contract.md, Share fields).
@@ -14,11 +16,12 @@
 // --review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head> (with --share, not --artifact):
 // instead of the page, write a ready-to-post review: <gate>.review.github.json, or the folder <gate>.review.gitlab/.
 // Cards with "at" inside the diff become comments; --diff=<unified diff file> says which lines are in it (default: all).
-// Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server).
+// Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server), accept.js (--accept-recommended).
 const fs = require('fs');
 const path = require('path');
 const { loadGate } = require('./lib/gate');
 const { buildPage, renderHtml } = require('./lib/page');
+const { acceptedBlock } = require('./lib/accept');
 const { parseChannels } = require('./lib/share');
 const { parseDiff, loadReviewBuilder, buildReviewPayloads, writeReviewFiles } = require('./lib/review');
 const { serve } = require('./lib/serve');
@@ -26,7 +29,7 @@ const { serve } = require('./lib/serve');
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
 const [src, outArg] = args.filter(a => !a.startsWith('--'));
-const USAGE = 'usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --share [--artifact] [--preset=<block.txt>] [--review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head>] [--diff=<file>]]';
+const USAGE = 'usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --accept-recommended | --share[--artifact] [--preset=<block.txt>] [--review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head>] [--diff=<file>]]';
 if (args.includes('--preset')) { console.error('--preset takes a file: --preset=<block.txt>\n' + USAGE); process.exit(2); }
 if (args.includes('--channels')) { console.error("--channels takes JSON: --channels='<json>'\n" + USAGE); process.exit(2); }
 ['--review', '--head', '--refs', '--diff'].forEach(f => {
@@ -37,6 +40,8 @@ const SHARE = flags.has('--share');
 const ARTIFACT = flags.has('--artifact');
 const PRESET = (args.find(a => a.startsWith('--preset=')) || '').slice('--preset='.length);
 if (SHARE && flags.has('--serve')) { console.error('--share and --serve are exclusive\n' + USAGE); process.exit(2); }
+const ACCEPT = flags.has('--accept-recommended');
+if (ACCEPT && (SHARE || flags.has('--serve'))) { console.error('--accept-recommended excludes --serve and --share\n' + USAGE); process.exit(2); }
 const argOf = name => { const a = args.find(x => x.startsWith(name + '=')); return a === undefined ? undefined : a.slice(name.length + 1); };
 const REVIEW = argOf('--review'), HEAD = argOf('--head'), REFS = argOf('--refs'), DIFF = argOf('--diff');
 if (REVIEW !== undefined) {
@@ -83,6 +88,11 @@ const out = outArg || src.replace(/(\.ceo)?\.json$/, '') + (SHARE ? (ARTIFACT ? 
 fs.writeFileSync(out, html);
 console.log(out);
 
+if (ACCEPT) {
+  const block = acceptedBlock(page, template);
+  fs.writeFileSync(out.replace(/\.html$/, '') + '.decisions.txt', block + '\n');
+  console.log(block);
+}
 if (flags.has('--serve')) {
   const base = out.replace(/\.html$/, '');
   serve(html, base + '.decisions.txt', base + '.share.txt', { open: !flags.has('--no-open') });

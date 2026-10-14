@@ -958,6 +958,29 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return { body: body.join('\n\n'), comments: comments };
   }
+  // Accept recommended: every card without a choice takes its default, else its recommended option. Returns how many it set.
+  // render.js --accept-recommended runs this and decisionsBlock with node:vm, so its block is the one this page would send.
+  function acceptRecommended(items, state) {
+    var n = 0;
+    items.forEach(function (it) {
+      if ((state[it.id] || {}).choice) return;
+      var rec = it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
+      if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec; n++; }
+    });
+    return n;
+  }
+  function decisionsBlock(data, items, state, mode) {
+    var lines = ['CEO DECISIONS — ' + data.title];
+    if (data.source) lines.push('record: ' + data.source);
+    if (mode) lines.push('mode: ' + mode);
+    items.forEach(function (it) {
+      var s = state[it.id] || {};
+      var line = it.id + ' = ' + (s.choice || 'UNDECIDED');
+      if (s.note && s.note.trim()) line += ' | note: ' + s.note.trim().replace(/\s+/g, ' ');
+      lines.push(line);
+    });
+    return lines.join('\n');
+  }
 /*PROMPT-END*/
 /*SHARE-START*/
   // The Share dialog: what the reader gets, and where it goes. render.js --channels says which of link/review are available.
@@ -990,17 +1013,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     return [lines[0].replace(/^CEO DECISIONS/, 'CEO SHARE')].concat(head, lines.slice(1)).join('\n');
   }
 /*SHARE-END*/
-  function output() {
-    var lines = ['CEO DECISIONS — ' + data.title];
-    if (data.source) lines.push('record: ' + data.source);
-    items.forEach(function (it) {
-      var s = state[it.id] || {};
-      var line = it.id + ' = ' + (s.choice || 'UNDECIDED');
-      if (s.note && s.note.trim()) line += ' | note: ' + s.note.trim().replace(/\s+/g, ' ');
-      lines.push(line);
-    });
-    return lines.join('\n');
-  }
+  function output() { return decisionsBlock(data, items, state); }
   // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm(): an Artifact's sandbox blocks it.
   document.getElementById('reset').addEventListener('click', function () {
     state = JSON.parse(JSON.stringify(data.preset || {}));
@@ -1010,12 +1023,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     document.getElementById('toast').textContent = 'Decisions reset.';
   });
   document.getElementById('recAll').addEventListener('click', function () {
-    var n = 0;
-    items.forEach(function (it) {
-      if (choiceOf(it.id)) return;
-      var rec = it.options.filter(function (o) { return o.recommended; })[0];
-      if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec.value; n++; }
-    });
+    var n = acceptRecommended(items, state);
     save(); render(); applyFilters(true);
     document.getElementById('toast').textContent = n > 0 ? n + ' card' + (n === 1 ? '' : 's') + ' set to the recommended option.' : 'No undecided card has a recommended option.';
   });
