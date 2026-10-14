@@ -7,7 +7,7 @@ description: Use when starting a brand-new project or an empty directory, and th
 
 New-project bootstrap. Brings the council in before there's any code, so the project's direction and conventions are shaped by the full team rather than defaulted. Reuses `team-council` internally.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, structural choices and the handoff.
 
 ## Flow
 
@@ -44,7 +44,7 @@ The confirmed restate is the council's decision context, and *Out of scope* is i
 Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools. The intended stack is not in the profile yet: step 6 adds it from the council's conclusions.
 
 ### 3. Council on the vision
-Invoke `team-council` with the confirmed restate as its decision framing (the user already said yes to it, so skip the council's framing questions), with every role seated and at two-round depth: a vision is open and not cheap to reverse. The roles debate the shape of the project — scope, architecture direction, UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the council through its synthesis but **skip its CEO gate**: step 5 is the single gate for kickoff.
+Invoke `team-council` with the confirmed restate as its decision framing (the user already said yes to it, so skip the council's framing questions), with every role seated and at two-round depth: a vision is open and not cheap to reverse. The roles debate the shape of the project — scope, architecture direction, the initial structure (repo layout, packages or modules, folder conventions; `team-protocol` § *Structural choices*), UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the council through its synthesis but **skip its CEO gate**: step 5 is the single gate for kickoff.
 
 ### 4. Synthesis → brief
 The council's synthesizer writes its *Council Summary* (team-council's `templates.md` § *Synthesis*): the agreed vision, the initial scope, the technical and UX direction. Points it defers past v1 go to the brief's *To revisit* (step 5), not to `tensions`. A gate writer (sonnet, ~15) then sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet. Copy `team-ceo-view`'s `contract.md` and `figures.md` into the run folder first (`team-protocol`); the writer draws by `figures.md` and builds the page by `contract.md` and the mapping in step 5.
@@ -92,6 +92,7 @@ Status: draft
 - `outcome`: the v1 sketches from step 4.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*.
 - **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`.
+- **The initial structure**: always on the page, as a direction choice like the ones above (or a tension), so the scaffolding workflow builds a layout the CEO chose instead of inventing one.
 - `tensions`: direction choices with no majority, by `counting.md`. *To revisit* stays in the brief, off the page.
 
 Iterate: notes or changed choices → the record writer revises the brief, the gate writer re-renders. The CEO is satisfied when a decisions block comes back with nothing to revise; the record writer then sets `Status: decided YYYY-MM-DD` on the brief.

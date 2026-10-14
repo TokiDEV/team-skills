@@ -74,7 +74,7 @@ version of each side, each side's step as a Step Card, and a suggested default]
 - **Low cards.** A `low` card never becomes a step; it goes to *Leave alone*.
 - **Conflicts.** A card the gate kept but two panelists conflict on is settled by `counting.md`; a card's `Evidence` line is its evidence. A majority's move is a step, with the dissent in its `against`. With no majority, it is a tension, neither side's step is in *Steps*, and the tension names the slot where the winning side's step goes. The record writer puts the chosen side's step in that slot once the CEO picks a side.
 - **Caps are yours, not the CEO's.** At most 8 steps after Step 0; the rest go in *Next run*. A gate with 13 findings and 4 tensions gets rubber-stamped, and a long backlog turns a review into a weekend of execution.
-- **Architecture-level questions** (new layers, a changed public contract): recommend `team-council` instead of deciding here.
+- **Structural choices** (`team-protocol` § *Structural choices*). A step that makes one (a new package or module, a dependency rule, a folder convention) is a major decision, its options including leaving the structure as it is. A new layer or a changed public contract is beyond a refactor: recommend `team-council` instead of deciding here.
 
 ## Gate page (gate writer)
 
@@ -82,7 +82,7 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis:
 - `summary`: labelled bullets *Verdict*, *Weak spots*, *For team-review*, *Recommendation*. `source` is the refactor record. When a *For team-review* line touches money, data or a public contract, *Recommendation* says to run team-review on the scope before executing.
 - **Steps**: routine decisions. Each takes its before/after `code` and credited `for`/`against` from its Step Card's gate material.
 - `needs` on each step that relies on another: on Step 0 when its characterization tests are that step's safety net, or on the earlier step it builds on.
-- Optional steps and tensions are major decisions.
+- Optional steps, steps that make a structural choice, and tensions are major decisions.
 - `tensions` and `rejected`: the synthesis's tensions and gate-rejected cards, so the CEO can side or revive. A tension's steps have no card of their own: put their `code` on the tension.
 - `outcome` when module boundaries move: the `system` view, the module map today and after the approved steps.
 - Each metric on the step it measures, each screenshot on the finding it shows.

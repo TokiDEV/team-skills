@@ -22,6 +22,9 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Accepted Trade-offs
 [Carried from the decision — what we knowingly gave up]
 
+## Structure
+[Each structural choice the plan makes (`team-protocol` § *Structural choices*), one line each, with who settled it: "the decision" or "the CEO, before drafting". "None" when the plan makes none]
+
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L
 2. ...
@@ -42,7 +45,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Review (reviewers)
 
-- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates.
+- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*.
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped.
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).

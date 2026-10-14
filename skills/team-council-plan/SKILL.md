@@ -7,7 +7,7 @@ description: Use when a council decision is recorded under `.council/decisions/`
 
 The second half of the council workflow. `team-council` decides **what**; `team-council-plan` produces the **how** — a reviewed implementation plan grounded in that decision.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, the handoff, execution and weakened checks.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, structural choices, the handoff, execution and weakened checks.
 
 ## Preconditions
 
@@ -36,11 +36,12 @@ Present plan to CEO → approved: remove Status: draft, hand off
 ```
 
 ### 1. Load context
-Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the trade-offs the council explicitly accepted, and any dissenting views worth guarding against.
+Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the trade-offs the council explicitly accepted, any dissenting views worth guarding against, and the summary's *Structural choices*: the settled ones go into the plan's *Structure* as "the decision", the ones left to the plan are settled in § 1b.
 
 ### 1b. Settle before drafting
 Writers type in a settled design. Before any draft, list:
 - **Open design questions**: what the decision leaves open that would change the plan's shape (which path a call takes, where a type lives, whether two entry points share one route). Settle each with the user (AskUserQuestion, a recommendation first), or with a spike agent that writes its numbers into the brief.
+- **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is an open design question, settled with the user like the others, and recorded in the plan's *Structure*.
 - **Human-only inputs**: captures, probes, credentials, measurements on the user's machine. Collect them now. A writer that needs one waits for it, never guesses it.
 - **Unobserved facts**: when the plan rests on what the code does today, one evidence-pass agent gathers them first (agent id `evidence`).
 
@@ -117,6 +118,7 @@ The shared ones are in `team-protocol`. These are the planner's own.
 ## Red Flags
 
 - A step that traces to nothing in the decision
+- A step that makes a structural choice neither the decision nor the plan's *Structure* settled
 - A consumer writer dispatched before the contract it codes against is frozen
 - A writer guessing a human-only input (a capture, a probe result)
 - An amended step re-gated without a review

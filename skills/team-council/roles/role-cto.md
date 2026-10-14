@@ -47,6 +47,9 @@ Analyze the decision from the engineering perspective. Ground positions in the a
 ### One-way Doors
 [What in this decision is expensive to undo, and what it would cost; "none" is a valid answer]
 
+### Structural choices
+[Every structural choice this direction makes (`team-protocol.md` § *Structural choices*, beside this file): the choice, your pick and its strongest alternative, with evidence; or "left to the plan", with why it can wait. "none" is a valid answer]
+
 ### Reasoning
 [Why this evidence leads to this position]
 

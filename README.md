@@ -138,6 +138,7 @@ Personal skills, shared as-is. Exercised on live runs:
 - ⚠️ 0.7.0 adds team-review, and sharing a review gate with the branch owner (Share button, --share, a pending review on the MR/PR); not yet run live
 - ⚠️ 0.8.0 adds per-run `auto-accept` (`--accept-recommended`); not yet run live
 - ⚠️ 0.8.1 gives each rule several skills shared one home in `team-protocol` (weakened checks, execution, code scope, writers) and resolves the contradictions an audit found; team-review now always hands its fixes to a fresh session. No renderer change; not yet run live
+- ⚠️ 0.8.2 makes structural choices (new package or module, layer, dependency rule, public contract, folder convention) the CEO's, defined once in `team-protocol`: the council's CTO names each one and the gate decides it or marks it left to the plan, `team-council-plan` settles them before drafting into the plan's *Structure*, `team-refactor` puts them on its gate as major decisions, `team-kickoff` always puts the initial structure on its gate; not yet run live
 - ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
 - ⚠️ Not yet live: `team-kickoff`'s interview, an off-model seat, record supersession
 - ⚠️ In a `.bare/` worktree, add the git directory to the sandbox's write paths, or executors can't commit

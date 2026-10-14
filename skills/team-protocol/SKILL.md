@@ -61,6 +61,10 @@ Every question the roles disagree on is settled by `counting.md` in this skill's
 
 **Confidence.** `counting.md` § *Confidence* is the only definition of `high`, `med` and `low`; panelists apply it from their copy. A caller says only where a `low` finding goes.
 
+## Structural choices
+
+A structural choice is any of: a new package or module, a new layer, a dependency direction or import rule, a public contract other code builds on, a folder convention. Each is expensive to undo, so the CEO makes it as a choice between options, with a recommendation. A writer never settles one, and an `approve` on a routine step that happens to create one is not that choice. The caller says where its structural choices reach the CEO.
+
 ## Code scope
 
 For a caller that reads existing code (team-refactor, team-review). The caller names its brief, which lines it counts, how Recon ranks a whole repo, and the seats that always run whatever the size.
@@ -117,6 +121,7 @@ The human may invoke a run with `auto-accept` (e.g. `/team-refactor src/invoice.
 | "The user won't mind the brief going to codex" | Sending their code to another vendor needs their yes, from the profile or from them. |
 | "It's a few edits, I'll patch the file myself" | Every edit lands in the most expensive context of the run. Send the fix lines to a fresh writer. |
 | "I'll run them in the background and wait" | Each completion wakes you for a turn that re-reads everything. One foreground message returns them all at once. |
+| "A new package is an implementation detail; the writer will shape it" | Its boundaries, dependencies and folders are expensive to undo, and an `approve` on one step line among forty is not a choice the human made (§ *Structural choices*). |
 
 ## Red Flags
 
@@ -133,3 +138,4 @@ The human may invoke a run with `auto-accept` (e.g. `/team-refactor src/invoice.
 - An external model CLI called without a yes on record
 - A gate auto-accepted in a run the human did not invoke with `auto-accept`
 - A template pointing an agent to a `team-protocol` section, with no `team-protocol.md` in its run folder
+- A structural choice that reached the CEO only as a routine step, or not at all

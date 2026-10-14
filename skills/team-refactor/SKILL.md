@@ -9,7 +9,7 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, the handoff, execution and weakened checks.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, structural choices, the handoff, execution and weakened checks.
 
 ## Iron Laws
 

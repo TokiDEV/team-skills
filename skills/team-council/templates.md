@@ -24,6 +24,11 @@ who backs it, then the minority's option, who holds it and its strongest case]
 [Only questions with no majority: each side's strongest version and who
 holds it, then the PO's suggested side and why]
 
+### Structural choices
+[Every one the roles named (`team-protocol` § *Structural choices*): a settled
+one points to the Majority Call or consensus point that settles it; the others
+say "left to the plan" and why they can wait. "None" when the direction makes none]
+
 ### PO Recommendation
 [The overall direction and the trade-offs it accepts. Refer to Majority
 Calls and Key Tensions by id; don't restate them]
@@ -40,6 +45,7 @@ Build the page (`kind: "council"`) by `team-ceo-view`'s `contract.md`, from the 
 - `outcome` (when the PO's pick changes a screen or the system's shape): sketch where the pick lands, `ui` and/or `system`, today beside the target, into `.council/gates/YYYY-MM-DD-<topic>/`, drawn by `figures.md`. When another option would land somewhere visibly different, add its `after` sketch to `D1`'s `figures`, captioned with the option's label, so the human compares destinations.
 - **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Its `title` is the question, and its `detail` the facts every option shares (≤ 3 bullets); the consensus points go there too when they fit. Put the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.
 - **More decisions**: one per Majority Call. The majority's option is `recommended`, and the minority's option stays in `options` with its case in `against`.
+- **Structural choices**: each settled one is a decision of its own (its Majority Call's, or one built from the consensus with the pick `recommended`), never folded into `D1`'s `detail` or the summary. The ones left to the plan: one minor item naming them, so the CEO can ask for one to be settled now.
 - `tensions`: one per Key Tension (by `counting.md`), each side attributed by role, with the PO's suggested side `recommended`. If D1 itself has no majority, it becomes `T1` and the page has no `D1`.
 - Dissenting views worth noting go in the `against` of the decision they weigh on, or become a minor item if they concern none.
 - **Figure** (only when there are 3+ options or the council split): a position map, roles × options, showing who backs what, in `D1`'s `figures`.

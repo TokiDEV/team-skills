@@ -7,7 +7,7 @@ description: 'Use before the code exists, at a decision point that deserves more
 
 A project-agnostic dispatcher that runs a structured, evidence-backed debate before the human (CEO/client) makes the final call. Complements brainstorming/planning/review — it does not replace them.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, structural choices and the handoff.
 
 ## Preconditions
 
@@ -145,6 +145,7 @@ The shared ones are in `team-protocol`. These are the council's own.
 - A record whose `Status:` still says it awaits the CEO
 - UX left out of a change that users or API callers will meet
 - A recommendation that names no trade-off it accepts
+- A direction that makes a structural choice nobody named: no CTO line, no synthesis entry, no gate decision
 - An earlier decision on the same question that no role was given
 - A role editing files during the debate
 - A decision recorded that the CEO didn't take
