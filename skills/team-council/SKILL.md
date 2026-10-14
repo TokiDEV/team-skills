@@ -1,6 +1,6 @@
 ---
 name: team-council
-description: 'Use at a decision point that deserves more than one perspective: choosing between approaches, reviewing an architecture, an "are we sure?" before implementing, or reviewing a finished feature from several angles. Also when the user asks for the council, a debate, or a PO, CTO or UX view on a choice.'
+description: 'Use before the code exists, at a decision point that deserves more than one perspective: choosing between approaches, an architecture, an "are we sure?" before implementing. Also when the user asks for the council, a debate, or a PO, CTO or UX view on a choice. Not for reviewing code that exists: team-review (is it right?) or team-refactor (is it well-shaped?).'
 ---
 
 # team-council

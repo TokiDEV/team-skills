@@ -1,0 +1,223 @@
+{
+  "kind": "review",
+  "title": "Review — refund route (acme/shop !142)",
+  "date": "2026-10-14",
+  "source": ".council/reviews/2026-10-14-refund-route.md",
+  "lang": "en",
+  "preamble": "# Mission: fix the findings you chose on branch refund-route\n\n## Context\n- Repo `acme/shop`, branch `refund-route`, reviewed commit `9b1e4c7a2f3d5e6b8c0a1d2e3f4a5b6c7d8e9f01`.\n- Scope: `src/routes/refunds.js` and `test/routes/refunds.test.js`. Stay in these files.\n\n## Baseline\n- `npm test`: 58 tests green.\n\n## Rules\n- Each fix gets a failing test first that reproduces it, then the fix.\n- One finding per commit (`fix(refunds): …`).\n- Never change an existing test's expected value except where a finding says so.\n- Don't push.\n\nIf `HEAD` is not `9b1e4c7`, the branch has moved since the review: find code by symbol, not by line number, and tell me what differs.",
+  "summary": [
+    {
+      "label": "Verdict",
+      "text": "Not mergeable: one confirmed blocker"
+    },
+    {
+      "label": "Blockers",
+      "points": [
+        "SE-1: any logged-in user can refund any invoice"
+      ]
+    },
+    {
+      "label": "Not raised",
+      "points": [
+        "med, unsure: the gateway may already reject a refund above the captured amount (CR-4)",
+        "outside the diff: src/routes/invoices.js has the same missing ownership check"
+      ]
+    },
+    {
+      "label": "For team-refactor",
+      "points": [
+        "refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do"
+      ]
+    },
+    {
+      "label": "Recommendation",
+      "points": [
+        "Request changes"
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "SE-1",
+      "title": "Any logged-in user can refund any invoice",
+      "tags": [
+        "security",
+        "blocker"
+      ],
+      "at": {
+        "path": "src/routes/refunds.js",
+        "line": 11
+      },
+      "detail": [
+        "`loadInvoice(req.params.id)` never compares `invoice.customerId` with `req.user.id`",
+        "Scenario: user A posts a refund on user B's invoice id and the gateway pays it out"
+      ],
+      "why": "A missing ownership check on a money-moving route.",
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: check that the invoice belongs to the caller before refunding.\n**Where**: `src/routes/refunds.js`, the handler of `POST /invoices/:id/refund`, right after `loadInvoice`.\n**How**: first add a test: user B refunds user A's invoice and gets 404 (it gets 200 today, so it fails). Then, if `invoice.customerId !== req.user.id`, return the same 404 as for a missing invoice.\n**Leave alone**: the 404 body for a missing invoice.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): refuse refunds on invoices of other customers`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    },
+    {
+      "id": "CR-1",
+      "title": "The refund cap ignores earlier refunds",
+      "tags": [
+        "correctness",
+        "major"
+      ],
+      "at": {
+        "path": "src/routes/refunds.js",
+        "line": 17
+      },
+      "detail": [
+        "`amount > invoice.paid` compares with the whole paid amount",
+        "Scenario: 100 paid, 60 refunded; a second refund of 100 passes the check"
+      ],
+      "why": "Refunds can add up to more than was paid.",
+      "suggestion": {
+        "lines": 1,
+        "text": "  if (amount > invoice.paid - invoice.refunded) {"
+      },
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: cap a refund at what is still refundable.\n**Where**: `src/routes/refunds.js`, the `if (amount > invoice.paid)` check.\n**How**: first add a test: 100 paid, 60 already refunded, a refund of 50 gets 400 (it gets 200 today, so it fails). Then compare with `invoice.paid - invoice.refunded`.\n**Leave alone**: refunding the full paid amount on an untouched invoice must still work.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): cap a refund at paid minus already refunded`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    },
+    {
+      "id": "CR-2",
+      "title": "A gateway failure is answered 200",
+      "tags": [
+        "error handling",
+        "major"
+      ],
+      "at": {
+        "path": "src/routes/refunds.js",
+        "line": 31
+      },
+      "detail": [
+        "`catch (e) { log.warn(e.message) }` swallows the error and the handler goes on to `res.status(200).json({ ok: true })`",
+        "Scenario: the gateway times out; the customer sees \"ok\" and no money moves"
+      ],
+      "why": "The caller is told the refund worked when it did not.",
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: answer with an error when the gateway call fails.\n**Where**: `src/routes/refunds.js`, the `catch` block of the `try` around `gateway.refund`.\n**How**: first add a test: the stubbed gateway throws, the response is 502 with `{ error: 'refund failed' }` (it is 200 today, so it fails). Then log with `log.error` and return `res.status(502).json({ error: 'refund failed' })` from the `catch`.\n**Leave alone**: the success path.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): answer 502 when the gateway refund fails`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    },
+    {
+      "id": "IN-1",
+      "title": "No test for a partial refund",
+      "tags": [
+        "tests",
+        "major"
+      ],
+      "at": {
+        "path": "test/routes/refunds.test.js",
+        "line": 6
+      },
+      "detail": [
+        "The only test refunds the full paid amount",
+        "Neither a partial refund nor a second refund is covered, which is how CR-1 got through"
+      ],
+      "why": "The refund rule has one test and it is the easy case.",
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: add the partial-refund test.\n**Where**: `test/routes/refunds.test.js`, next to the full-refund test.\n**How**: add `refunds part of the paid amount`: seed an invoice with `paid: 100, refunded: 0`, stub the gateway, post `{ amount: 40 }`, expect 200 and `refunded` equal to 40 after `invoice.reload()`.\n**Leave alone**: the full-refund test.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `test(refunds): cover a partial refund`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    },
+    {
+      "id": "CF-1",
+      "title": "`data` names a refund receipt",
+      "tags": [
+        "conventions",
+        "minor"
+      ],
+      "minor": true,
+      "default": "fix",
+      "at": {
+        "path": "src/routes/refunds.js",
+        "line": 22
+      },
+      "detail": "The rest of the codebase calls a gateway result by what it is (`charge`, `payout`); `data` says nothing.",
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: rename `data` to `receipt`.\n**Where**: `src/routes/refunds.js`, its declaration (`const data = await gateway.refund(`) and its one use, `data.id`.\n**Verify**: `npm test`, all green.\n**Commit**: `refactor(refunds): rename data to receipt`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    },
+    {
+      "id": "CR-3",
+      "title": "`amount` may be a string",
+      "tags": [
+        "correctness",
+        "major"
+      ],
+      "at": {
+        "path": "src/routes/refunds.js",
+        "line": 16
+      },
+      "detail": [
+        "`req.body.amount` is compared with `invoice.paid` without a cast",
+        "Declined by the reviewer: false positive, `validateRefund` already coerces it to a number"
+      ],
+      "why": "Looked like a string comparison; the validator middleware prevents it.",
+      "options": [
+        {
+          "value": "fix",
+          "label": "Fix",
+          "recommended": true,
+          "brief": "**What**: cast `amount` to a number.\n**Where**: `src/routes/refunds.js`, `const amount = req.body.amount`.\n**How**: wrap it in `Number(...)`.\n**Verify**: `npm test`, all green.\n**Commit**: `fix(refunds): cast amount to a number`"
+        },
+        {
+          "value": "leave",
+          "label": "Leave",
+          "negative": true
+        }
+      ]
+    }
+  ]
+}

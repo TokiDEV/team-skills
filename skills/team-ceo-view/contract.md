@@ -9,7 +9,7 @@ For the agent that writes a gate's JSON. Your dispatch gives the gate's path, it
 ## Triage before you render
 
 The page is for decisions, not an inventory. Before writing the JSON:
-- **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`.
+- **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`. Two cards where a choice on one makes the other moot are one question: merge them into one card whose options are the coherent combinations. Cards that only rely on each other stay separate and carry `needs`.
 - **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click.
 - **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
 - **Order by stakes.** The item the human explicitly asked about goes first.
@@ -57,14 +57,14 @@ The renderer rejects a `detail` or `why` over its length, a `detail` that opens 
 
 ```json
 {
-  "kind": "refactor | council | plan | kickoff",
+  "kind": "refactor | council | plan | kickoff | review",
   "title": "Refactoring backlog — src/invoice.js",
   "date": "2026-09-26",
   "source": ".council/refactors/2026-09-26-invoice.md",
   "summary": [
     { "label": "Verdict", "text": "One line: what is being decided and the overall call." },
     { "label": "Weak spots", "points": ["Three copies of the tax rule", "Dead exportCsv()"] },
-    { "label": "Recommendation", "points": ["Approve S1–S4", "Fix F1 as its own fix: commit"] }
+    { "label": "Recommendation", "points": ["Approve S1–S4", "Run team-review on src/invoice.js before executing"] }
   ],
   "outcome": [
     { "view": "system", "title": "invoice.js after the steps", "caption": "Tier switch leaves as computeDiscount(); tax is one constant",
@@ -72,23 +72,23 @@ The renderer rejects a `detail` or `why` over its length, a `detail` that opens 
   ],
   "decisions": [
     {
-      "id": "F1", "group": "Found, not fixed", "title": "Gold discount rounds down",
-      "tags": ["money", "behavior change"],
-      "detail": ["What is true today", "What it costs, with the number in **bold** (screenshot 3)"],
-      "why": "Why it needs a human decision, one line.",
-      "for": [ { "who": "Mechanics", "point": "One rounding rule for every tier." } ],
-      "against": [ { "who": "Minimalist", "point": "Changes invoices already sent; finance must sign off." } ],
-      "metrics": [ { "label": "Tiers using floor", "before": 1, "after": 0, "better": "lower" } ],
-      "code": { "before": "Math.floor(total * 0.1)", "after": "Math.round(total * 0.1)" },
-      "figures": [ { "src": "2026-09-26-invoice/03-receipt.png", "caption": "Screenshot 3 — receipt shows 4.99 € discount" } ],
+      "id": "S1", "group": "Backlog", "title": "Extract Function: computeDiscount(tier, total)",
+      "at": { "path": "src/invoice.js", "line": 42 },
+      "tags": ["structure", "no behavior change"],
+      "detail": ["The tier switch sits inline in `buildInvoice`, 28 lines deep", "Extracting it leaves **3** branches to read (figure 1)"],
+      "why": "Every later step reads the discount rule from one place.",
+      "for": [ { "who": "Mechanics", "point": "A named function can be tested without building a whole invoice." } ],
+      "against": [ { "who": "Minimalist", "point": "One caller today; the inline switch is still readable." } ],
+      "metrics": [ { "label": "buildInvoice length", "before": 64, "after": 36, "better": "lower" } ],
+      "code": { "before": "switch (tier) { case 'gold': … }", "after": "const discount = computeDiscount(tier, total)" },
+      "figures": [ { "src": "2026-09-26-invoice/s1-calls.svg", "caption": "Figure 1 — buildInvoice calls computeDiscount once" } ],
+      "needs": ["S0"],
       "options": [
-        { "value": "keep", "label": "Keep floor + comment", "recommended": true },
-        { "value": "round", "label": "Round like other tiers" },
-        { "value": "defer", "label": "Ask finance", "negative": true }
+        { "value": "extract", "label": "Extract now", "recommended": true },
+        { "value": "later", "label": "Leave for the next run", "negative": true }
       ]
     },
-    { "id": "S3", "group": "Backlog", "title": "Rename Variable: grand → total" },
-    { "id": "F9", "title": "'Discount: -0.00' always printed", "minor": true, "default": "decline" }
+    { "id": "S3", "group": "Backlog", "title": "Rename Variable: grand → total", "needs": ["S0"], "minor": true, "default": "approve" }
   ],
   "tensions": [
     { "id": "T1", "topic": "Extract buildInvoice?", "sides": [
@@ -105,6 +105,9 @@ Field rules:
 - `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets, and end with the recommendation. The renderer rejects a string summary.
 - **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`.
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give every weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Only use arguments the panel actually made.
+- `needs`: ids of the items this one relies on, such as refactoring steps that rely on the characterization tests, or a step built on an earlier one. A reliance, not a hard requirement: the page shows the link both ways and flags a chosen item whose needs are not chosen, and Claude asks about it before acting. Unknown ids are rejected.
+- `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card when the gate is shared as a review on the merge/pull request; a card without it goes in the review's body.
+- `suggestion`: `{ "lines", "text" }`, on an item or one of its options: the exact replacement for the `lines` lines starting at `at.line`. Only for a small, certain fix on lines the change touches (a rename, a constant, a guard): the reader applies it in one click from the review. Anything bigger stays in the brief.
 - `options` defaults to Approve/Decline. Set `"recommended": "decline"` on the decision to recommend declining.
 - **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with <who>" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
@@ -115,3 +118,46 @@ Field rules:
   - `svg` is trusted inline SVG. The page is dark: use `currentColor` for strokes and text, and no light fills. Make the `viewBox` about 700–900 units wide with `font-size` 12–13, so the text renders at reading size; a narrower viewBox gets scaled up.
 - A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`. The order the work runs in is the executor's concern, so a step dependency graph or a timeline has no place on the page.
 - Page-level `figures` are only for evidence that spans many items (it shows under the outcome). Anything about one item goes on that item.
+
+## Share fields
+
+A review gate (kind "review") is always share-ready: its gate writer writes these fields with the rest of the page. Other gates leave them out; the local page ignores them.
+
+The reader is someone else, typically the owner of the branch the review looked at. They may not have team-skills, they saw none of the review, and they paste the page's prompt into their own coding agent (Claude Code, Codex, Cursor…). Write every field for them.
+
+**Read first**
+- The review record: it holds the mechanics (files, lines, verify commands) that the cards leave out.
+- `git -C <checkout> rev-parse --abbrev-ref HEAD` and `git -C <checkout> rev-parse HEAD`.
+- The checkout's agent instructions (`AGENTS.md`, `CLAUDE.md` or similar) and contributing docs, for the commit convention and the test commands. Don't assume the reader's agent is Claude.
+
+**`lang`**: `"fr"` or `"en"`, the conversation's language. Write `preamble` and every brief in it.
+
+**`preamble`** (Markdown), in this order:
+- Only what holds whatever the reader chooses. A rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `needs`.
+- `# Mission:` one line.
+- **Context**: the repo, the branch, the reviewed commit's full SHA, and the scope as a list of files relative to the repo root.
+- **Baseline**: which tests are green and how many, the command for each, known failures that come from the environment.
+- **Rules**: each fix gets a failing test first that reproduces the finding, then the fix; one finding per commit, in the repo's commit convention; never change an existing test's expected value unless the finding says so; don't push.
+- Last line: "If `HEAD` is not `<short SHA>`, the branch has moved since the review: find code by symbol, not by line number, and tell me what differs."
+
+**`brief`** (Markdown), on the `fix` option of each finding. The `leave` option is `"negative": true` and has no brief. Each brief is written for someone who saw none of the review:
+- **What**: the fix, by name.
+- **Where**: files relative to the repo root, symbols, lines at the reviewed commit.
+- **How**: the mechanics, as steps.
+- **Leave alone**: what must not change.
+- **Verify**: the exact command, and what green looks like.
+- **Commit**: the message, in the repo's convention.
+
+**`needs`** (array of ids): on a finding whose fix assumes another finding is fixed first. When the reader keeps the finding but not what it needs, the prompt tells their agent to ask first. The renderer rejects unknown ids.
+
+**`at`** (`{ "path", "line" }`): the file and line the finding points to, at the reviewed commit. A card without `at` lands in the body of a review instead of on its line.
+
+**`suggestion`**: add one where the fix is a replacement of a few lines (up to ~10) at the card's `at`, and you can write the exact new text from the reviewed commit. Never guess: a suggestion applies as written.
+
+**Rules**
+- **Only what the review found.** Where the review left the *how* open (a fix whose mechanics nobody settled), the brief says so and ends: "Ask me before doing this, with the options you see."
+- **No paths the reader lacks.** No absolute paths (`/home/…`, `/Users/…`, `/tmp/…`, `C:\…`), no `<REPO>`-style placeholders, nothing under `.council/`. Name files relative to the repo root.
+- **Same outcome, one option.** If two options of a finding lead to the same change, write one.
+- **No customer data.** No names, emails, phone numbers, amounts tied to a person or tokens in any brief, code pane, figure or screenshot. When the review touched such data, describe it ("a customer's email") instead.
+
+**Checks.** `render.js --share` rejects a `kind` other than `review`, a missing preamble, a preamble without a commit SHA, an option that leads to work without a brief, a local path, an unknown `lang`, and an `at` that is not repo-relative. Fix the JSON and re-run until it passes. Never edit the `.html`.

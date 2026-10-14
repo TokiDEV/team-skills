@@ -1,0 +1,68 @@
+diff --git a/src/routes/refunds.js b/src/routes/refunds.js
+new file mode 100644
+index 0000000..4e09273
+--- /dev/null
++++ b/src/routes/refunds.js
+@@ -0,0 +1,37 @@
++const express = require('express');
++const { loadInvoice } = require('../db/invoices');
++const gateway = require('../payments/gateway');
++const log = require('../log');
++const { validateRefund } = require('../middleware/validate');
++
++const router = express.Router();
++
++// POST /invoices/:id/refund { amount }
++router.post('/invoices/:id/refund', validateRefund, async (req, res) => {
++  const invoice = await loadInvoice(req.params.id);
++  if (!invoice) {
++    return res.status(404).json({ error: 'invoice not found' });
++  }
++
++  const amount = req.body.amount;
++  if (amount > invoice.paid) {
++    return res.status(400).json({ error: 'refund exceeds the amount paid' });
++  }
++
++  try {
++    const data = await gateway.refund({
++      charge: invoice.chargeId,
++      amount,
++      reason: req.body.reason,
++    });
++    invoice.refunded += amount;
++    invoice.refunds.push({ id: data.id, amount, at: new Date() });
++    await invoice.save();
++  } catch (e) {
++    log.warn(e.message);
++  }
++
++  res.status(200).json({ ok: true });
++});
++
++module.exports = router;
+diff --git a/test/routes/refunds.test.js b/test/routes/refunds.test.js
+new file mode 100644
+index 0000000..72c0311
+--- /dev/null
++++ b/test/routes/refunds.test.js
+@@ -0,0 +1,19 @@
++const test = require('node:test');
++const assert = require('node:assert');
++const request = require('supertest');
++const { makeApp, seedInvoice, stubGateway } = require('../helpers');
++
++test('refunds the full paid amount', async () => {
++  const app = makeApp();
++  const invoice = await seedInvoice({ paid: 100, refunded: 0 });
++  stubGateway({ id: 're_1' });
++
++  const res = await request(app)
++    .post(`/invoices/${invoice.id}/refund`)
++    .send({ amount: 100 });
++
++  assert.strictEqual(res.status, 200);
++  assert.deepStrictEqual(res.body, { ok: true });
++  const saved = await invoice.reload();
++  assert.strictEqual(saved.refunded, 100);
++});

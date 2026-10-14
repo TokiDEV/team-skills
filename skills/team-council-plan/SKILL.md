@@ -97,6 +97,8 @@ When the profile lists none, execute from the plan file this way:
 3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.
 4. Last, one reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (a lowered threshold, a skipped or deleted test, a new `@ts-ignore` or `eslint-disable`, a stub or empty `catch` where the work should be).
 
+Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
+
 Set `Status: executed` on the plan when done. Keep it traceable to the decision so future readers see both the "what" and the "how".
 
 ## Rationalizations

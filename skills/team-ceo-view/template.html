@@ -79,13 +79,18 @@ h3 { font-size: 16px; margin: 0; }
 .actions { display: grid; grid-template-columns: auto 1fr; gap: 6px; }
 .btn { font: inherit; font-size: 13.5px; font-weight: 600; border-radius: 8px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--line);
   background: var(--surface); color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: default; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); grid-column: 1 / -1; }
 .btn.wide { grid-column: 1 / -1; }
+/* Reset / Accept recommended edit the page; the buttons below them send it somewhere: keep the two groups apart */
+#reset, #recAll { margin-bottom: 14px; }
 .btn[hidden] { display: none; }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #out { display: none; width: 100%; font: 12px/1.5 var(--mono); height: 140px; margin-top: 8px; padding: 8px;
   border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 .toast { font-size: 12.5px; color: var(--ok); font-weight: 600; margin-top: 6px; min-height: 1em; }
+/* No message yet: no reserved line under the buttons */
+.toast:empty { margin-top: 0; min-height: 0; }
 /* Keyboard: the current card, its chip, and option number hints */
 .card.card.current { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent), 0 0 0 1px var(--accent); }
 .chip.cur { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -97,6 +102,16 @@ kbd { font: 11px/1 var(--mono); padding: 2px 5px; border-radius: 4px; border: 1p
 dialog.help { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 18px 22px; max-width: 420px; }
 dialog.help::backdrop { background: rgb(0 0 0 / .6); }
 dialog.help h3 { margin-bottom: 10px; }
+.share-picker { max-width: 480px; }
+.share-q { border: 0; padding: 0; margin: 0 0 12px; }
+.share-q legend { font-size: 12.5px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.chan { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; cursor: pointer; }
+.chan.off { opacity: .55; cursor: default; }
+.chan small { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 2px; }
+.chan-to { display: flex; gap: 10px; align-items: center; margin: 4px 0 12px; }
+.chan-to input { flex: 1; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.share-picker .buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 dialog.help table { border-collapse: collapse; font-size: 14px; }
 dialog.help td { padding: 4px 12px 4px 0; vertical-align: top; }
 dialog.help td:first-child { white-space: nowrap; }
@@ -116,6 +131,8 @@ dialog.help td:first-child { white-space: nowrap; }
 .side-closed .progress { flex: 1; min-width: 160px; }
 .side-closed .progress .track { margin-bottom: 0; }
 .side-closed .actions { display: flex; }
+.side-closed #reset, .side-closed #recAll { margin-bottom: 0; }
+.side-closed #recAll { margin-right: 14px; }
 .side-closed .toast { margin: 0; }
 .side-closed #app { padding-bottom: 120px; }
 .empty { color: var(--ink-2); text-align: center; padding: 40px 0; display: none; }
@@ -132,6 +149,13 @@ dialog.help td:first-child { white-space: nowrap; }
 .tag.kind { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 10px; }
 .detail { color: var(--ink); margin-top: 8px; }
 .why { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
+.rel { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+.rel > div + div { margin-top: 2px; }
+.rel a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.rel a:hover { text-decoration: underline; }
+.rel-gap { display: block; color: var(--warn); margin-top: 2px; }
+.rel-gap:empty { display: none; }
+.chip.gap { box-shadow: inset 0 0 0 2px var(--warn); }
 .detail p, .why p { margin: 0; }
 .detail ul, .why ul { margin: 2px 0 0; padding-left: 18px; }
 .detail code, .why code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
@@ -193,7 +217,6 @@ dialog.zoom p { margin: 0; padding: 8px 12px; font-size: 13px; color: var(--ink-
 .opt .rec { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
 .opt[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .opt[aria-pressed="true"] .rec { color: inherit; opacity: .8; }
-.opt.neg[aria-pressed="true"] { background: var(--no); border-color: var(--no); color: #fff; }
 .note { width: 100%; margin-top: 10px; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px;
   border: 1px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; min-height: 38px; }
 /* Wide screens: the decision on the left, its evidence (metrics, code, figures) on the right */
@@ -226,7 +249,10 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); }
   .actions { grid-template-columns: auto 1fr 1fr; }
   .actions:has(#send:not([hidden])) { grid-template-columns: auto 1fr 1fr auto; }
+  .actions:has(#share:not([hidden])) { grid-template-columns: auto 1fr 1fr auto auto; }
   .btn.primary, .btn.wide { grid-column: auto; }
+  #reset, #recAll { margin-bottom: 0; }
+  #recAll { margin-right: 14px; }
   .progress .track { margin-bottom: 8px; }
 }
 @media (max-width: 680px) {
@@ -249,6 +275,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         <button class="btn" id="recAll" type="button">Accept recommended</button>
         <button class="btn primary" id="send" type="button" hidden>Send to Claude</button>
         <button class="btn primary" id="copy" type="button">Copy decisions</button>
+        <button class="btn wide" id="share" type="button" hidden>Share</button>
       </div>
       <div class="toast" id="toast" role="status"></div>
       <textarea id="out" readonly aria-label="Decisions to paste back"></textarea>
@@ -264,8 +291,10 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   var items = data.items || [];
   var app = document.getElementById('app'), head = document.getElementById('head'), side = document.getElementById('sideScroll');
   var key = 'ceo-view:' + (data.source || data.title) + ':' + (data._rev || '');
-  var state = {};
-  try { state = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { state = {}; }
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
+  // Share mode: the sharer's choices and notes (render.js --preset), until the reader's own saved state replaces them.
+  var state = saved || JSON.parse(JSON.stringify(data.preset || {}));
   function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {} }
   var cur = null; // id of the keyboard-current card
 
@@ -277,7 +306,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   }
   function choiceOf(id) { return state[id] && state[id].choice; }
 
-  document.title = data.title + ' · CEO Gate';
+  // Share mode: the page someone else decides on alone (render.js --share); its reader copies a prompt, nothing comes back.
+  var shareMode = data.mode === 'share';
+  document.title = shareMode ? data.title : data.title + ' · CEO Gate';
 
   // Click any image to view it full size; click or Esc closes.
   var zoom = el('dialog', 'zoom'), zoomImg = el('img'), zoomCap = el('p');
@@ -341,6 +372,12 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   var meta = el('div', 'meta');
   if (data.date) meta.appendChild(el('span', null, data.date));
   if (data.source) { var s = el('span'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(el('code', null, data.source)); meta.appendChild(s); }
+  if (data.preset) {
+    var pc = 0, pn = 0;
+    var defaultOf = function (id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i].default; };
+    Object.keys(data.preset).forEach(function (id) { var p = data.preset[id]; if (!p || typeof p !== 'object') return; if (p.choice && p.choice !== defaultOf(id)) pc++; if (p.note) pn++; });
+    if (pc || pn) meta.appendChild(el('span', null, 'Pre-filled by the reviewer: ' + pc + ' choice' + (pc === 1 ? '' : 's') + ', ' + pn + ' note' + (pn === 1 ? '' : 's') + '. Change any.'));
+  }
   head.appendChild(meta);
   if (data.summary && data.summary.length) {
     var sum = el('div', 'summary'), ul = el('ul');
@@ -454,6 +491,18 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
 
   // Cards
   var cards = {};
+  var reliedOnBy = {};
+  items.forEach(function (it) { (it.needs || []).forEach(function (id) { (reliedOnBy[id] = reliedOnBy[id] || []).push(it.id); }); });
+  function relLinks(ids) {
+    var s = el('span');
+    ids.forEach(function (id, i) {
+      if (i) s.appendChild(document.createTextNode(', '));
+      var a = el('a', 'rel-id', id); a.href = '#d-' + id;
+      a.addEventListener('click', function (e) { e.preventDefault(); jump(id); });
+      s.appendChild(a);
+    });
+    return s;
+  }
   function card(it) {
     var c = el('article', 'card'); c.id = 'd-' + it.id;
     var h = el('div', 'card-head');
@@ -466,6 +515,18 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
     if (it.detail) text.appendChild(rich('detail', it.detail));
     if (it.why) text.appendChild(rich('why', it.why));
+    var gap = el('span', 'rel-gap');
+    if ((it.needs && it.needs.length) || reliedOnBy[it.id]) {
+      var rel = el('div', 'rel');
+      if (it.needs && it.needs.length) {
+        var up = el('div', null, 'Relies on '); up.appendChild(relLinks(it.needs)); rel.appendChild(up);
+      }
+      if (reliedOnBy[it.id]) {
+        var down = el('div'); down.appendChild(relLinks(reliedOnBy[it.id]));
+        down.appendChild(document.createTextNode(reliedOnBy[it.id].length > 1 ? ' rely on this' : ' relies on this')); rel.appendChild(down);
+      }
+      rel.appendChild(gap); text.appendChild(rel);
+    }
     if (it.metrics && it.metrics.length) {
       var mc = el('div', 'mchips');
       it.metrics.forEach(function (m) {
@@ -539,7 +600,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();
     c.addEventListener('mousedown', function () { setCurrent(it.id, false); });
-    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay };
+    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap };
     return c;
   }
 
@@ -638,6 +699,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     setCurrent(v[Math.min(v.length - 1, Math.max(0, i + d))], true);
   }
   function undecided(id) { return !choiceOf(id); }
+  var picker = null; // the Share dialog, built when the page is served
   var help = el('dialog', 'help');
   help.innerHTML = '<h3>Keyboard</h3><table>' + [
     ['<kbd>→</kbd> / <kbd>←</kbd>', 'Next / previous card, folded ones included (also <kbd>j</kbd> / <kbd>k</kbd>)'],
@@ -658,7 +720,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     if (e.key === 'Enter') { e.preventDefault(); search.blur(); var v = visibleIds(); if (v.length) setCurrent(v[0], true); }
   });
   document.addEventListener('keydown', function (e) {
-    if (e.ctrlKey || e.metaKey || e.altKey || help.open || zoom.open) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || help.open || zoom.open || (picker && picker.open)) return;
     var typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
     var onOpt = document.activeElement && document.activeElement.classList.contains('opt');
     if (e.key === 'Escape') { if (typing || onOpt) { document.activeElement.blur(); e.preventDefault(); } return; }
@@ -724,8 +786,10 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       c.card.dataset.state = v ? 'decided' : '';
       var opt = it.options.filter(function (o) { return o.value === v; })[0];
       var chip = chipsById[it.id], dim = chip.classList.contains('dim');
-      chip.className = 'chip' + (v ? (opt && opt.negative ? ' neg' : ' done') : '') + (dim ? ' dim' : '') + (it.id === cur ? ' cur' : '');
-      chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided');
+      var miss = opt && !opt.negative ? missingNeeds(it, items, state) : [];
+      c.gap.textContent = miss.length ? miss.join(', ') + " not chosen: you'll be asked before " + it.id + ' runs without ' + (miss.length > 1 ? 'them' : 'it') + '.' : '';
+      chip.className = 'chip' + (v ? (opt && opt.negative ? ' neg' : ' done') : '') + (miss.length ? ' gap' : '') + (dim ? ' dim' : '') + (it.id === cur ? ' cur' : '');
+      chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided') + (miss.length ? ' — relies on ' + miss.join(', ') + ', not chosen' : '');
       if (v) done++;
     });
     sections.forEach(function (sec) {
@@ -736,7 +800,196 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     document.getElementById('ptxt').textContent = done + ' of ' + items.length + ' decided';
     document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
+    var allDecided = items.length === done;
+    document.getElementById('recAll').disabled = allDecided;
+    document.getElementById('recAll').title = allDecided ? 'Every card already has a choice' : '';
   }
+/*PROMPT-START*/
+  // Share mode: the prompt the reader pastes into their coding agent on their checkout. Self-contained, so tests load it with node:vm.
+  var PROMPT_TEXT = {
+    en: { todo: 'To do', choice: 'Choice: ', left: 'Left as is', none: 'Nothing.',
+      needs1: 'Relies on %s, which you did not choose: ask me before doing it without it.', needsN: 'Relies on %s, which you did not choose: ask me before doing it without them.',
+      revived: 'Revived — propose first', revivedRule: 'Do not do these yet: propose each one to me first (scope, size, risk) and wait for my answer.',
+      open: 'Undecided — ask me first', openRule: 'Ask me before touching any of these.',
+      notes: 'My notes', end: 'Finally',
+      needsCheck1: 'Relies on %s: check it is done; if not, ask me first.', needsCheckN: 'Relies on %s: check they are done; if not, ask me first.',
+      suggestion: 'Reviewer\'s suggestion: ', noteOnly: 'Reviewer\'s note: ', reliesThread: 'Relies on %s (see its thread or the review body).',
+      suggestionLabel: 'Suggested change (apply in one click):', suggestionFor: 'Suggested change for «%s» (apply in one click):',
+      prompt: 'Correction prompt', promptFor: 'Correction prompt — ',
+      howTo: 'One thread per card. To act on one, open its correction prompt, copy it and paste it into your coding agent on the branch.',
+      notAnchored: 'Not anchored in the diff', minor: 'Minor', rejected: 'Considered and rejected',
+      endText: "Read the repo's agent instructions (AGENTS.md, CLAUDE.md or similar), check the baseline is green, then work through «To do» in order. Stop and ask if a step needs a behavior change it does not list." },
+    fr: { todo: 'À faire', choice: 'Choix : ', left: 'Laissé tel quel', none: 'Rien.',
+      needs1: 'Dépend de %s, que tu n\'as pas retenu : demande-moi avant de le faire sans.', needsN: 'Dépend de %s, que tu n\'as pas retenus : demande-moi avant de le faire sans.',
+      revived: 'Idées rejetées relancées — propose d\'abord', revivedRule: 'Ne les fais pas encore : propose-les-moi d\'abord (périmètre, taille, risque) et attends ma réponse.',
+      open: 'Non tranché — demande-moi d\'abord', openRule: 'Demande-moi avant de toucher à l\'un de ces points.',
+      notes: 'Mes notes', end: 'Pour finir',
+      needsCheck1: 'Dépend de %s : vérifie que c\'est fait ; sinon, demande-moi d\'abord.', needsCheckN: 'Dépend de %s : vérifie que c\'est fait ; sinon, demande-moi d\'abord.',
+      suggestion: 'Suggestion du relecteur : ', noteOnly: 'Note du relecteur : ', reliesThread: 'Dépend de %s (voir son fil ou le corps de la revue).',
+      suggestionLabel: 'Modification suggérée (applicable en un clic) :', suggestionFor: 'Modification suggérée pour « %s » (applicable en un clic) :',
+      prompt: 'Prompt de correction', promptFor: 'Prompt de correction — ',
+      howTo: 'Un fil par carte. Pour en traiter une, ouvre son prompt de correction, copie-le et colle-le dans ton agent de code, sur la branche.',
+      notAnchored: 'Hors du diff', minor: 'Mineurs', rejected: 'Envisagés et écartés',
+      endText: 'Lis les instructions pour agents du repo (AGENTS.md, CLAUDE.md ou équivalent), vérifie que la base est verte, puis traite « À faire » dans l\'ordre. Arrête-toi et demande si une étape exige un changement de comportement non listé.' }
+  };
+  // The ids an item relies on (its "needs") that are not chosen: undecided, a "no work" option, or a rejected item.
+  function missingNeeds(it, items, state) {
+    return (it.needs || []).filter(function (id) {
+      var dep = items.filter(function (x) { return x.id === id; })[0];
+      if (!dep || dep.kind === 'rejected') return true;
+      var c = (state[id] || {}).choice;
+      return !(dep.options || []).some(function (o) { return o.value === c && !o.negative; });
+    });
+  }
+  function buildPrompt(data, items, state) {
+    var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
+    var todo = [], left = [], revived = [], open = [], notes = [];
+    function line(it, extra) { return '- ' + it.id + ' — ' + it.title + (extra ? ' (' + extra + ')' : ''); }
+    function custom(it) { var o = it.options || []; return !(o.length === 2 && o[0].value === 'approve' && o[1].value === 'decline'); }
+    items.forEach(function (it) {
+      var s = state[it.id] || {};
+      var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
+      if (s.note && s.note.trim()) notes.push('- ' + it.id + ': ' + s.note.trim().replace(/\s+/g, ' '));
+      if (it.kind === 'rejected') {
+        if (s.choice === 'revive') revived.push(line(it, Array.isArray(it.why) ? it.why.join('; ') : it.why));
+        return;
+      }
+      if (!opt) { open.push(line(it)); return; }
+      if (opt.negative) { left.push(line(it, opt.label)); return; }
+      var block = ['### ' + it.id + ' — ' + it.title];
+      if (custom(it)) block.push(t.choice + opt.label);
+      var missing = missingNeeds(it, items, state);
+      if (missing.length) block.push((missing.length > 1 ? t.needsN : t.needs1).replace('%s', missing.join(', ')));
+      block.push('', opt.brief || it.brief || '');
+      todo.push(block.join('\n'));
+    });
+    var out = [data.preamble || '', '', '## ' + t.todo, '', todo.length ? todo.join('\n\n') : t.none];
+    if (left.length) out.push('', '## ' + t.left, left.join('\n'));
+    if (revived.length) out.push('', '## ' + t.revived, t.revivedRule, revived.join('\n'));
+    if (open.length) out.push('', '## ' + t.open, t.openRule, open.join('\n'));
+    if (notes.length) out.push('', '## ' + t.notes, notes.join('\n'));
+    out.push('', '## ' + t.end, t.endText);
+    return out.join('\n');
+  }
+  // The prompt for doing one option of one card, alone: what a review thread's <details> holds.
+  function hasCustomOptions(it) { var o = it.options || []; return !(o.length === 2 && o[0].value === 'approve' && o[1].value === 'decline'); }
+  function buildItemPrompt(data, items, it, opt) {
+    var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
+    var block = ['### ' + it.id + ' — ' + it.title];
+    if (hasCustomOptions(it)) block.push(t.choice + opt.label);
+    if (it.needs && it.needs.length) block.push((it.needs.length > 1 ? t.needsCheckN : t.needsCheck1).replace('%s', it.needs.join(', ')));
+    block.push('', opt.brief || it.brief || '');
+    return [data.preamble || '', '', '## ' + t.todo, '', block.join('\n'), '', '## ' + t.end, t.endText].join('\n');
+  }
+  // Markdown for one card: what a review thread (or the review body) shows.
+  function itemBlock(data, items, state, it, t, inDiff, platform) {
+    var s = state[it.id] || {};
+    var out = ['**' + it.id + ' — ' + it.title + '**'];
+    function bullets(v) {
+      if (v == null || v === '') return '';
+      return Array.isArray(v) ? v.map(function (b) { return '- ' + b; }).join('\n') : String(v);
+    }
+    var detail = bullets(it.detail);
+    if (detail) out.push(detail);
+    var why = bullets(it.why);
+    if (why) out.push(why.indexOf('\n') < 0 && !/^\s*[-•]\s/.test(why) ? '*' + why + '*' : why);
+    if (it.kind === 'tension' && it.sides) out.push(it.sides.map(function (sd) { return '- **' + sd.who + '**: ' + sd.position; }).join('\n'));
+    var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
+    var note = s.note && s.note.trim() ? s.note.trim().replace(/\s+/g, ' ') : '';
+    if (opt) out.push(t.suggestion + opt.label + (note ? ' — ' + note : ''));
+    else if (note) out.push(t.noteOnly + note);
+    if (it.needs && it.needs.length) out.push(t.reliesThread.replace('%s', it.needs.join(', ')));
+    var sug = suggestionOf(it);
+    var emitted = false;
+    if (sug && it.at && inDiff) {
+      emitted = true;
+      for (var k = 0; k < sug.s.lines; k++) if (!inDiff(it.at.path, it.at.line + k)) emitted = false;
+      if (emitted) {
+        var stext = sug.s.text.replace(/\n$/, '');
+        var open = platform === 'gitlab' ? '```suggestion:-0+' + (sug.s.lines - 1) : '```suggestion';
+        out.push((sug.opt ? t.suggestionFor.replace('%s', sug.opt.label) : t.suggestionLabel) + '\n\n' + open + '\n' + (stext === '' ? '' : stext + '\n') + '```');
+      }
+    }
+    var custom = hasCustomOptions(it);
+    (it.options || []).forEach(function (o) {
+      if (o.negative || !(o.brief || it.brief)) return;
+      var body = buildItemPrompt(data, items, it, o);
+      var fence = '````';
+      (body.match(/`+/g) || []).forEach(function (run) { while (run.length >= fence.length) fence += '`'; });
+      out.push('<details><summary>' + (custom ? t.promptFor + o.label : t.prompt) + '</summary>\n\n' + fence + 'text\n' + body + '\n' + fence + '\n\n</details>');
+    });
+    return { text: out.join('\n\n'), suggested: emitted };
+  }
+  function suggestionOf(it) {
+    if (it.suggestion) return { s: it.suggestion };
+    var o = (it.options || []).filter(function (x) { return x.suggestion; })[0];
+    return o ? { s: o.suggestion, opt: o } : null;
+  }
+  // The review: { body, comments: [{ id, path, line, body }] }. inDiff(path, line) says whether a comment can sit on that line.
+  function buildReview(data, items, state, inDiff, platform) {
+    var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
+    var comments = [], unanchored = [], minor = [], rejected = [];
+    items.forEach(function (it) {
+      if (it.kind === 'rejected') { rejected.push('- ' + it.id + ' — ' + it.title + (it.why ? ' (' + (Array.isArray(it.why) ? it.why.join('; ') : it.why) + ')' : '')); return; }
+      var chosen = (it.options || []).filter(function (o) { return o.value === (state[it.id] || {}).choice; })[0];
+      if (data.kind === 'review' && chosen && chosen.negative) return; // the reviewer dropped it: not posted
+      var anchored = !it.minor && it.at && inDiff(it.at.path, it.at.line);
+      var ib = itemBlock(data, items, state, it, t, anchored ? inDiff : null, platform);
+      var block = ib.text;
+      if (it.minor) { minor.push(block); return; }
+      if (anchored) {
+        var c = { id: it.id, path: it.at.path, line: it.at.line, body: block };
+        if (ib.suggested && suggestionOf(it).s.lines > 1) { c.startLine = it.at.line; c.line = it.at.line + suggestionOf(it).s.lines - 1; }
+        comments.push(c); return;
+      }
+      if (it.at) { var nl = block.indexOf('\n'); block = block.slice(0, nl < 0 ? block.length : nl) + '\n`' + it.at.path + ':' + it.at.line + '`' + (nl < 0 ? '' : block.slice(nl)); }
+      unanchored.push(block);
+    });
+    var body = ['## ' + data.title];
+    var sum = (data.summary || []).map(function (b) {
+      if (typeof b === 'string') return '- ' + b;
+      if (b.points && b.points.length) return '- **' + b.label + '**:\n' + b.points.map(function (p) { return '  - ' + p; }).join('\n');
+      return '- **' + b.label + '**: ' + b.text;
+    });
+    if (sum.length) body.push(sum.join('\n'));
+    body.push(t.howTo);
+    [[t.notAnchored, unanchored, '\n\n'], [t.minor, minor, '\n\n'], [t.rejected, rejected, '\n']].forEach(function (sec) {
+      if (sec[1].length) body.push('### ' + sec[0] + '\n' + sec[1].join(sec[2]));
+    });
+    return { body: body.join('\n\n'), comments: comments };
+  }
+/*PROMPT-END*/
+/*SHARE-START*/
+  // The Share dialog: what the reader gets, and where it goes. render.js --channels says which of link/review are available.
+  var SHARE_WHAT = [
+    { id: 'file', label: 'The page as a file' },
+    { id: 'link', label: 'A claude.ai link', why: 'Needs Claude\'s Artifact tool in this session.' },
+    { id: 'review', label: 'A review on the merge/pull request (you submit it)', suffix: true, why: 'Not detected: needs the repo host\'s CLI (glab, gh…) logged in and an open merge/pull request for this branch.' }
+  ];
+  var SHARE_WHERE = [
+    { id: 'self', label: 'I\'ll send it myself' },
+    { id: 'review', label: 'Comment on the merge/pull request', placeholder: '@username',
+      why: 'Not detected: needs the repo host\'s CLI (glab, gh…) logged in and an open merge/pull request for this branch.' },
+    { id: 'mail', label: 'Email: Claude prepares the draft', placeholder: 'name@example.com' },
+    { id: 'slack', label: 'Slack: Claude prepares the message', placeholder: '@person or #channel' }
+  ];
+  function shareChoices(given) {
+    given = given || {};
+    function one(c) {
+      var v = c.why ? given[c.id] : true, obj = !!v && typeof v === 'object';
+      return { id: c.id, label: obj && v.label ? (c.suffix ? c.label + ' — ' + v.label : v.label) : c.label, placeholder: c.placeholder || '',
+        available: v === true || obj, reason: typeof v === 'string' ? v : (c.why || '') };
+    }
+    return { what: SHARE_WHAT.map(one), where: SHARE_WHERE.map(one) };
+  }
+  // The block Share posts: the decisions block, retitled, with the answers after the title.
+  function shareBlock(decisions, as, via, to) {
+    var lines = decisions.split('\n'), head = ['as: ' + as, 'via: ' + via];
+    to = String(to || '').replace(/\s+/g, ' ').trim();
+    if (to && via !== 'self') head.push('to: ' + to);
+    return [lines[0].replace(/^CEO DECISIONS/, 'CEO SHARE')].concat(head, lines.slice(1)).join('\n');
+  }
+/*SHARE-END*/
   function output() {
     var lines = ['CEO DECISIONS — ' + data.title];
     if (data.source) lines.push('record: ' + data.source);
@@ -748,51 +1001,126 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return lines.join('\n');
   }
+  // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm(): an Artifact's sandbox blocks it.
   document.getElementById('reset').addEventListener('click', function () {
-    if (!confirm('Clear all decisions and notes? Defaults will be re-applied.')) return;
-    state = {};
-    items.forEach(function (it) { cards[it.id].note.value = ''; });
+    state = JSON.parse(JSON.stringify(data.preset || {}));
+    items.forEach(function (it) { cards[it.id].note.value = (state[it.id] && state[it.id].note) || ''; });
     applyDefaults(); save(); render(); applyFilters(true);
     document.getElementById('out').style.display = 'none';
     document.getElementById('toast').textContent = 'Decisions reset.';
   });
   document.getElementById('recAll').addEventListener('click', function () {
+    var n = 0;
     items.forEach(function (it) {
       if (choiceOf(it.id)) return;
       var rec = it.options.filter(function (o) { return o.recommended; })[0];
-      if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec.value; }
+      if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec.value; n++; }
     });
     save(); render(); applyFilters(true);
+    document.getElementById('toast').textContent = n > 0 ? n + ' card' + (n === 1 ? '' : 's') + ' set to the recommended option.' : 'No undecided card has a recommended option.';
   });
+  if (shareMode) {
+    document.getElementById('copy').textContent = 'Copy prompt';
+    document.getElementById('out').setAttribute('aria-label', 'Prompt to paste into your coding agent');
+  }
   document.getElementById('copy').addEventListener('click', function () {
-    var text = output(), out = document.getElementById('out'), toast = document.getElementById('toast');
-    function fallback() { out.style.display = 'block'; out.value = text; out.focus(); out.select(); toast.textContent = 'Select all and copy, then paste into Claude'; }
+    var text = shareMode ? buildPrompt(data, items, state) : output();
+    var out = document.getElementById('out'), toast = document.getElementById('toast');
+    var where = shareMode ? 'your coding agent, on your checkout of the branch' : 'Claude';
+    function fallback() { out.style.display = 'block'; out.value = text; out.focus(); out.select(); toast.textContent = 'Select all and copy, then paste into ' + where; }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { toast.textContent = 'Copied. Paste it into Claude.'; }, fallback);
+      navigator.clipboard.writeText(text).then(function () { toast.textContent = 'Copied. Paste it into ' + where + '.'; }, fallback);
     } else { fallback(); }
   });
-  // Served by `render.js --serve`: Send posts the block to the local server, which hands it to Claude and exits.
-  // Opened as a file, only Copy exists.
-  if (/^https?:$/.test(location.protocol)) {
-    var send = document.getElementById('send'), copy = document.getElementById('copy');
+  // Served by `render.js --serve`: Send posts the block to the local server, which hands it to Claude and exits;
+  // Share shows on a review gate only; it opens a two-question picker (what the reader gets, where it goes), then posts the block as CEO SHARE with as:/via:/to: lines: Claude builds the share page, pre-filled with it, and delivers it. Opened as a file, or in share mode, only Copy exists.
+  if (!shareMode && /^https?:$/.test(location.protocol)) {
+    var send = document.getElementById('send'), copy = document.getElementById('copy'), share = document.getElementById('share');
     send.hidden = false;
+    share.hidden = data.kind !== 'review';
     copy.classList.remove('primary');
     copy.classList.add('wide');
-    send.addEventListener('click', function () {
+    var post = function (body, sent, failed, btn) {
       var toast = document.getElementById('toast');
-      var undecided = items.filter(function (it) { return !choiceOf(it.id); }).length;
-      if (undecided && !confirm(undecided + ' item(s) undecided. Send anyway? Claude will ask about them.')) return;
-      send.disabled = true;
-      fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: output() }).then(function (r) {
+      btn.disabled = true;
+      fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body }).then(function (r) {
         if (!r.ok) throw new Error(r.status);
-        toast.textContent = 'Sent. Claude has your decisions; you can close this tab.';
+        toast.textContent = sent;
         // Browsers let a script close a tab that has a single page in its history, as one opened by render.js has.
         // Elsewhere close() does nothing and the toast stays.
         window.close();
       }).catch(function () {
-        send.disabled = false;
-        toast.textContent = 'Could not reach Claude. Use Copy decisions and paste instead.';
+        btn.disabled = false;
+        toast.textContent = failed;
       });
+    };
+    send.addEventListener('click', function () {
+      var undecided = items.filter(function (it) { return !choiceOf(it.id); }).length;
+      if (undecided && !confirm(undecided + ' item(s) undecided. Send anyway? Claude will ask about them.')) return;
+      post(output(), 'Sent. Claude has your decisions; you can close this tab.', 'Could not reach Claude. Use Copy decisions and paste instead.', send);
+    });
+    share.addEventListener('click', function () {
+      picker = el('dialog', 'help share-picker');
+      picker.appendChild(el('h3', null, 'Share this page'));
+      var choices = shareChoices(data.channels), sel = { as: 'file', via: 'self' }, whereById = {};
+      var toRow = el('label', 'chan-to'), toInput = el('input'), shareBtn = el('button', 'btn primary', 'Share'), cancel = el('button', 'btn', 'Cancel');
+      toInput.type = 'text';
+      toRow.appendChild(document.createTextNode('To (optional)'));
+      toRow.appendChild(toInput);
+      shareBtn.type = 'button';
+      cancel.type = 'button';
+      var radios = { as: {}, via: {} };
+      var sync = function () {
+        // A review is posted on the merge/pull request: that route is the only one.
+        if (sel.as === 'review') sel.via = 'review';
+        Object.keys(radios.via).forEach(function (id) {
+          var r = radios.via[id];
+          r.disabled = sel.as === 'review' ? id !== 'review' : !r.dataset.available;
+          r.checked = sel.via === id;
+        });
+        toRow.hidden = sel.via === 'self';
+        toInput.placeholder = (whereById[sel.via] && whereById[sel.via].placeholder) || '';
+      };
+      var question = function (legend, name, list) {
+        var fs = el('fieldset', 'share-q');
+        fs.appendChild(el('legend', null, legend));
+        list.forEach(function (c) {
+          var row = el('label', 'chan' + (c.available ? '' : ' off')), radio = el('input'), text = el('span');
+          radio.type = 'radio';
+          radio.name = name;
+          radio.value = c.id;
+          radio.disabled = !c.available;
+          if (c.available) radio.dataset.available = '1';
+          radio.checked = sel[name] === c.id;
+          radios[name][c.id] = radio;
+          radio.addEventListener('change', function () { sel[name] = c.id; sync(); });
+          text.appendChild(el('b', null, c.label));
+          if (!c.available) text.appendChild(el('small', null, c.reason));
+          row.appendChild(radio);
+          row.appendChild(text);
+          fs.appendChild(row);
+        });
+        picker.appendChild(fs);
+      };
+      choices.where.forEach(function (c) { whereById[c.id] = c; });
+      question('What the reader gets', 'as', choices.what);
+      question('Where it goes', 'via', choices.where);
+      picker.appendChild(toRow);
+      sync();
+      var buttons = el('div', 'buttons');
+      buttons.appendChild(cancel);
+      buttons.appendChild(shareBtn);
+      picker.appendChild(buttons);
+      cancel.addEventListener('click', function () { picker.close(); });
+      picker.addEventListener('click', function (e) { if (e.target === picker) picker.close(); });
+      picker.addEventListener('close', function () { if (picker.parentNode) picker.parentNode.removeChild(picker); });
+      shareBtn.addEventListener('click', function () {
+        var toValue = toInput.value;
+        picker.close();
+        post(shareBlock(output(), sel.as, sel.via, toValue), 'Sent. Claude is sharing the page; you can close this tab.', 'Could not reach Claude. Ask it in chat to share this gate.', share);
+      });
+      document.body.appendChild(picker);
+      picker.showModal();
     });
   }
   render();

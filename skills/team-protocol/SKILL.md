@@ -1,6 +1,6 @@
 ---
 name: team-protocol
-description: Use when running any team-* skill (team-council, team-council-plan, team-kickoff, team-refactor) — dispatching its role agents, settling what they disagree on, or handing off at a CEO gate.
+description: Use when running any team-* skill (team-council, team-council-plan, team-kickoff, team-refactor, team-review) — dispatching its role agents, settling what they disagree on, or handing off at a CEO gate.
 ---
 
 # team-protocol
@@ -48,6 +48,8 @@ An agent whose job is not to change the project (a role, a reviewer, an evidence
 ## Counting positions
 
 Every question the roles disagree on is settled by `counting.md` in this skill's base directory: only positions with checkable evidence count; a majority makes a **decision**, no majority a **tension**, never both; the count goes in `tags` (`3–1`). The synthesizer and the writers apply it from their copy.
+
+**High confidence survives a refutation.** A finding is `high` only if its author traced the actual code path, can name the concrete input, scenario or cost where it bites, and tried to prove it wrong — looked for the guard, the caller, the test or the doc that would refute it — and could not. The card says what was tried. Anything less is `med` at most; a `low` finding is mentioned once in the synthesis, never a card.
 
 ## Handoff
 

@@ -34,6 +34,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Verification
 [How we confirm each step and the whole works]
+- After the final review, offer `team-review` on the executed diff (own branch); its intent is this plan and the decision record
 - Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, no check weakened (a lowered threshold, a skipped or deleted test, a new `@ts-ignore` or `eslint-disable`, a stub or empty `catch` where the work should be)
 ```
 

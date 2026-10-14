@@ -1,6 +1,6 @@
 ---
 name: team-refactor
-description: Use when code needs refactoring, cleanup, or a design-quality review — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code.
+description: Use when code needs refactoring or cleanup, or its structure judged — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code. Not for bugs, security or whether a change can merge: team-review.
 ---
 
 # team-refactor
@@ -13,7 +13,7 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 
 ## Iron Laws
 
-1. **Behavior-preserving only.** Any observable change — outputs, rounding, error types, side effects, call order, emails, logs relied on — is a *Found, not fixed* item for the CEO. It is never a backlog step, even if the user said "fix it while you're there" or "whatever, make it clean".
+1. **Behavior-preserving only.** Any observable change — outputs, rounding, error types, side effects, call order, emails, logs relied on — is a *For team-review* item. It is never a backlog step, even if the user said "fix it while you're there" or "whatever, make it clean".
 2. **No safety net, no refactor.** Code the step touches must be pinned by tests first, and the tests must be proven to bite (see Step 0).
 3. **One named refactoring per commit.** Structure and behavior never share a commit (Beck, *Tidy First*).
 4. **Red means revert.** A failing gate after a step → `git checkout` the step, shrink it, retry. Never debug forward.
@@ -62,15 +62,15 @@ No agent receives the conversation, the raw transcripts or another panelist's Ro
 1. Recon           → Code Brief (one agent)
 2. Round 1 (blind) → 6 panelists in parallel → Finding Cards
 3. Round 2         → Minimalist gate on every card + tension pairs
-4. Synthesis       → Backlog + Found-not-fixed + Rejected + Tensions
-5. CEO gate        → approves steps, decides each anomaly; record + exec brief
+4. Synthesis       → Backlog + For-team-review + Rejected + Tensions
+5. CEO gate        → approves steps; record + exec brief
    ── fresh session ──
 6. Execute         → from the exec brief: Step 0 safety net, then one Step Batch per fresh executor
 7. Record          → .council/refactors/YYYY-MM-DD-<topic>.md
 ```
 
 ### 0. Preconditions
-- **Scope**: a path, module, or diff. "The whole repo", or a branch over the size cap below → dispatch Recon first to rank hotspots (churn × complexity, with the smells it sees). Then ask the user to pick, with Recon's ranking in the question: each option carries its size, its main smell and its risk, one option is marked *(Recommended)*, and one is "all of them, one run each".
+- **Scope**: a path, module, or diff. "The whole repo", or a branch over the size cap below → dispatch Recon first to rank hotspots (churn × complexity, with the smells it sees). Then ask the user to pick, with Recon's ranking in the question: each option carries its size, its main smell and its risk, one option is marked *(Recommended)*, and one is "all of them, one run each". When the scope is a diff (a branch, a merge request), the panel flags only smells the diff introduces or worsens. A smell in code the diff leaves untouched is listed once under *Leave alone*, never a card.
 - **Clean working tree** (`.council/` excepted; the record is committed alongside Step 0) and a **green test run**.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
 - **Proportionality**: for a scope under ~150 lines, write the Code Brief yourself (`templates.md` § *Code Brief*) instead of dispatching Recon, and run at most 2 tension pairs. The panel and the gate always run. Above ~3,000 lines, or more than one package, narrow the scope before dispatching the panel.
@@ -89,7 +89,7 @@ Dispatch all 6 in one message. In each prompt, resolve the role template's place
 A separate synthesizer agent writes the backlog by `templates.md` § *Synthesis*, caps included.
 
 ### 5. CEO gate
-**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. The CEO approves steps (all, some, or edits) and decides every *Found, not fixed* item. An approved behavior fix is **not** a refactoring step: it runs after the refactor, as its own `fix:` commit, test-first (with the profile's TDD skill, if it lists one).
+**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. The CEO approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
 
 Then the record writer writes the record and the exec brief, and you hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
 
