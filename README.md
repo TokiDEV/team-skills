@@ -15,7 +15,7 @@
 | [`team-refactor`](skills/team-refactor/SKILL.md) | **Responsibilities, Mechanics, Sequencing, Safety Net and Depth** review scoped code blind for its structure, and a **Minimalist** KISS/YAGNI gate kills speculative abstractions. You approve the backlog; it then runs one behavior-preserving step per commit behind characterization tests. Suspected bugs go to `team-review`. |
 | [`team-review`](skills/team-review/SKILL.md) | **Correctness, Security, Intent and Craft** review a diff or a module blind, and a **Verifier** tries to refute every finding before it is raised. You curate the few that survive, then share them as a review on the merge/pull request, or have them fixed test-first. |
 | [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). **Send to Claude** hands your decisions back to the session. **Share**, on review gates only, turns the gate into a page for the owner of the branch you reviewed: they decide alone, starting from your choices, and copy a prompt for their own coding agent. Share asks what they get (the file, a claude.ai link, or a review on the merge/pull request that you submit) and where it goes (you send it, a merge/pull request comment, a prepared email or Slack message). |
-| [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, writers, the agent contract, counting positions, code scope, the handoff, execution, weakened checks, the off-model seat and `auto-accept`. The other skills load it. |
+| [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, writers, the agent contract, counting positions, structural choices, code scope, the handoff, execution, weakened checks, the off-model seat and `auto-accept`. The other skills load it. |
 
 ## Which skill?
 
@@ -55,7 +55,7 @@ docs/plans/YYYY-MM-DD-*.md      # team-council-plan: the plan (or your project's
 - **Separation of context.** Each role is its own agent. One context playing six roles is one opinion in six costumes.
 - **Evidence, counted.** Every claim cites code, docs or a skill, credited to its role. The roles share one model, so only positions with checkable evidence count toward a majority. With your yes, the Philosopher can sit on another vendor's model.
 - **Tensions surfaced, not smoothed.** A majority goes in the backlog with its dissent; a conflict with no majority goes to you.
-- **The human decides.** Agents recommend; the CEO gate decides; Markdown stays the source of truth.
+- **The human decides.** Agents recommend; the CEO gate decides, structure included (a new package, layer or dependency rule is never a writer's call); Markdown stays the source of truth.
 - **Refuted before raised.** A finding reaches you only after an agent other than its author tried to prove it wrong. A review that cries wolf gets ignored.
 - **KISS/YAGNI has teeth.** An abstraction needs a second use case that exists today. The Minimalist's KILL is a gate, not a vote.
 - **Token economy.** Cost is context size × turns. Agents run on Sonnet by default, and each skill's table names the few on Opus (e.g. the synthesis of a two-round debate, the verifier, final reviews). Each has a tool budget and writes to files; writer agents build pages, records and plans; each gate hands off to a fresh session through a short file.
@@ -135,11 +135,11 @@ Personal skills, shared as-is. Exercised on live runs:
 - ✅ `team-council-plan` from the product decision, including an amendment at the plan gate and a partial re-gate
 - ✅ `team-scan`, and `team-ceo-view` with the `--serve` round trip (pages of up to 51 decisions)
 - ✅ Token economy: a refactor run went from about 104M tokens to 16M (different scopes), the orchestrator from about 60% of the cost to 26%
+- ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
 - ⚠️ 0.7.0 adds team-review, and sharing a review gate with the branch owner (Share button, --share, a pending review on the MR/PR); not yet run live
 - ⚠️ 0.8.0 adds per-run `auto-accept` (`--accept-recommended`); not yet run live
-- ⚠️ 0.8.1 gives each rule several skills shared one home in `team-protocol` (weakened checks, execution, code scope, writers) and resolves the contradictions an audit found; team-review now always hands its fixes to a fresh session. No renderer change; not yet run live
-- ⚠️ 0.8.2 makes structural choices (new package or module, layer, dependency rule, public contract, folder convention) the CEO's, defined once in `team-protocol`: the council's CTO names each one and the gate decides it or marks it left to the plan, `team-council-plan` settles them before drafting into the plan's *Structure*, `team-refactor` puts them on its gate as major decisions, `team-kickoff` always puts the initial structure on its gate; not yet run live
-- ⚠️ 0.6.0 fixes what the last runs found, not yet re-run live: permission prompts on role files, steps naming two refactorings, environment facts missed at framing, plan rework from sub-plans written in parallel
+- ⚠️ 0.8.1 gives each rule that several skills share one home in `team-protocol` (weakened checks, execution, code scope, writers) and resolves the contradictions an audit found; team-review now always hands its fixes to a fresh session. No renderer change; not yet run live
+- ⚠️ 0.8.2 makes structural choices (a new package or module, layer, dependency rule, public contract, folder convention) the CEO's, never a writer's. The council's CTO names each one, and the gate decides it or leaves it to the plan; `team-council-plan` settles the rest before drafting; `team-refactor` and `team-kickoff` put them on their gates. Not yet run live
 - ⚠️ Not yet live: `team-kickoff`'s interview, an off-model seat, record supersession
 - ⚠️ In a `.bare/` worktree, add the git directory to the sandbox's write paths, or executors can't commit
 
