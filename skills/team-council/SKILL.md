@@ -7,7 +7,7 @@ description: 'Use before the code exists, at a decision point that deserves more
 
 A project-agnostic dispatcher that runs a structured, evidence-backed debate before the human (CEO/client) makes the final call. Complements brainstorming/planning/review — it does not replace them.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, structural choices and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, the bridge, structural choices and the handoff.
 
 ## Preconditions
 
@@ -15,10 +15,11 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 - **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it:
   - the question, the options on the table, what is out of scope, and whether it is reversible;
   - **the facts every role will assume**: who the user is, their platform and locale (OS, language, keyboard layout), and what the work may add: fixes only, or new features too. Back each one with a file or the profile, or mark it *unchecked*;
+  - **the constraints**: each limit that removes options and passes the test "what happens if we break it?" (`team-protocol` § *Bridge*), with its lens and its source (a file, a record, or the user's words), or marked *unchecked*. Those of an earlier decision on the same question, and the profile's standing ones (its `## Constraints`, `KS<n>`), come in `confirmed`, with their own source;
   - the answer you expect from the user to each open sub-question;
   - your confidence in that read (a percentage).
 
-  Every *unchecked* fact and every expected answer you can't fill is a question. Below ~70%, or with any such question left, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
+  Every *unchecked* fact or constraint and every expected answer you can't fill is a question. Below ~70%, or with any such question left, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
 - **Earlier decisions**: look in `.council/decisions/`, and in the project's decision records the profile lists, for one on the same question. If there is one, every role gets it as context, and the new record supersedes it.
 
 ## Roles
@@ -33,7 +34,7 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 | **Philosopher** (`role-philosopher.md`) | Ibn al-Haytham, Popper, Bachelard, Longino, Gigerenzer | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
 | **Wildcard** (`role-wildcard.md`) | Munger, Klein, Altshuller, Meadows, Queneau | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
 
-**Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones. Write each one 3–5 sources (see `team-protocol`).
+**Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones. Write each one 3–5 sources (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
 **Evidence pass**: when the question rests on facts nobody has observed (what the app does today, which commands exist, what a measurement gives), one agent gathers them before Round 1 (agent id `evidence`). Its file goes to every role as a shared input, and its open questions join the question pause. It leaves the project tree as it found it (`team-protocol` agent contract).
 
@@ -74,7 +75,7 @@ CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke domain specialists as relevant. Agents may flag questions for the human.
 
 ### Question pause
-Collect flagged questions, present them grouped and attributed by role. If none were flagged, proceed straight on.
+Collect flagged questions, present them grouped and attributed by role. Every constraint a role marked `assumed` is a question too, asked with that role's guess attached: the answer confirms it or drops it (`bridge.md`). If none were flagged, proceed straight on.
 
 Save the answers to `<run folder>/ceo-answers.md` in this shape, and feed that file into Round 2 (or the synthesis at one-round depth):
 
@@ -83,6 +84,7 @@ Save the answers to `<run folder>/ceo-answers.md` in this shape, and feed that f
 Answer: <the user's words, verbatim>
 Reading: <your interpretation, if any — a reading, not a fact>
 Claims to check: <any fact about the code or the product the answer asserts>
+Constraint: <K<n> confirmed | K<n> dropped — only when the question was a constraint>
 ```
 
 An answer binds as the user's preference. A claim it makes about the code is something for Round 2 to check, not a fact.
@@ -119,7 +121,7 @@ Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<de
 | Gate writer (JSON, sketches, render) | sonnet | ~15 |
 | Record writer | sonnet | ~8 |
 
-- Keep each agent's context lean: profile + decision + role template + (Round 2) the specific counterpart positions. Writers get their `templates.md` section, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
+- Keep each agent's context lean: profile + decision + role template + `bridge.md` + (Round 2) the specific counterpart positions. Writers get their `templates.md` section and `bridge.md`, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
 - Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.
 - The council is standalone — it needs only a decision context and a profile; it requires no companion skill, and the roles use whatever specialists the profile lists.
 
@@ -144,7 +146,9 @@ The shared ones are in `team-protocol`. These are the council's own.
 - A seat whose Round 1 position a CEO answer contradicts, counted without sitting again
 - A record whose `Status:` still says it awaits the CEO
 - UX left out of a change that users or API callers will meet
-- A recommendation that names no trade-off it accepts
+- A recommendation with no `Accepts:` line
+- A recommended option that violates a constraint
+- A constraint a role raised, recorded as confirmed without the CEO's answer
 - A direction that makes a structural choice nobody named: no CTO line, no synthesis entry, no gate decision
 - An earlier decision on the same question that no role was given
 - A role editing files during the debate

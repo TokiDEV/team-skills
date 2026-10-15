@@ -174,6 +174,58 @@ dialog.help td:first-child { white-space: nowrap; }
 .args li + li { margin-top: 4px; }
 .args .who { font-weight: 650; }
 .args .none { font-size: 13px; color: var(--ink-2); font-style: italic; }
+/* The bridge: what binds the decision and what each option gains and costs per lens. Above the arguments, outside the tabs */
+.bridge { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--bg); font-size: 13.5px; }
+.bridge .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+.bridge .klist + .lbl { margin-top: 14px; }
+.klist { list-style: none; margin: 0; padding: 0; }
+.summary .klist { padding-left: 0; }
+.klist li + li { margin-top: 4px; }
+.klist code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
+.klens { font-size: 12px; font-weight: 650; color: var(--ink-2); margin-right: 6px; white-space: nowrap; }
+.klens .licon { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; }
+.kid { font: 11px/1.2 var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--surface-2); color: var(--ink-2); margin-left: 6px; }
+.kstat { font-size: 11px; color: var(--warn); margin-left: 6px; }
+.ksrc { font-size: 12px; color: var(--ink-2); margin-left: 6px; }
+.btable { width: 100%; border-collapse: collapse; }
+.btable th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-weight: 700; padding: 0 10px 6px 0; }
+.btable td { padding: 6px 10px 6px 0; vertical-align: top; border-top: 1px solid var(--line); }
+.btable th:first-child, .btable td:first-child { padding-left: 8px; }
+.btable td:first-child { font-weight: 600; }
+.btable tr.pick td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.btable tr.pick td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+.btable .rec { display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-top: 1px; }
+/* Breaking a constraint: the option stays choosable and says what choosing it costs */
+.lift { font: 600 11px/1.3 var(--mono); padding: 1px 6px; border-radius: 5px; white-space: nowrap;
+  color: var(--no); background: var(--no-bg); border: 1px solid color-mix(in srgb, var(--no) 40%, transparent); }
+.btable .lift { display: block; width: fit-content; margin-top: 4px; }
+.bridge .accepts { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.bridge .accepts b { color: var(--ink-2); font-weight: 650; }
+.head-constraints { margin-top: 12px; }
+/* Lenses: the header names what a card concerns; a card with both switches its arguments by tab. The bridge never hides */
+.licon { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.lens-chips { display: inline-flex; gap: 4px; margin-left: auto; align-self: center; }
+.tag.lens { display: inline-flex; align-items: center; gap: 4px; font-weight: 650; color: var(--ink); background: none; border: 1px solid var(--line); padding: 1px 7px 1px 6px; }
+.pill .licon { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; }
+.lens-tabs { display: flex; gap: 20px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+.ltab { font: inherit; font-size: 13px; font-weight: 650; padding: 6px 2px 7px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent;
+  background: none; color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: color .15s ease-out, border-color .15s ease-out; }
+.ltab .n { font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); text-align: center; }
+.ltab:hover { color: var(--ink); }
+.ltab[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.ltab[aria-pressed="true"] .n { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
+.ltab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 640px) {
+  /* The trade-off table stacks: one block per option, each cost labelled by its lens */
+  .btable, .btable tbody, .btable tr, .btable td { display: block; }
+  .btable tr:first-child { display: none; }
+  .btable tr { border-top: 1px solid var(--line); padding: 6px 0; }
+  .btable td { border-top: 0; padding: 2px 8px; }
+  .btable td[data-l]::before { content: attr(data-l); display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+  .lens-chips { margin-left: 0; }
+}
+.lens-none { font-size: 13px; color: var(--ink-2); font-style: italic; margin-top: 8px; }
+.card[data-lens="business"] [data-lens="tech"], .card[data-lens="tech"] [data-lens="business"] { display: none; }
 .tension { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
 .side { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); }
 .side .who { font-weight: 650; font-size: 13px; margin-bottom: 4px; }
@@ -366,6 +418,33 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     return box;
   }
 
+  // Constraints (bridge.md): limits that remove options. A contested or assumed one says so.
+  // Lens marks: a drawn icon and its name, the same on chips, tabs, filters and constraints. A briefcase for business, brackets for tech.
+  var LENS_NAME = { business: 'Business', tech: 'Tech' };
+  var LENS_PATHS = {
+    business: ['M3.5 5.5h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z', 'M6 5.5v-2h4v2', 'M2.5 9.5h11'],
+    tech: ['M5.5 4L2 8l3.5 4', 'M10.5 4L14 8l-3.5 4']
+  };
+  function lensIcon(l) {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16'); svg.setAttribute('class', 'licon'); svg.setAttribute('aria-hidden', 'true');
+    LENS_PATHS[l].forEach(function (d) { var p = document.createElementNS(svg.namespaceURI, 'path'); p.setAttribute('d', d); svg.appendChild(p); });
+    return svg;
+  }
+  function lensMark(cls, l) { var s = el('span', cls); s.appendChild(lensIcon(l)); s.appendChild(document.createTextNode(LENS_NAME[l])); return s; }
+  function constraintList(list) {
+    var ul = el('ul', 'klist');
+    list.forEach(function (k) {
+      var li = el('li');
+      li.appendChild(lensMark('klens', k.lens));
+      inline(li, k.text);
+      li.appendChild(el('span', 'kid', k.id));
+      if (k.status !== 'confirmed') li.appendChild(el('span', 'kstat', k.status));
+      li.appendChild(el('span', 'ksrc', k.source));
+      ul.appendChild(li);
+    });
+    return ul;
+  }
   // Header. The summary is a list of bullets: plain strings, or { label, text, points }.
   head.appendChild(el('span', 'badge', data.kind || 'decision'));
   head.appendChild(el('h1', null, data.title));
@@ -394,6 +473,13 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       ul.appendChild(li);
     });
     sum.appendChild(ul); head.appendChild(sum);
+  }
+  // Page constraints, under the summary: they bind every card.
+  if (data.constraints && data.constraints.length) {
+    var pk = el('div', 'summary head-constraints');
+    pk.appendChild(el('div', 'slabel', 'Constraints'));
+    pk.appendChild(constraintList(data.constraints));
+    head.appendChild(pk);
   }
   // Outcome, right under the summary: the human approves a destination, not a list of steps.
   if (data.outcome && data.outcome.length) {
@@ -432,17 +518,17 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   items.filter(function (it) { return it.kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
 
   // Sidebar: search and filters
-  var filters = { kind: 'all', status: 'all', group: '', tag: '' };
+  var filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
   var sideTop = el('div', 'side-top'); sideTop.appendChild(el('div', 'side-title', 'Find'));
   var hideBtn = el('button', 'icon-btn', '«'); hideBtn.type = 'button'; hideBtn.title = 'Hide sidebar  ( [ )'; hideBtn.setAttribute('aria-label', 'Hide sidebar');
   sideTop.appendChild(hideBtn); side.appendChild(sideTop);
   var search = el('input'); search.type = 'search'; search.placeholder = 'Search…  ( / )'; search.setAttribute('aria-label', 'Search items');
   side.appendChild(search);
-  function pills(label, field, opts) {
+  function pills(label, field, opts, then) {
     var g = el('div', 'pills'); g.setAttribute('role', 'group'); g.setAttribute('aria-label', label);
     opts.forEach(function (o) {
       var b = el('button', 'pill', o[1]); b.type = 'button'; b.dataset.v = o[0];
-      b.addEventListener('click', function () { filters[field] = o[0]; sync(); applyFilters(); });
+      b.addEventListener('click', function () { filters[field] = o[0]; sync(); if (then) then(o[0]); applyFilters(); });
       g.appendChild(b);
     });
     function sync() { [].forEach.call(g.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === filters[field])); }); }
@@ -455,6 +541,12 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   var kindPills = pills('Type', 'kind', kinds); if (kinds.length > 2) side.appendChild(kindPills);
   var statusPills = pills('Status', 'status', [['all', 'Any status'], ['open', 'Undecided'], ['done', 'Decided'], ['note', 'With note']]);
   side.appendChild(statusPills);
+  // Lens: hide the cards that don't concern it; the cards with both turn to its tab.
+  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Business'], ['tech', 'Tech']], function (l) {
+    if (l !== 'all') Object.keys(cards).forEach(function (id) { setCardLens(cards[id], l); });
+  });
+  [].forEach.call(lensPills.children, function (b) { if (LENS_PATHS[b.dataset.v]) b.insertBefore(lensIcon(b.dataset.v), b.firstChild); });
+  if (items.some(function (it) { return it.lenses; })) side.appendChild(lensPills);
   var tags = [];
   items.forEach(function (it) { (it.tags || []).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
   var tagSel = el('select'); tagSel.setAttribute('aria-label', 'Filter by tag');
@@ -503,6 +595,74 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return s;
   }
+  // Lens tabs: only on a card the renderer marked lensTabs (arguments of both lenses). Each card switches on its own (b / t);
+  // the sidebar's lens filter turns them all at once.
+  var LENSES = ['business', 'tech'];
+  var tabbed = items.some(function (it) { return it.lensTabs; });
+  function setCardLens(c, l) {
+    if (!c || !c.tabs) return;
+    c.card.dataset.lens = l;
+    c.tabs.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === l)); });
+  }
+  // Each tab counts what it holds, so the hidden lens is never a surprise.
+  function lensTabBar(it) {
+    var g = el('div', 'lens-tabs'), tabs = []; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Arguments by lens');
+    LENSES.forEach(function (l) {
+      var n = (it.for || []).concat(it.against || []).filter(function (e) { return e.lens === l; }).length;
+      var b = el('button', 'ltab'); b.appendChild(lensIcon(l)); b.appendChild(document.createTextNode(LENS_NAME[l]));
+      b.appendChild(el('span', 'n', String(n)));
+      b.type = 'button'; b.dataset.v = l; b.setAttribute('aria-pressed', 'false');
+      b.title = LENS_NAME[l] + ': ' + n + (n === 1 ? ' argument' : ' arguments') + '  ( ' + l[0] + ' )';
+      b.addEventListener('click', function () { setCardLens(cards[it.id], l); });
+      g.appendChild(b); tabs.push(b);
+    });
+    return { bar: g, tabs: tabs };
+  }
+  // The bridge: the constraints that bind the card and what each option gains and costs per lens. Both tabs show it.
+  function bridge(it) {
+    var traded = it.options.some(function (o) { return o.tradeoff; });
+    if (!it.bridge && !traded && !it.accepts) return null;
+    var box = el('div', 'bridge');
+    if (it.bridge) { box.appendChild(el('div', 'lbl', 'Constraints')); box.appendChild(constraintList(it.bridge)); }
+    if (traded) {
+      // A lens no option trades on gets no column: a tech-only card shows only Tech.
+      var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
+      box.appendChild(el('div', 'lbl', 'Trade-offs'));
+      var tb = el('table', 'btable'), hr = el('tr');
+      ['Option'].concat(used.map(function (l) { return LENS_NAME[l]; })).forEach(function (h) { hr.appendChild(el('th', null, h)); });
+      tb.appendChild(hr);
+      it.options.forEach(function (o) {
+        if (!o.tradeoff && !(o.violates && o.violates.length)) return;
+        var tr = el('tr', o.recommended ? 'pick' : null), name = el('td', null, o.label);
+        if (o.recommended) name.appendChild(el('span', 'rec', 'recommended'));
+        if (o.violates && o.violates.length) name.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', ')));
+        tr.appendChild(name);
+        used.forEach(function (l) { var td = inline(el('td'), (o.tradeoff && o.tradeoff[l]) || '—'); td.setAttribute('data-l', LENS_NAME[l]); tr.appendChild(td); });
+        tb.appendChild(tr);
+      });
+      box.appendChild(tb);
+    }
+    if (it.accepts) { var a = el('div', 'accepts'); a.appendChild(el('b', null, 'Accepts: ')); inline(a, it.accepts); box.appendChild(a); }
+    return box;
+  }
+  function argCols(pros, cons) {
+    var args = el('div', 'args');
+    [['pro', 'For', pros], ['con', 'Against', cons]].forEach(function (k) {
+      var col = el('div', k[0]); col.appendChild(el('div', 'lbl', k[1]));
+      if (!k[2].length) { col.appendChild(el('div', 'none', 'No argument raised.')); }
+      else {
+        var ul = el('ul');
+        k[2].forEach(function (a) {
+          var li = el('li');
+          if (a.who) { li.appendChild(el('span', 'who', a.who + ': ')); }
+          li.appendChild(document.createTextNode(a.point)); ul.appendChild(li);
+        });
+        col.appendChild(ul);
+      }
+      args.appendChild(col);
+    });
+    return args;
+  }
   function card(it) {
     var c = el('article', 'card'); c.id = 'd-' + it.id;
     var h = el('div', 'card-head');
@@ -510,6 +670,11 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     h.appendChild(el('h3', null, it.title));
     if (it.kind !== 'decision') h.appendChild(el('span', 'tag kind', it.kind));
     (it.tags || []).forEach(function (t) { h.appendChild(el('span', 'tag' + (/behavio|risk|money|breaking/i.test(t) ? ' warn' : ''), t)); });
+    if (it.lenses) {
+      var lc = el('span', 'lens-chips');
+      it.lenses.forEach(function (l) { lc.appendChild(lensMark('tag lens', l)); });
+      h.appendChild(lc);
+    }
     c.appendChild(h);
     // Body areas: text and decide on the left, evidence on the right when the screen is wide enough.
     var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
@@ -527,10 +692,13 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       }
       rel.appendChild(gap); text.appendChild(rel);
     }
+    var tabs = !!it.lensTabs;
+    // On a tabbed card each argument, metric, figure and the code carries its lens; the page shows one lens at a time.
+    function lensed(node, lens) { if (tabs) node.dataset.lens = lens; return node; }
     if (it.metrics && it.metrics.length) {
       var mc = el('div', 'mchips');
       it.metrics.forEach(function (m) {
-        var chip = el('span', 'mchip'); chip.appendChild(document.createTextNode(m.label + ' '));
+        var chip = lensed(el('span', 'mchip'), m.lens); chip.appendChild(document.createTextNode(m.label + ' '));
         var b = el('b');
         if (m.before != null && m.after != null) {
           b.textContent = m.before + ' → ' + m.after + (m.unit ? ' ' + m.unit : '');
@@ -548,25 +716,19 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       });
       text.appendChild(tw);
     }
-    if ((it.for && it.for.length) || (it.against && it.against.length)) {
-      var args = el('div', 'args');
-      [['for', 'pro', 'For'], ['against', 'con', 'Against']].forEach(function (k) {
-        var col = el('div', k[1]); col.appendChild(el('div', 'lbl', k[2]));
-        var list = it[k[0]] || [];
-        if (!list.length) { col.appendChild(el('div', 'none', 'No argument raised.')); }
-        else {
-          var ul = el('ul');
-          list.forEach(function (a) {
-            var li = el('li');
-            if (a.who) { li.appendChild(el('span', 'who', a.who + ': ')); }
-            li.appendChild(document.createTextNode(a.point)); ul.appendChild(li);
-          });
-          col.appendChild(ul);
-        }
-        args.appendChild(col);
+    // The bridge heads the evidence column: on a wide screen it sits beside the arguments it weighs.
+    var br = bridge(it); if (br) ev.insertBefore(br, ev.firstChild);
+    var pros = it.for || [], cons = it.against || [];
+    var tb = null;
+    if (tabs) {
+      tb = lensTabBar(it); text.appendChild(tb.bar);
+      LENSES.forEach(function (l) {
+        var inLens = function (e) { return e.lens === l; };
+        // A lens with only metrics, figures or code: its evidence shows on the right; say no one argued it.
+        if (pros.some(inLens) || cons.some(inLens)) text.appendChild(lensed(argCols(pros.filter(inLens), cons.filter(inLens)), l));
+        else text.appendChild(lensed(el('div', 'lens-none', 'No ' + l + ' argument raised.'), l));
       });
-      text.appendChild(args);
-    }
+    } else if (pros.length || cons.length) text.appendChild(argCols(pros, cons));
     if (it.code && (it.code.before || it.code.after)) {
       var diff = el('div', 'diff');
       [['before', 'Before'], ['after', 'After']].forEach(function (p) {
@@ -574,15 +736,23 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         var col = el('div'); col.appendChild(el('div', 'lbl', p[1]));
         col.appendChild(el('pre', p[0], it.code[p[0]])); diff.appendChild(col);
       });
-      ev.appendChild(diff);
+      ev.appendChild(lensed(diff, 'tech'));
     }
-    if (it.figures && it.figures.length) ev.appendChild(figures(it.figures));
+    if (it.figures && it.figures.length) {
+      if (tabs) LENSES.forEach(function (l) {
+        var fl = it.figures.filter(function (f) { return f.lens === l; });
+        if (fl.length) ev.appendChild(lensed(figures(fl), l));
+      });
+      else ev.appendChild(figures(it.figures));
+    }
     var row = el('div', 'options'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Decision for ' + it.id);
     var buttons = [];
     it.options.forEach(function (o, i) {
+      var broken = o.violates && o.violates.length;
       var b = el('button', 'opt' + (o.negative ? ' neg' : '')); b.type = 'button';
       if (i < 9) b.appendChild(el('span', 'k', String(i + 1)));
       b.appendChild(document.createTextNode(o.label));
+      if (broken) { b.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', '))); b.title = 'Breaks ' + o.violates.join(', ') + ': choosing it lifts ' + (o.violates.length > 1 ? 'them' : 'it'); }
       if (o.recommended) b.appendChild(el('span', 'rec', 'recommended'));
       b.setAttribute('aria-pressed', 'false');
       b.addEventListener('click', function () { choose(it.id, o.value); });
@@ -600,7 +770,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();
     c.addEventListener('mousedown', function () { setCurrent(it.id, false); });
-    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap };
+    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, tabs: tb && tb.tabs };
+    if (tb) setCardLens(cards[it.id], 'business');
     return c;
   }
 
@@ -627,7 +798,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   // Filtering. keepFolds: note typing and choosing re-filter without toggling folds under the cursor.
   function applyFilters(keepFolds) {
     var q = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    var active = q.length || filters.kind !== 'all' || filters.status !== 'all' || filters.group || filters.tag;
+    var active = q.length || filters.kind !== 'all' || filters.status !== 'all' || filters.group || filters.tag || filters.lens !== 'all';
     var total = 0;
     sections.forEach(function (sec) {
       var visible = 0;
@@ -637,6 +808,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
           && (filters.kind === 'all' || it.kind === filters.kind)
           && (filters.group === '' || sec.name === filters.group)
           && (filters.tag === '' || (it.tags || []).indexOf(filters.tag) >= 0)
+          && (filters.lens === 'all' || !it.lenses || it.lenses.indexOf(filters.lens) >= 0)
           && (filters.status === 'all' || (filters.status === 'open' ? !st.choice : filters.status === 'done' ? !!st.choice : !!(st.note && st.note.trim())));
         c.card.hidden = !ok; chipsById[it.id].classList.toggle('dim', !!active && !ok);
         if (ok) visible++;
@@ -655,8 +827,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   }
   search.addEventListener('input', function () { applyFilters(); });
   clear.addEventListener('click', function () {
-    search.value = ''; filters = { kind: 'all', status: 'all', group: '', tag: '' };
-    kindPills.sync(); statusPills.sync(); tagSel.value = ''; applyFilters();
+    search.value = ''; filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
+    kindPills.sync(); statusPills.sync(); lensPills.sync(); tagSel.value = ''; applyFilters();
   });
   // Keyboard navigation
   var order = [];
@@ -709,11 +881,12 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     ['<kbd>1</kbd> – <kbd>9</kbd>', 'Choose option 1–9 on the current card directly'],
     ['<kbd>r</kbd>', 'Choose the recommended option'],
     ['<kbd>n</kbd>', 'Write a note on the current card'],
+    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Business / tech tab on the current card'],
     ['<kbd>/</kbd>', 'Search; <kbd>Enter</kbd> goes to the first result'],
     ['<kbd>Esc</kbd>', 'Leave the search box or note'],
     ['<kbd>[</kbd>', 'Hide / show the sidebar'],
     ['<kbd>?</kbd>', 'This help']
-  ].map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>';
+  ].filter(function (r) { return tabbed || r[0].indexOf('<kbd>b</kbd>') < 0; }).map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>';
   document.body.appendChild(help);
   help.addEventListener('click', function (e) { if (e.target === help) help.close(); });
   search.addEventListener('keydown', function (e) {
@@ -747,6 +920,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     else if (/^[1-9]$/.test(e.key) && c) { var o = c.it.options[Number(e.key) - 1]; if (o) choose(cur, o.value); else return; }
     else if (e.key === 'r' && c) { var rec = c.it.options.filter(function (o) { return o.recommended; })[0]; if (rec) choose(cur, rec.value); else return; }
     else if (e.key === 'n' && c) c.note.focus();
+    else if ((e.key === 'b' || e.key === 't') && c && c.tabs) setCardLens(c, e.key === 'b' ? 'business' : 'tech');
     else return;
     e.preventDefault();
   });
@@ -796,7 +970,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       var n = sec.items.filter(function (it) { return choiceOf(it.id); }).length;
       sec.count.textContent = n + '/' + sec.items.length;
       sec.fill.style.width = (sec.items.length ? 100 * n / sec.items.length : 0) + '%';
-      if (sec.summary) sec.summary.textContent = sec.items.length + ' ' + sec.name.toLowerCase() + ' — ' + n + ' decided (defaults applied), open to change';
+      // "1 minor item", not "1 minor items"
+      var secName = sec.name.toLowerCase(); if (sec.items.length === 1) secName = secName.replace(/ items$/, ' item');
+      if (sec.summary) sec.summary.textContent = sec.items.length + ' ' + secName + ' — ' + n + ' decided (defaults applied), open to change';
     });
     document.getElementById('ptxt').textContent = done + ' of ' + items.length + ' decided';
     document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
@@ -976,6 +1152,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     items.forEach(function (it) {
       var s = state[it.id] || {};
       var line = it.id + ' = ' + (s.choice || 'UNDECIDED');
+      // An option that breaks a constraint lifts it: the record says so (bridge.md).
+      var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
+      if (opt && opt.violates && opt.violates.length) line += ' (lifts ' + opt.violates.join(', ') + ')';
       if (s.note && s.note.trim()) line += ' | note: ' + s.note.trim().replace(/\s+/g, ' ');
       lines.push(line);
     });

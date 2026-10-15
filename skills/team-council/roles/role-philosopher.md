@@ -46,7 +46,14 @@ In Round 1, analyze the decision's underlying assumptions and name what would fa
 [Your stance, in one line first, ending with "— via <the 2–3 sources you used>"]
 
 ### Evidence
-[Checkable: file:line, doc, command output, measurement, or a quoted claim from another role that you refute. Attributed. A position without it is not counted]
+[Checkable: file:line, doc, command output, measurement, or a quoted claim from another role that you refute. Attributed. A position without it is not counted. Start each line with its lens, `business` or `tech` (`bridge.md`, beside this file)]
+
+### Trade-offs
+| Option | Gains | Costs | Lens |
+[One row per option and lens you can speak to. A cost with no evidence says "estimate"]
+
+### Constraints
+[Constraints you suspect (assumed) or contest, by id when the framing has one, each with its evidence. Leave empty if none]
 
 ### Steelmanned Positions
 [Each position restated in its strongest form]

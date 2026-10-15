@@ -29,7 +29,8 @@ function readPreset(file, items, errors) {
   const out = {};
   fs.readFileSync(file, 'utf8').split(/\r?\n/).slice(1).forEach(line => {
     if (/^(as|via|to): /.test(line)) return; // what the reader gets and where it goes, not a choice
-    const m = line.match(/^(\S+) = (.*?)(?: \| note: (.*))?$/);
+    // "(lifts K2)" after the value: that option breaks a constraint; the page knows it from the option itself.
+    const m = line.match(/^(\S+) = (.*?)(?: \(lifts [^)]*\))?(?: \| note: (.*))?$/);
     if (!m) return; // the "record:" line, blank lines
     const [, id, value, note] = m;
     const it = byId[id];

@@ -26,11 +26,13 @@ Turns a CEO gate into a local HTML decision page: where the work lands beside to
    record: <path>
    S1 = approve
    F1 = keep | note: add a comment explaining why
+   D2 = buy (lifts K2) | note: the vendor already holds the data
    T1 = Minimalist
    RS-1a = revive
    S9 = UNDECIDED
    ```
    `T*` lines are tension verdicts (the side the human took, or `defer`). A rejected item comes back as `keep-rejected` or `revive`, and a revived one re-enters the calling skill's flow as a new candidate.
+   A `(lifts K<n>)` after a choice: the CEO took an option that breaks constraint K<n>, which lifts it (`team-protocol` § *Bridge*); the calling skill's record writer records the lift. With no note on that line, ask once for the reason, in one line, to record as their words.
    Any `UNDECIDED` → ask about just those, in chat.
    A choice on an item tagged `corrects <premise>` that is not its recommended option → before recording it, ask once, in plain words and without code identifiers: what the page found, and whether the human still wants that option.
    A chosen item whose `needs` (in the gate JSON) holds an item that is not chosen (declined, deferred, undecided, rejected) → before recording, ask once: what it relies on, what doing it without that means, and the alternatives (choose that item too, drop this one, or go ahead anyway).

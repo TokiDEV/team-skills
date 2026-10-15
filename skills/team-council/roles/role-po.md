@@ -43,6 +43,13 @@ Analyze the decision from the product perspective. Name the outcome it serves, r
 ### Evidence
 [Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted]
 
+### Trade-offs
+| Option | Gains | Costs | Lens |
+[One row per option and lens you can speak to. A cost with no evidence says "estimate"]
+
+### Constraints
+[Constraints you suspect (assumed) or contest, by id when the framing has one, each with its evidence (`bridge.md`, beside this file). Leave empty if none]
+
 ### The Four Risks
 [Value, usability, feasibility, viability: one line each, riskiest first, and the cheapest test for the riskiest]
 

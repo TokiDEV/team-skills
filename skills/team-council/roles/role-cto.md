@@ -44,6 +44,13 @@ Analyze the decision from the engineering perspective. Ground positions in the a
 ### Evidence
 [Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted]
 
+### Trade-offs
+| Option | Gains | Costs | Lens |
+[One row per option and lens you can speak to, and one per structural choice's pick and its alternative. A cost with no evidence says "estimate"]
+
+### Constraints
+[Constraints you suspect (assumed) or contest, by id when the framing has one, each with its evidence (`bridge.md`, beside this file). Leave empty if none]
+
 ### One-way Doors
 [What in this decision is expensive to undo, and what it would cost; "none" is a valid answer]
 

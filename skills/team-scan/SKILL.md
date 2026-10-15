@@ -5,7 +5,7 @@ description: Use before the first team-council, team-council-plan, team-kickoff,
 
 # team-scan
 
-Produces the project profile that every council skill reads. Run it once per project (and again whenever the stack, conventions, or available skills change). Re-running overwrites `.council/project-profile.md`; git tracks history.
+Produces the project profile that every council skill reads. Run it once per project (and again whenever the stack, conventions, or available skills change). Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, which it keeps (see *Procedure*); git tracks history.
 
 ## What to detect
 
@@ -22,12 +22,13 @@ Produces the project profile that every council skill reads. Run it once per pro
 5. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
 6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
 7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
+8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
 
 ## Procedure
 
 1. Confirm the target directory (default: cwd).
 2. Gather the signals above with read-only tools. Prefer batched, non-interactive commands; do not modify project files other than the profile.
-3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent.
+3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted.
 4. Report a one-line summary and the profile path.
 
 ## Output: `.council/project-profile.md`
@@ -64,8 +65,13 @@ One line each: `<name> — what it is for` (e.g. "writes plans", "executes plans
 ## Team Preferences
 - Memory/feedback/design-doc signals worth carrying into council debates
 - Off-model seat: yes | no | ask (default: ask)
+
+## Constraints
+Standing `tech` constraints (`team-protocol` § *Bridge*), one line each, ids stable across runs:
+- KS1 — <the rule> — <source: a decision record or plan path, or a CLAUDE.md line> — confirmed | lifted by <record path>
 ```
 
 ## Notes
 - Keep the profile concise and factual — it is injected into every council agent's context, so bloat costs tokens on every run.
 - If no specialists are found for a domain, say so explicitly (the council still runs; roles simply have fewer tools to invoke).
+- `## Constraints` also grows at plan approval (`team-council-plan` appends the new `tech` constraints), and is read by every council framing, the plan reviewers and the gate writers. A constraint lifted at a gate is marked `lifted by <record path>`, never deleted.

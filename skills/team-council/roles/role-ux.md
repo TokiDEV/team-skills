@@ -44,6 +44,13 @@ Analyze the decision from the user-experience perspective. Walk the user through
 ### Evidence
 [Checkable: file:line, screenshot, audit finding, doc. Attributed. A position without it is not counted]
 
+### Trade-offs
+| Option | Gains | Costs | Lens |
+[One row per option and lens you can speak to. A cost with no evidence says "estimate"]
+
+### Constraints
+[Constraints you suspect (assumed) or contest, by id when the framing has one, each with its evidence (`bridge.md`, beside this file). Leave empty if none]
+
 ### Where Users Get Stuck
 [Each moment, per option, with the principle or heuristic it breaks]
 

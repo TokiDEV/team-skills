@@ -11,6 +11,10 @@ const NEEDS_OUTCOME = ['plan', 'kickoff'];
 const VIEWS = ['ui', 'system'];
 // Card text is read at a glance: past these lengths it is a report, not a card.
 const MAX = { detail: 240, why: 160, bullet: 120, bullets: 4 };
+// The bridge (team-protocol's bridge.md): two lenses, three constraint statuses, one-line trade-offs.
+const LENSES = ['business', 'tech'];
+const STATUSES = ['confirmed', 'assumed', 'contested'];
+const MAX_BRIDGE = { tradeoff: 80, accepts: 160 };
 // --share: the reader has neither this machine nor the .council/ folder.
 const LANGS = ['en', 'fr'];
 const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.council\//;
@@ -112,9 +116,109 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (MENTIONS_VISUAL.test(text) && !item.figures.length) {
       errors.push(`${where} ("${item.id}") mentions "${text.match(MENTIONS_VISUAL)[0]}" but has no "figures" — attach it or drop the reference`);
     }
+    checkLens(item, where);
+    checkBridge(item, where);
+    concerns(item);
     return item;
   }
 
+  // constraints: on the page (they bind every item) or on one item. Ids are unique across the page.
+  const constraintIds = new Set();
+  function checkConstraints(list, where) {
+    if (list == null) return [];
+    if (!Array.isArray(list)) { errors.push(`${where} must be an array of { "id", "lens", "text", "source", "status" }`); return []; }
+    return list.filter((k, j) => {
+      const at = `${where}[${j}]`;
+      if (!k || typeof k !== 'object' || !k.id || !k.text || !k.source) { errors.push(`${at} needs "id", "text" and "source"`); return false; }
+      if (!LENSES.includes(k.lens)) errors.push(`${at} ("${k.id}").lens must be one of ${LENSES.join(', ')}`);
+      if (!STATUSES.includes(k.status)) errors.push(`${at} ("${k.id}").status must be one of ${STATUSES.join(', ')}`);
+      if (constraintIds.has(k.id)) errors.push(`duplicate constraint id "${k.id}" (constraint ids must be unique across the page)`);
+      constraintIds.add(k.id);
+      return true;
+    });
+  }
+
+  // lens: the item's default; each argument, metric and figure may carry its own. An item with none renders as before.
+  function checkLens(item, where) {
+    const oneOf = `must be one of ${LENSES.join(', ')}`;
+    if (item.lens != null && !LENSES.includes(item.lens)) errors.push(`${where} ("${item.id}").lens ${oneOf}`);
+    const entries = [];
+    ['for', 'against', 'metrics', 'figures'].forEach(k => {
+      if (!Array.isArray(item[k])) return;
+      item[k].forEach((e, j) => {
+        if (!e || typeof e !== 'object') return;
+        if (e.lens != null && !LENSES.includes(e.lens)) errors.push(`${where}.${k}[${j}].lens ${oneOf}`);
+        entries.push({ e, at: `${where}.${k}[${j}]` });
+      });
+    });
+    if (item.lens == null && !entries.some(x => x.e.lens != null)) return;
+    // Every entry lands in one tab: its own lens, else the item's.
+    entries.forEach(({ e, at }) => {
+      if (e.lens == null && item.lens != null) e.lens = item.lens;
+      if (e.lens == null) errors.push(`${at} has no lens and its item none to give — set "lens" on the entry or on the item`);
+    });
+    const lenses = new Set(entries.map(x => x.e.lens));
+    if (item.code && (item.code.before || item.code.after)) lenses.add('tech'); // code is always tech
+    // Tabs only where there is something to switch: entries of both lenses. A one-lens card says its lens in the header.
+    if (lenses.has('business') && lenses.has('tech')) item.lensTabs = true;
+  }
+
+  // lenses: what the card concerns, for its header chips and the page's lens filter. Absent on a lens-free item.
+  function concerns(item) {
+    const found = new Set();
+    if (LENSES.includes(item.lens)) found.add(item.lens);
+    ['for', 'against', 'metrics', 'figures'].forEach(k => {
+      if (Array.isArray(item[k])) item[k].forEach(e => { if (e && LENSES.includes(e.lens)) found.add(e.lens); });
+    });
+    item.options.forEach(o => {
+      if (o.tradeoff && typeof o.tradeoff === 'object') LENSES.forEach(l => { if (o.tradeoff[l]) found.add(l); });
+    });
+    (item.bridge || []).forEach(k => { if (LENSES.includes(k.lens)) found.add(k.lens); }); // breaking a tech rule concerns tech
+    // Code is tech, but a lens-free item with code stays lens-free.
+    if (found.size && item.code && (item.code.before || item.code.after)) found.add('tech');
+    if (found.size) item.lenses = LENSES.filter(l => found.has(l));
+  }
+
+  // The bridge: what each option gains and costs per lens, the constraints it breaks, and what the pick accepts.
+  function checkBridge(item, where) {
+    const own = checkConstraints(item.constraints, `${where}.constraints`);
+    const known = new Set(pageConstraints.concat(own).map(k => k.id));
+    let traded = false;
+    item.options.forEach(o => {
+      const at = `${where} ("${item.id}") option "${o.value}"`;
+      const t = o.tradeoff;
+      if (t != null) {
+        if (!t || typeof t !== 'object' || Array.isArray(t) || (t.business == null && t.tech == null)) errors.push(`${at}: "tradeoff" needs "business" and/or "tech"`);
+        else {
+          traded = true;
+          Object.keys(t).forEach(l => {
+            if (!LENSES.includes(l)) errors.push(`${at}: tradeoff key "${l}" must be one of ${LENSES.join(', ')}`);
+            else if (typeof t[l] !== 'string' || !t[l]) errors.push(`${at}: tradeoff.${l} must be a one-line string`);
+            else if (t[l].length > MAX_BRIDGE.tradeoff) errors.push(`${at}: tradeoff.${l} is ${t[l].length} characters (max ${MAX_BRIDGE.tradeoff})`);
+          });
+        }
+      }
+      if (o.violates == null) return;
+      if (!Array.isArray(o.violates) || o.violates.some(v => typeof v !== 'string')) { errors.push(`${at}: "violates" must be an array of constraint ids`); return; }
+      o.violates.forEach(v => { if (!known.has(v)) errors.push(`${at} violates unknown constraint "${v}" (on neither the page nor this item)`); });
+      // Auto-accept takes defaults and recommendations: neither may lift a constraint, whatever its status.
+      const breaks = o.violates.filter(v => known.has(v));
+      if (breaks.length && (o.recommended || o.value === item.default)) {
+        errors.push(`${at} is ${o.recommended ? 'recommended' : 'the default'} but violates ${breaks.join(', ')} — only the CEO lifts a constraint: recommend an option that keeps it`);
+      }
+    });
+    if (item.accepts != null) {
+      if (typeof item.accepts !== 'string' || !item.accepts) errors.push(`${where} ("${item.id}").accepts must be a one-line string`);
+      else if (item.accepts.length > MAX_BRIDGE.accepts) errors.push(`${where} ("${item.id}").accepts is ${item.accepts.length} characters (max ${MAX_BRIDGE.accepts})`);
+    } else if (traded && item.options.some(o => o.recommended)) {
+      errors.push(`${where} ("${item.id}") recommends an option with a "tradeoff" but has no "accepts" — say in one line what the pick costs`);
+    }
+    const violated = new Set([].concat(...item.options.map(o => (Array.isArray(o.violates) ? o.violates : []))));
+    const shown = own.concat(pageConstraints.filter(k => violated.has(k.id)));
+    if (shown.length) item.bridge = shown;
+  }
+
+  const pageConstraints = checkConstraints(data.constraints, 'constraints');
   const items = [];
 
   (data.decisions || []).forEach((d, i) => {
@@ -145,7 +249,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
         value: String(s.who || `side ${j + 1}`).replace(/\|/g, '/'),
         label: 'Side with ' + (s.who || `side ${j + 1}`),
         recommended: !!s.recommended
-      }, s.negative ? { negative: true } : {}, s.brief != null ? { brief: s.brief } : {}, s.suggestion != null ? { suggestion: s.suggestion } : {}))
+      }, s.negative ? { negative: true } : {}, s.brief != null ? { brief: s.brief } : {}, s.suggestion != null ? { suggestion: s.suggestion } : {},
+        s.tradeoff != null ? { tradeoff: s.tradeoff } : {}, s.violates != null ? { violates: s.violates } : {}))
         .concat([{ value: 'defer', label: 'Defer', negative: true }]);
     }
     items.push(finish(item, where));

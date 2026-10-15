@@ -103,7 +103,7 @@ The renderer rejects a `detail` or `why` over its length, with more than 4 bulle
 ## Field rules
 - Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`. Ids are unique across decisions, tensions and rejected items.
 - `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets, and end with the recommendation. The renderer rejects a string summary.
-- **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`.
+- **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`, and the bridge fields `lens`, `constraints` and `accepts` (*Bridge fields*).
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give every weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Only use arguments the panel actually made.
 - `needs`: ids of the items this one relies on, such as refactoring steps that rely on the characterization tests, or a step built on an earlier one. A reliance, not a hard requirement: the page shows the link both ways and flags a chosen item whose needs are not chosen, and Claude asks about it before acting. Unknown ids are rejected.
 - `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card when the gate is shared as a review on the merge/pull request; a card without it goes in the review's body.
@@ -118,6 +118,34 @@ The renderer rejects a `detail` or `why` over its length, with more than 4 bulle
   - `svg` is trusted inline SVG. The page is dark: use `currentColor` for strokes and text, and no light fills. Make the `viewBox` about 700–900 units wide with `font-size` 12–13, so the text renders at reading size; a narrower viewBox gets scaled up.
 - A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`. The order the work runs in is the executor's concern, so a step dependency graph or a timeline has no place on the page.
 - Page-level `figures` are only for evidence that spans many items (it shows under the outcome). Anything about one item goes on that item.
+
+## Bridge fields
+
+On council, plan and kickoff gates; the calling skill's mapping says what fills them, and `bridge.md` (copied beside this file) defines lens, constraint and trade-off. All optional: a gate without them renders as before.
+
+```json
+{ "constraints": [ { "id": "K1", "lens": "business", "text": "Live before the 1 Dec closing", "source": "CEO, framing", "status": "confirmed" } ],
+  "decisions": [ { "id": "D1", "title": "Accounting export: build or buy?", "lens": "business",
+    "constraints": [ { "id": "K2", "lens": "tech", "text": "No new database in production", "source": "CLAUDE.md:12", "status": "confirmed" } ],
+    "options": [
+      { "value": "build", "label": "Build in-house", "recommended": true, "tradeoff": { "business": "Live mid-November", "tech": "Duplicates the PDF pipeline (debt)" } },
+      { "value": "buy", "label": "Third-party service", "tradeoff": { "business": "200 €/month", "tech": "No debt; one new dependency" }, "violates": ["K2"] } ],
+    "accepts": "PDF pipeline debt, to make the 1 Dec closing",
+    "for": [ { "who": "PO", "point": "Unblocks the three customers waiting on the export" } ],
+    "against": [ { "who": "CTO", "point": "Two PDF code paths to keep in sync", "lens": "tech" } ],
+    "metrics": [ { "label": "Weeks to ship", "before": 0, "after": 3, "better": "lower", "lens": "tech" } ] } ] }
+```
+
+- `lens` (`"business"` or `"tech"`): on an item, its default; on a `for`/`against` entry, a `metrics` entry or a `figures` entry, its own. Set each argument's lens from its role's default (`bridge.md`) unless the line carries its own, and leave it out only where the item's lens already says it. `code` is always `tech`. On an item with any lens, every entry needs one, its own or the item's.
+- `constraints`: on the page (they bind every item and show under the summary) or on one item. Each is `{ "id", "lens", "text", "source", "status" }`, status `confirmed`, `assumed` or `contested`. Ids are unique across the page.
+- `options[].tradeoff`: `{ "business"?, "tech"? }`, one line each, ≤ 80 characters. A cost with no evidence ends with `(estimate)`. A tension side takes `tradeoff` and `violates` too.
+- `options[].violates`: the ids of the constraints the option breaks, on the page or on its item. The option stays choosable, with a *lifts K2* badge; choosing it lifts them, and the decisions block says so: `D1 = buy (lifts K2)`.
+- `accepts`: one line, ≤ 160 characters: what the recommended option costs. Required on an item whose options carry `tradeoff` and one is recommended.
+- `title`, `why`, `detail` and `options` stay shared, above the bridge.
+
+**On the page**, a card shows its bridge (its constraints, the page's constraints one of its options breaks, the options' trade-offs side by side, and *Accepts*) whatever the tab: at the head of the evidence column on a wide screen. Its header names each lens it concerns (from its entries, code, trade-offs and the constraints on its bridge). It shows *Business* and *Tech* tabs only when its entries span both lenses; each card switches on its own (`b` / `t`). The sidebar's lens filter hides the cards that concern only the other lens (a card with no lens stays) and turns the others to its tab.
+
+**The renderer rejects** a `lens` other than `business` or `tech`; an entry of a lensed item with no lens; a constraint missing a field, with an unknown status or a duplicate id; a `violates` id on neither the page nor the item; a `tradeoff` with neither key, another key, or a line over 80 characters; a missing or over-long `accepts`; and a recommended or default option that violates any constraint: only the CEO lifts one, and auto-accept takes the recommendations.
 
 ## Share fields
 

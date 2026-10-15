@@ -7,7 +7,7 @@ description: Use when a council decision is recorded under `.council/decisions/`
 
 The second half of the council workflow. `team-council` decides **what**; `team-council-plan` produces the **how** — a reviewed implementation plan grounded in that decision.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, structural choices, the handoff, execution and weakened checks.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, the bridge, structural choices, the handoff, execution and weakened checks.
 
 ## Preconditions
 
@@ -36,14 +36,15 @@ Present plan to CEO → approved: remove Status: draft, hand off
 ```
 
 ### 1. Load context
-Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the trade-offs the council explicitly accepted, any dissenting views worth guarding against, and the summary's *Structural choices*: the settled ones go into the plan's *Structure* as "the decision", the ones left to the plan are settled in § 1b.
+Read the decision file and the profile. The *Council Summary* and the CEO decisions are what the plan needs; the rest of the record is archive. Extract the accepted direction, the record's `## Constraints` and `## Accepted trade-offs` (they, not the PO's prose, say what binds and what was accepted, and by whom), the profile's standing constraints (its `## Constraints`), any dissenting views worth guarding against, and the summary's *Structural choices*: the settled ones go into the plan's *Structure* as "the decision", the ones left to the plan are settled in § 1b. A record without those two sections (written before they existed): the plan's *Constraints* says "none recorded" for the record and still lists the profile's standing ones, and § 1b asks the user whether any binds; its *Accepted Trade-offs* quotes the *PO Recommendation*, marked as such.
 
 ### 1b. Settle before drafting
 Writers type in a settled design. Before any draft, list:
 - **Open design questions**: what the decision leaves open that would change the plan's shape (which path a call takes, where a type lives, whether two entry points share one route). Settle each with the user (AskUserQuestion, a recommendation first), or with a spike agent that writes its numbers into the brief.
-- **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is an open design question, settled with the user like the others, and recorded in the plan's *Structure*.
+- **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is an open design question, settled with the user like the others, and recorded in the plan's *Structure*. One whose rule later work could break is also a constraint (`bridge.md` § *Structural choices and constraints*): it gets the next `K<n>` id, on its *Structure* line and in the plan's *Constraints*, source `<plan path>, Structure`.
 - **Human-only inputs**: captures, probes, credentials, measurements on the user's machine. Collect them now. A writer that needs one waits for it, never guesses it.
 - **Unobserved facts**: when the plan rests on what the code does today, one evidence-pass agent gathers them first (agent id `evidence`).
+- **A constraint found while planning** (by a spike, the evidence pass or a reviewer): never folded silently into the plan. It goes on the plan gate as a decision (`templates.md` § *Gate page*), like a `reverses council D<n>` option.
 
 ### 2. Draft the plan
 Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
@@ -58,7 +59,7 @@ A plan that fits one file is drafted by one writer. A plan large enough to split
 A writer that needs to change the contract stops and reports. A fresh `fix-index` writer amends the contract and the keystone before any consumer adapts.
 
 ### 3. Role review (parallel)
-Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write it 3–5 sources, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder), and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches. Each replies with one line per defect.
+Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write it 3–5 sources, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder) and the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches. Each replies with one line per defect.
 
 | Agent | Model | Tool budget |
 |-------|-------|-------------|
@@ -68,7 +69,7 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 | Fixers (review defects, CEO rulings) | sonnet | ~20 |
 | Reviewers: CTO, PO, UX, specialists | sonnet | ~10 |
 | Gate writer | sonnet | ~12 |
-| Record writer (amendments) | sonnet | ~8 |
+| Record writer (amendments, approval) | sonnet | ~8 |
 
 ### 4. Reconcile
 Fold review feedback into a revised plan through fresh fixers, each given the defect lines for its file. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*). Never override the trade-off silently.
@@ -86,7 +87,7 @@ Declines or notes → revise the draft through fixers and re-render.
 3. One CTO reviewer (sonnet, ~10) checks the changed steps.
 4. Re-gate only those steps, in `<topic>-plan-r<N>.ceo.json`. The earlier `.decisions.txt` stays on record.
 
-On full approval, remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with `<plan-execution skill>`."* Name the skill the profile lists (see *Execution*); if it lists none, drop the "with" part. Execution starts from the plan file, not from a context holding the planning.
+On full approval, a record writer adds the constraints born in § 1b to the decision record's `## Constraints` (source `<plan path>, Structure`); records each `(lifts K<n>)` of the plan gate's decisions as `K<n> lifted by the CEO, <their words>` and marks a lifted `KS<n>` line of the profile `lifted by <record path>`; adds each constraint found while planning that the CEO kept (`confirmed`, source `<plan path>`, the next free `K<n>` id); and appends every new `tech` constraint, from the council gate or § 1b or kept at the plan gate, to the profile's `## Constraints` with the next free `KS<n>` id (`team-scan`), unless the rule is already listed there, `lifted by` ones included. Then remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with `<plan-execution skill>`."* Name the skill the profile lists (see *Execution*); if it lists none, drop the "with" part. Execution starts from the plan file, not from a context holding the planning.
 
 ## Execution
 
@@ -124,4 +125,6 @@ The shared ones are in `team-protocol`. These are the planner's own.
 - An amended step re-gated without a review
 - A reviewer concern that is in neither the revised plan nor the gate (an `against`, a minor item or a tension)
 - An accepted trade-off overridden without a note
+- A step that exceeds an accepted trade-off (a second copy where one was accepted)
+- A step that breaks a constraint of the plan's *Constraints* with no gate decision
 - Code written during planning

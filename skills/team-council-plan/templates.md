@@ -20,10 +20,13 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Links to the approved sketches (committed copies if .council/gates/ is gitignored), one line each on what changes. The executor builds towards these]
 
 ## Accepted Trade-offs
-[Carried from the decision — what we knowingly gave up]
+[Copied from the decision record's `## Accepted trade-offs`: each cost, who accepted it, and its revisit condition when one was named]
 
 ## Structure
-[Each structural choice the plan makes (`team-protocol` § *Structural choices*), one line each, with who settled it: "the decision" or "the CEO, before drafting". "None" when the plan makes none]
+[Each structural choice the plan makes (`team-protocol` § *Structural choices*), one line each, with who settled it: "the decision" or "the CEO, before drafting". A line whose rule is a constraint carries its id (`K3`). "None" when the plan makes none]
+
+## Constraints
+[Those that bind the plan (`bridge.md`): id, lens, text, source, from the decision record's `## Constraints` and the profile's standing ones (`KS<n>`). One a *Structure* line states is listed by id only]
 
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L
@@ -45,9 +48,9 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Review (reviewers)
 
-- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*.
-- **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped.
-- **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy.
+- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*; no step breaks a `tech` constraint of *Constraints*.
+- **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped; no step breaks a `business` constraint or exceeds an accepted trade-off (e.g. a second duplicated pipeline where one was accepted).
+- **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
 
 Pick 2–3 of your role's `## Sources` and end your verdict with `— via <sources>`. Cite evidence and flag concrete plan defects, not vibes.
@@ -59,8 +62,10 @@ Pick 2–3 of your role's `## Sources` and end your verdict with `— via <sourc
 Build the page (`kind: "plan"`, `source` = the draft plan) by `team-ceo-view`'s `contract.md`:
 - `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
 - `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`.
+- `constraints` (page level): the plan's *Constraints* (`contract.md` § *Bridge fields*).
 - **Each plan step**: a routine decision (Approve/Decline). Its `title` is the move; its `detail` gives only what the title lacks (impact, risk), or is omitted. The size goes in `tags` (`"S"`, `"M"`, `"L"`). Add `code` when a step changes an existing interface.
-- **Each risk the reviewers raised that needs acceptance, with a majority** (`counting.md`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`. When the risk reopens a question the council decided, add the council's minority option too, labelled `reverses council D<n>` with the council record's id.
+- **Each risk the reviewers raised that needs acceptance, with a majority** (`counting.md`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`. When the risk reopens a question the council decided, add the council's minority option too, labelled `reverses council D<n>` with the council record's id. Its arguments keep their reviewer's default lens (`bridge.md`); options with a cost carry `tradeoff`, and the item its `accepts`.
+- **Each constraint found while planning**: a weighty decision carrying that constraint (`"status": "assumed"`), with the options *honor it* (the steps reworked to keep it, `recommended`) and *proceed without it* (`violates` its id). Choosing the second lifts it; the approval record writer records a lift in the record and the profile, and adds a kept constraint with the next free `K<n>` id (`SKILL.md` § *Approve & write*).
 - **Each reviewer concern kept against the council's accepted trade-off** (your dispatch lists them): in the `against` of the step or risk it concerns, or a minor item when it concerns none.
 - `tensions`: only risks the reviewers split on with no majority, by `counting.md`.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.

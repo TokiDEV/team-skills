@@ -38,3 +38,29 @@ test('the review example renders, shares, and builds a GitHub review without the
   assert.ok(!JSON.stringify(payload).includes('CR-3'));
   assert.match(payload.comments.find(c => c.body.startsWith('**CR-1')).body, /```suggestion\n/);
 });
+
+test('the council example shows both lenses, its constraints, and auto-accept lifts nothing', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const file = copyTo(dir, 'council-gate/export.ceo.json');
+  assert.strictEqual(render(file).code, 0);
+  const data = pageData(fs.readFileSync(file.replace(/\.ceo\.json$/, '.html'), 'utf8'));
+  const byId = Object.fromEntries(data.items.map(it => [it.id, it]));
+  assert.deepStrictEqual(data.constraints.map(k => k.id), ['K1', 'KS1']);
+  assert.deepStrictEqual(byId.D1.bridge.map(k => k.id), ['K2']);
+  assert.deepStrictEqual(byId.D2.bridge.map(k => k.id), ['KS1']);
+  assert.deepStrictEqual(byId.D3.bridge.map(k => k.id), ['K1']); // a page constraint its option breaks
+  assert.strictEqual(byId.D1.lensTabs, true);
+  // A one-lens card has no tabs; its header names the lens, and the lens filter can hide it.
+  assert.deepStrictEqual(byId.D1.lenses, ['business', 'tech']);
+  assert.deepStrictEqual(byId.D2.lenses, ['tech']);
+  assert.deepStrictEqual(byId.D3.lenses, ['business']);
+  assert.strictEqual(byId.D2.lensTabs, undefined);
+  assert.strictEqual(byId.D3.lensTabs, undefined);
+  assert.ok(byId.D2.for.concat(byId.D2.against).every(a => a.lens === 'tech'));
+  assert.ok(byId.D3.for.concat(byId.D3.against).every(a => a.lens === 'business'));
+  assert.strictEqual(byId.D4.lensTabs, undefined);
+  const r = render(file, '--accept-recommended');
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /^mode: auto-accept$/m);
+  assert.doesNotMatch(r.stdout, /lifts/);
+});

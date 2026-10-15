@@ -42,16 +42,20 @@ Run the pre-mortem on the likeliest direction, then propose the alternatives it 
 [Your stance, in one line first, ending with "— via <the 2–3 sources you used>"]
 
 ### Evidence
-[Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted]
+[Checkable: file:line, doc, command output, measurement. Attributed. A position without it is not counted. Start each line with its lens, `business` or `tech` (`bridge.md`, beside this file)]
+
+### Trade-offs
+| Option | Gains | Costs | Lens |
+[One row per option and lens you can speak to. A cost with no evidence says "estimate"]
+
+### Constraints
+[Constraints you suspect (assumed) or contest, by id when the framing has one, each with its evidence; above all the one everyone treats as fixed that might move. Leave empty if none]
 
 ### Pre-mortem
 [A year later it failed: the likeliest story, in three lines]
 
 ### Alternatives Nobody Raised
 [1–3 genuinely different options, each tied to the failure it avoids]
-
-### Constraints Worth Challenging
-[Which assumed constraints might actually be movable]
 
 ### Recommendation
 [Your side: which option, if any, the team should seriously weigh]

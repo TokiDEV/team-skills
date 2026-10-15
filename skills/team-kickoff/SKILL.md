@@ -7,7 +7,7 @@ description: Use when starting a brand-new project or an empty directory, and th
 
 New-project bootstrap. Brings the council in before there's any code, so the project's direction and conventions are shaped by the full team rather than defaulted. Reuses `team-council` internally.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, structural choices and the handoff.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, the bridge, structural choices and the handoff.
 
 ## Flow
 
@@ -34,11 +34,11 @@ The council debates the vision you bring back, so get the one the user holds, no
    - **Environment**: where they use it (platform, OS, language, keyboard layout), so no role assumes its own
    - **Why**: the problem, and why now
    - **Success**: how we will know it worked
-   - **Constraint**: the binding limit (time, money, stack, team)
+   - **Constraints**: the binding limits (time, money, stack, team), each one passing "what happens if we break it?" (`team-protocol` § *Bridge*)
    - **Out of scope**: what v1 will not do. Always filled in: half of misalignment is silent disagreement about what is not being built.
 6. **Get an explicit yes.** "Sounds good", "sure" and "whatever you think" are not one: ask which line they would change, or offer two concrete options. Fold corrections in and restate.
 
-The confirmed restate is the council's decision context, and *Out of scope* is its fence.
+The confirmed restate is the council's decision context, and *Out of scope* is its fence. Each of its *Constraints* enters the council's framing as a constraint, `confirmed`, source "CEO, kickoff restate", with a lens (`business` or `tech`; the framing and the gate JSON require one). The Wildcard may contest one; it stays binding unless the CEO lifts it at the gate.
 
 ### 2. Scan
 Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools. The intended stack is not in the profile yet: step 6 adds it from the council's conclusions.
@@ -71,14 +71,17 @@ Status: draft
 ## Success
 [The confirmed restate's line]
 
-## Constraint
-[The confirmed restate's line]
+## Constraints
+[In team-council's record shape (`bridge.md`): id, lens, text, source, status; the restate's first (source "CEO, kickoff restate"), then those the council added; one the CEO lifted as "K<n> lifted by the CEO, <their words>"]
 
 ## Out of scope
 [The confirmed restate's line]
 
 ## Council Summary
 [The council's synthesis, as written]
+
+## Accepted trade-offs
+[The costs of each direction choice the CEO took, with who accepted them and the condition to revisit them]
 
 ## To revisit
 [Points the council defers past v1, and its dissenting views worth noting: what, who raised it, what would reopen it. A choice with no majority goes to `tensions`, not here]
@@ -89,9 +92,10 @@ Status: draft
 
 **REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the brief); the gate writer builds and renders the page. Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
+- `constraints` (page level): the brief's *Constraints* (`contract.md` § *Bridge fields*).
 - `outcome`: the v1 sketches from step 4.
-- **Each scope item**: a routine decision with options *In v1 / Later / Out*.
-- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`.
+- **Each scope item**: a routine decision with options *In v1 / Later / Out*, and `"lens": "business"`.
+- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`. Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).
 - **The initial structure**: always on the page, as a direction choice like the ones above (or a tension), so the scaffolding workflow builds a layout the CEO chose instead of inventing one.
 - `tensions`: direction choices with no majority, by `counting.md`. *To revisit* stays in the brief, off the page.
 
