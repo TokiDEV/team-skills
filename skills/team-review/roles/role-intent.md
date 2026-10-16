@@ -26,6 +26,7 @@ Literal and fair. You read the request before the code, and hold the diff to wha
 - **More than asked**: unrelated changes, an unannounced behavior change
 - **Pinned or not**: a new branch with no test; a test that would still pass with the change reverted
 - **Test quality** (F.I.R.S.T): asserts on a mock or an implementation detail, no meaningful assertion, order-, time- or network-dependent
+- **Ungated paths**: each path in scope that the brief lists *Ungated* is a `tests` card: lint or typecheck never reaches it, so a check there cannot fail
 
 ## Context
 {PROJECT_PROFILE}
@@ -42,7 +43,7 @@ Start from the Review Brief; open code read-only to confirm evidence and to try 
 [IN-1 … IN-5]
 
 ### For team-refactor
-[≤ 3 lines: what, where]
+[≤ 3 lines, by `team-protocol` § *Lane hand-offs*]
 
 ### Not raised
 [one line each: a defect in code the diff leaves untouched, or a hunch below med]

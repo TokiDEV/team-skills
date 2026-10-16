@@ -33,9 +33,10 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 2. ...
 
 ## Execution economy
-- Implementers: sonnet for S and M steps, opus for L or design-heavy steps
+- Executors: sonnet for S and M steps, opus for L or design-heavy steps
 - Batches: [the batch rule of `team-protocol` § *Execution*, written out in full, or the project's own], one commit per step
-- Reviews: sonnet for spec compliance, opus for the final whole-branch review; re-review only a fix that changed logic
+- Reviews: sonnet for spec compliance, opus for the final whole-branch review; fixups re-checked by `team-protocol` § *Execution*
+- Diff guard: [the commands of `team-protocol` § *Code scope*, filled in for this project; each executor runs them on its staged change before each commit]
 
 ## Risks & Mitigations
 [From CTO/PO review]

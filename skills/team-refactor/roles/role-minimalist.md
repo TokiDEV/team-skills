@@ -48,7 +48,10 @@ You receive every panelist's Finding Cards: {ALL_FINDING_CARDS}. Return one line
 <CARD-ID>: KEEP — <which kill-test question it passes>
 <CARD-ID>: SHRINK → <smaller version> — <why>
 <CARD-ID>: KILL — <why it fails all four>
+<CARD-ID>: KILL — behavior change: <the difference between the copies>
 ```
+
+**Merges.** Before a `KEEP` or `SHRINK` on a card that merges copies (Extract Function over duplicates, Parameterize Function, Combine Functions, a shared helper), read every copy and compare what each does on the inputs its callers pass: outputs, error types, fallbacks, side effects. Any difference → `KILL — behavior change`: merging them changes behavior, which is team-review's.
 
 Then list **duplicate cards** (same move proposed by several roles) so the synthesizer merges them. Mark a duplicate **independent** only when at least two of its authors cite, in `Evidence`, a line the Code Brief does not quote. Cards that restate a Code Brief finding (its duplication map, its hotspot list) count as one author, however many roles wrote them.
 

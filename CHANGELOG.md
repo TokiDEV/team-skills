@@ -2,6 +2,22 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.10.0 — 2026-10-16
+
+team-review and team-refactor work as one loop, and stop paying where they bought nothing (from an 18-run sweep's post-mortem).
+
+- **Hand-offs are taken in.** One line format for *For team-review* and *For team-refactor* (`team-protocol` § *Lane hand-offs*): a scenario, med or high confidence, the test that pins it. `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, no seats; `/team-refactor <review record>` refactors what a review flagged, with the full panel.
+- **Sweep.** Review every zone, execute its fixes, refactor only where a review asks, then one intake review of the refactors' hand-offs (`team-protocol` § *Sweep*). It replaces refactor's "all of them, one run each".
+- **Records first.** Every Recon reads both review and refactor records on its scope: what was refuted, rejected or left as debt is *Settled* and not raised again, and gates start from the last record's commands.
+- **Diff guard.** Each executor runs a guard on its staged change before committing: no added suppression comment, no file outside the fence, the formatter clean on the touched files. A hit stops the step.
+- **Gates cover the scope.** Recon lists the files lint and typecheck never reach (*Ungated*); review cards them, refactor hands them to review.
+- **Known flakes** live in the profile (`## Known flakes`, kept by team-scan); team-review applies the flake rule too.
+- **Auto-accept builds no page** on team-review and team-refactor: the synthesis carries each item's options, and the record writer takes the recommendations.
+- team-review: Security sits only when the brief lists a trust boundary; a finding may carry two candidate fixes (`fix-a`, `fix-b`), the recommended one keeping the behavior and data from before the change; card extraction is a tested script (`cards.sh`), safe from skill argument substitution and from seat-named prefixes.
+- team-refactor: on fresh code the panel is Mechanics, Depth and Safety Net plus the Minimalist gate; copies that behave differently are not duplicates (`KILL — behavior change` goes to *For team-review*).
+- The orchestrator appends the *Execution* section to the record itself; a fixup gets an opus re-check unless it touches only formatting, comments or test names.
+- The orchestrator copies the skill files first and reads only the run-folder copies: no permission prompt on `templates.md`. The README gives the read rule for an install that still prompts.
+
 ## 0.9.0 — 2026-10-15
 
 The bridge: business and tech on one decision.

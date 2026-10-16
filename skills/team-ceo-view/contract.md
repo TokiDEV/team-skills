@@ -10,7 +10,7 @@ For the agent that writes a gate's JSON. Your dispatch gives the gate's path, it
 
 The page is for decisions, not an inventory. Before writing the JSON:
 - **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`. Two cards where a choice on one makes the other moot are one question: merge them into one card whose options are the coherent combinations. Cards that only rely on each other stay separate and carry `needs`.
-- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click. On a review gate, a finding whose recommended fix no seat and no verifier contests is routine, whatever its severity: it stays a decision card, which **Accept recommended** handles like any routine item, and does not count toward the cap.
+- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click. On a review gate, a finding whose recommended fix no seat and no verifier contests is routine, whatever its severity: it stays a decision card and does not count toward the cap.
 - **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
 - **Order by stakes.** The item the human explicitly asked about goes first.
 
@@ -51,7 +51,7 @@ Each field has one job, so no two say the same thing:
   "options": [ { "value": "keep", "label": "Keep floor + comment" }, { "value": "round", "label": "Round like other tiers" } ] }
 ```
 
-The renderer rejects a `detail` or `why` over its length, with more than 4 bullets or a bullet over 120 characters, a `detail` that opens with the title, an option label that repeats the title, and a `detail` that holds every word of an option label.
+The renderer rejects a `detail` or `why` over its limit, a `detail` that opens with the title, an option label that repeats the title, and a `detail` that holds every word of an option label.
 
 ## JSON contract
 
@@ -115,8 +115,8 @@ The renderer rejects a `detail` or `why` over its length, with more than 4 bulle
 - `code` is shown as before/after panes. Include it for every step that moves code, and keep each pane to about 15 lines.
 - `figures` entries take either `svg` or `src`:
   - `src` points to an image such as a screenshot. It must be **relative to the JSON file**; absolute, `/tmp` and URL paths are rejected. The renderer embeds the image, so the `.html` stays one file. A click opens it full size. The caption says what to look at, e.g. "knob 17.6 kHz, graph still at 1 kHz". (`images` is accepted as an old name for `figures`.)
-  - `svg` is trusted inline SVG. The page is dark: use `currentColor` for strokes and text, and no light fills. Make the `viewBox` about 700–900 units wide with `font-size` 12–13, so the text renders at reading size; a narrower viewBox gets scaled up.
-- A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`. The order the work runs in is the executor's concern, so a step dependency graph or a timeline has no place on the page.
+  - `svg` is trusted inline SVG. Palette and size rules: `figures.md` (a narrower `viewBox` gets scaled up).
+- A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`.
 - Page-level `figures` are only for evidence that spans many items (it shows under the outcome). Anything about one item goes on that item.
 
 ## Bridge fields
@@ -136,7 +136,7 @@ On council, plan and kickoff gates; the calling skill's mapping says what fills 
     "metrics": [ { "label": "Weeks to ship", "before": 0, "after": 3, "better": "lower", "lens": "tech" } ] } ] }
 ```
 
-- `lens` (`"business"` or `"tech"`): on an item, its default; on a `for`/`against` entry, a `metrics` entry or a `figures` entry, its own. Set each argument's lens from its role's default (`bridge.md`) unless the line carries its own, and leave it out only where the item's lens already says it. `code` is always `tech`. On an item with any lens, every entry needs one, its own or the item's.
+- `lens` (`"business"` or `"tech"`): on an item, its default; on a `for`/`against` entry, a `metrics` entry or a `figures` entry, its own. Set each argument's lens from its role's default (`bridge.md`) unless the line carries its own, and leave it out only where the item's lens already says it. `code` is always `tech`.
 - `constraints`: on the page (they bind every item and show under the summary) or on one item. Each is `{ "id", "lens", "text", "source", "status" }`, status `confirmed`, `assumed` or `contested`. Ids are unique across the page.
 - `options[].tradeoff`: `{ "business"?, "tech"? }`, one line each, ≤ 80 characters. A cost with no evidence ends with `(estimate)`. A tension side takes `tradeoff` and `violates` too.
 - `options[].violates`: the ids of the constraints the option breaks, on the page or on its item. The option stays choosable, with a *lifts K2* badge; choosing it lifts them, and the decisions block says so: `D1 = buy (lifts K2)`.
@@ -161,14 +161,14 @@ The reader is someone else, typically the owner of the branch the review looked 
 **`lang`**: `"fr"` or `"en"`, the conversation's language. Write `preamble` and every brief in it.
 
 **`preamble`** (Markdown), in this order:
-- Only what holds whatever the reader chooses. A rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `needs`.
+- Put in it only what holds whatever the reader chooses; a rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `needs`.
 - `# Mission:` one line.
 - **Context**: the repo, the branch, the reviewed commit's full SHA, and the scope as a list of files relative to the repo root.
 - **Baseline**: which tests are green and how many, the command for each, known failures that come from the environment.
 - **Rules**: each fix gets a failing test first that reproduces the finding, then the fix; one finding per commit, in the repo's commit convention; never change an existing test's expected value unless the finding says so; don't push.
 - Last line: "If `HEAD` is not `<short SHA>`, the branch has moved since the review: find code by symbol, not by line number, and tell me what differs."
 
-**`brief`** (Markdown), on the `fix` option of each finding. The `leave` option is `"negative": true` and has no brief. Each brief is written for someone who saw none of the review:
+**`brief`** (Markdown), on each fix option of each finding: `fix`, or `fix-a` and `fix-b` when the finding has two candidate fixes. The `leave` option is `"negative": true` and has no brief. Each brief is written for someone who saw none of the review:
 - **What**: the fix, by name.
 - **Where**: files relative to the repo root, symbols, lines at the reviewed commit.
 - **How**: the mechanics, as steps.

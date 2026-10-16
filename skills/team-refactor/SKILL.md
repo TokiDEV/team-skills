@@ -9,7 +9,7 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, structural choices, the handoff, execution and weakened checks.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, lane hand-offs, structural choices, the handoff, execution, weakened checks, the sweep and auto-accept.
 
 ## Iron Laws
 
@@ -35,7 +35,11 @@ Templates in `roles/` (overridable per project, see `team-protocol`). Each role 
 | **Depth** (`role-depth.md`) | Ousterhout, Parnas, Hermans, Simondon | "Is the interface simpler than what it hides?" | Depth; counterweight to over-splitting |
 | **Minimalist** (`role-minimalist.md`) | Jeffries, Metz, Saint-Exupéry, Wirth, Ockham | "What breaks if we don't do this?" | **The gate** |
 
-Card IDs carry the seat's prefix: RS, MC, SQ, SN, DP, and MN for the Minimalist.
+Card IDs carry the panelist's prefix: RS, MC, SQ, SN, DP, and MN for the Minimalist.
+
+### Panel size
+
+On fresh code, the panel is **Mechanics, Depth and Safety Net**, and the Minimalist sits only as the Round 2 gate. Fresh means the current branch added more than half the lines in scope (the *Fresh* line of Recon's reply). All six sit when the code is not fresh, when the scope comes from a review record (§ *Intake*), or when the human asks. On fresh code, five or six of the six name the same top smell; these three cover the vocabulary, the depth and the safety net.
 
 ## Separation of Context
 
@@ -44,12 +48,12 @@ Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `template
 | Agent | Model | Tool budget | Receives | Writes by `templates.md` |
 |-------|-------|-------------|----------|--------------------------|
 | Recon | sonnet | ~30 | scope, profile | *Code Brief* |
-| Panelist (R1) | sonnet | ~15 | role template + Code Brief | *Finding Card* |
+| Panelist (R1), 3 or 6 (§ *Panel size*) | sonnet | ~15 | role template + Code Brief | *Finding Card* |
 | Minimalist gate (R2) | opus | ~10 | all Finding Cards | its role file's *Round 2 Job* |
 | Tension pair (R2) | sonnet | ~5 | own + counterpart's cards only | one direct reply |
 | Synthesizer | opus | ~10 | cards + verdicts + tension replies | *Synthesis* |
-| Gate writer | sonnet | ~12 | the synthesis | *Gate page* |
-| Record writer | sonnet | ~8 | the synthesis + the decisions block | *Record and exec brief* |
+| Gate writer (none on an auto-accept run) | sonnet | ~12 | the synthesis | *Gate page* |
+| Record writer | sonnet | ~8 | the synthesis + the Code Brief + the decisions block (auto-accept: the chat answers) | *Record and exec brief* |
 | Executor | sonnet | — | **one** Step Batch + the exec brief's header | *Step Card* |
 | Final reviewer | opus | — | full diff + exec brief | *Final review* |
 
@@ -60,36 +64,37 @@ Put this line first in each panelist's *How to work* block: `- Start from the Co
 ```
 0. Preconditions   → scope, clean tree, green tests, profile
 1. Recon           → Code Brief (one agent)
-2. Round 1 (blind) → 6 panelists in parallel → Finding Cards
+2. Round 1 (blind) → the panel in parallel (3 or 6) → Finding Cards
 3. Round 2         → Minimalist gate on every card + tension pairs
 4. Synthesis       → Backlog + For-team-review + Rejected + Tensions
-5. CEO gate        → approves steps; record + exec brief
+5. CEO gate        → approves steps (auto-accept: no page); record + exec brief
    ── fresh session ──
 6. Execute         → from the exec brief: Step 0 safety net, then one Step Batch per fresh executor
 7. Record          → .council/refactors/YYYY-MM-DD-<topic>.md
 ```
 
 ### 0. Preconditions
-- **Scope**: a path, module, or diff, sized by `team-protocol` § *Code scope*, counting the lines in scope. To narrow it, Recon ranks hotspots by churn × complexity, with the smells it sees; each option also names its main smell, and one more option is "all of them, one run each". When the scope is a diff (a branch, a merge request), the panel flags only smells the diff introduces or worsens. A smell in code the diff leaves untouched is listed once under *Leave alone*, never a card.
+- **Scope**: a path, module, or diff, or one or more review records (§ *Intake*), sized by `team-protocol` § *Code scope*, counting the lines in scope. To narrow it, Recon ranks hotspots by churn × complexity, with the smells it sees; each option also names its main smell, and one more option is "all of them, by `team-protocol` § *Sweep*" (each zone reviewed first, refactored where its review asks). When the scope is a diff (a branch, a merge request), the panel flags only smells the diff introduces or worsens. A smell in code the diff leaves untouched is listed once under *Leave alone*, never a card.
 - **Clean working tree** (`.council/` excepted; the record is committed alongside Step 0) and a **green test run**.
+- **No pending review fixes**: a review record on this scope with `Status: approved, not executed` is executed first (`team-protocol` § *Sweep*). Step 0 pins behavior as it is; it must pin the fixed one.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
-- **Proportionality**: by `team-protocol` § *Code scope*, the brief being the Code Brief (`templates.md` § *Code Brief*). The panel and the gate always run. A scope small enough that you write the brief yourself also runs at most 2 tension pairs.
+- **Proportionality**: size the Code Brief (`templates.md` § *Code Brief*) by `team-protocol` § *Code scope*. The panel (§ *Panel size*) and the gate always run. A scope small enough that you write the brief yourself also runs at most 2 tension pairs.
 
 ### 1. Recon → Code Brief
 One agent writes the brief by `templates.md` § *Code Brief*, following the Recon rules of `team-protocol` § *Code scope*.
 
 ### 2. Round 1 — blind panel (parallel)
-Dispatch all 6 in one message. In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{CODE_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
+Dispatch the panel (§ *Panel size*) in one message. In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{CODE_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
 
 ### 3. Round 2 — gate and tensions (parallel)
-- **Minimalist gate**: `{ALL_FINDING_CARDS}` → the panelists' files. It returns `KEEP`, `SHRINK` or `KILL` per card and lists the cards independent panelists found. Its `KILL` is a gate, not a vote.
+- **Minimalist gate**: `{ALL_FINDING_CARDS}` → the panelists' files. It returns `KEEP`, `SHRINK` or `KILL` per card and lists the cards independent panelists found. Its `KILL` is a gate, not a vote. A `KILL — behavior change` sends the card to *For team-review* (`templates.md` § *Synthesis*).
 - **Tension pairs**: where two cards conflict (same code, opposite moves), send each side the other's card for one direct reply. Agreeing roles skip.
 
 ### 4. Synthesis
 A separate synthesizer agent writes the backlog by `templates.md` § *Synthesis*, caps included.
 
 ### 5. CEO gate
-**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. The CEO approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
+**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. On an auto-accept run no gate writer runs: the synthesis carries every item's options (`team-protocol` § *Auto-accept*). The CEO approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
 
 Then the record writer writes the record and the exec brief, and you hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
 
@@ -103,7 +108,11 @@ Then group the approved steps into **Step Batches** and dispatch a fresh executo
 Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their step (`team-protocol` § *Execution*), each with the Step Card it names.
 
 ### 7. Record
-The record writer completes the record (§ *Record and exec brief*). Delete the exec brief and the run folder: anything worth keeping is in the record by now. Future refactors read past records first.
+Complete the record (`team-protocol` § *Writers*); its *Notes* that suspect a bug are *For team-review* lines, for the next intake. Delete the exec brief and the run folder: anything worth keeping is in the record by now. Every later Recon reads it (`team-protocol` § *Code scope*).
+
+## Intake
+
+`team-refactor <review record>…` refactors what one or more review records list *For team-refactor* (`team-protocol` § *Lane hand-offs*). The scope is the files those lines name, with their callers in the same package. Recon's Code Brief puts the lines first in *Hotspots*, ahead of churn, and the full panel sits (§ *Panel size*). A line a past refactor record settled (*Settled*) goes to *Leave alone*. Run it once that review's fixes are executed (see *Preconditions*).
 
 ## Rationalizations
 
@@ -118,8 +127,10 @@ The shared ones are in `team-protocol`. These are the refactor's own.
 | "This step is tiny, I'll fold it into the next commit" | Folded steps lose the ability to revert one cleanly. Batch steps in one executor, never in one commit. |
 | "Parameterize and move are one gesture" | Two refactorings are two steps and two commits, so each one can be reverted alone. |
 | "It went red, I'll just fix the test" | The test is the spec. Revert the step. |
-| "It passed on a rerun, it's a flake" | Only a test the exec brief lists as a known flake. Any other red reverts. |
+| "It passed on a rerun, it's a flake" | `team-protocol` § *Execution*, *Known flakes*: only a listed flake passes a rerun. Any other red reverts. |
 | "The linter trips on the moved code; one `eslint-disable` and it's green" | That is a weakened check (`team-protocol` § *Weakened checks*): it lowers the bar the step is measured against. Revert, shrink the step, retry. |
+| "These two copies look alike; merging them is a dedup" | Copies that behave differently (a fallback, an error type, a branch) are two behaviors. Merging them changes one: a *For team-review* line, never a step. |
+| "Fresh code, but run all six to be thorough" | Three lenses plus the gate cover it (§ *Panel size*); a review hand-off earns six. |
 
 ## Red Flags — stop and return to the flow
 
@@ -129,3 +140,5 @@ The shared ones are in `team-protocol`. These are the refactor's own.
 - A weakened check (`team-protocol` § *Weakened checks*), or a `TODO` where moved code used to be
 - Editing a file outside the fence
 - Reasoning "they'll need this later"
+- A step that merges copies the Minimalist never compared
+- Refactoring code whose review fixes are approved but not executed

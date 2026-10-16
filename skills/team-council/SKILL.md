@@ -11,7 +11,7 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 
 ## Preconditions
 
-- **Project profile**: read `.council/project-profile.md`. Required: if it is missing, offer `team-scan` and stop until it has run.
+- **Project profile**: read `.council/project-profile.md`. If it is missing, offer `team-scan` and stop until it has run.
 - **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it:
   - the question, the options on the table, what is out of scope, and whether it is reversible;
   - **the facts every role will assume**: who the user is, their platform and locale (OS, language, keyboard layout), and what the work may add: fixes only, or new features too. Back each one with a file or the profile, or mark it *unchecked*;
@@ -34,7 +34,7 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 | **Philosopher** (`role-philosopher.md`) | Ibn al-Haytham, Popper, Bachelard, Longino, Gigerenzer | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
 | **Wildcard** (`role-wildcard.md`) | Munger, Klein, Altshuller, Meadows, Queneau | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
 
-**Ad-hoc specialists**: summon extras when the decision warrants (e.g. a Performance Analyst for perf-heavy calls), or when the user requests specific ones. Write each one 3–5 sources (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
+**Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 sources (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
 **Evidence pass**: when the question rests on facts nobody has observed (what the app does today, which commands exist, what a measurement gives), one agent gathers them before Round 1 (agent id `evidence`). Its file goes to every role as a shared input, and its open questions join the question pause. It leaves the project tree as it found it (`team-protocol` agent contract).
 
@@ -72,10 +72,10 @@ CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
 
 ### Round 1 — independent positions (parallel)
-Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke domain specialists as relevant. Agents may flag questions for the human.
+Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke the specialists their role file lists, when a claim needs evidence. Agents may flag questions for the human.
 
 ### Question pause
-Collect flagged questions, present them grouped and attributed by role. Every constraint a role marked `assumed` is a question too, asked with that role's guess attached: the answer confirms it or drops it (`bridge.md`). If none were flagged, proceed straight on.
+Collect flagged questions, present them grouped and attributed by role. Every constraint a role marked `assumed` is a question too, asked with that role's guess attached: the answer confirms it or drops it (`bridge.md`). With none flagged, skip the pause.
 
 Save the answers to `<run folder>/ceo-answers.md` in this shape, and feed that file into Round 2 (or the synthesis at one-round depth):
 
@@ -99,7 +99,7 @@ Identify tensions from the Round 1 one-line positions:
 Round 2 prompts repeat the role file's *Output Format*, its *Position* line's sources included. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
 
 ### Synthesis
-A dedicated synthesis agent (separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
+The synthesizer (a separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
 
 ### CEO gate
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block. The Round 1 question pause stays in chat; those answers are free text.
@@ -123,7 +123,7 @@ Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<de
 
 - Keep each agent's context lean: profile + decision + role template + `bridge.md` + (Round 2) the specific counterpart positions. Writers get their `templates.md` section and `bridge.md`, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
 - Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.
-- The council is standalone — it needs only a decision context and a profile; it requires no companion skill, and the roles use whatever specialists the profile lists.
+- The council is standalone — it needs only a decision context and a profile, and the roles use the specialists the profile lists.
 
 ## Rationalizations
 
@@ -131,12 +131,12 @@ The shared ones are in `team-protocol`. These are the council's own.
 
 | Excuse | Reality |
 |--------|---------|
-| "The answer is obvious, one round will do" | Depth follows reversibility, not confidence. Unsure means two rounds. |
+| "The answer is obvious, one round will do" | Depth follows reversibility, not confidence. |
 | "No screen changes, so UX sits out" | An API's ergonomics, an error message or a line of copy is something a user meets. UX sits. |
 | "The user already knows what they want, the council is a formality" | Then the council's job is to find what would prove them wrong. That is the Philosopher's question. |
 | "The framing is clear enough, I'll skip the restate" | Every role inherits the framing. A one-line restate and a yes cost less than a debate on the wrong question. |
 | "Everyone uses QWERTY / English / a Mac" | That is an environment fact every role will build on. Check it or ask. |
-| "Their answer settles it, I'll record it as fact" | The answer binds as a preference. What it says about the code goes to Round 2 to check. |
+| "Their answer settles it, I'll record it as fact" | A preference, not a fact: Question pause. |
 | "The user said 'just decide'" | Recommend clearly. *Accept recommended* is one click, and the record holds the CEO's call, not yours (`team-protocol` § *Auto-accept*). |
 
 ## Red Flags

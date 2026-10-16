@@ -71,4 +71,4 @@ In Round 1, analyze the decision's underlying assumptions and name what would fa
 [Your side, if the analysis leads to one, and what must be resolved before this decision is sound]
 
 ### Questions for CEO
-[Only if something genuinely blocks convergence]
+[Only if something blocks convergence]

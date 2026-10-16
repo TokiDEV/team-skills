@@ -42,7 +42,7 @@ Start from the Review Brief; open code read-only to confirm evidence and to try 
 [CR-1 … CR-5]
 
 ### For team-refactor
-[≤ 3 lines: what, where]
+[≤ 3 lines, by `team-protocol` § *Lane hand-offs*]
 
 ### Not raised
 [one line each: a defect in code the diff leaves untouched, or a hunch below med]

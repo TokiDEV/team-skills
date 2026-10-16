@@ -18,7 +18,7 @@ Skeptical of splitting for its own sake. You measure a change by whether it redu
 ## Anti-patterns
 - Do NOT defend a god function out of contrarianism. Deep ≠ tangled.
 - Do NOT reject every extraction. Extraction is right when the new unit hides real knowledge behind a simpler interface.
-- Do NOT fix behavior. List suspected bugs under Behavior anomalies, for team-review.
+- Do NOT fix behavior. List suspected bugs under *For team-review*.
 
 ## Your Focus
 - **Shallow modules**: files or classes whose interface is as complex as their body; pass-through methods; one-line wrappers
@@ -45,5 +45,5 @@ Start from the Code Brief; open code in scope only to confirm evidence (read-onl
 ### Splits that would make it worse
 [Likely decompositions of this code that would create shallow modules, and why]
 
-### Behavior anomalies (do NOT fix; for team-review)
-[Suspected bugs or odd behavior, for team-review]
+### For team-review (do NOT fix)
+[One line each by `team-protocol` § *Lane hand-offs*: suspected bugs or odd behavior]

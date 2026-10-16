@@ -12,7 +12,7 @@ The second half of the council workflow. `team-council` decides **what**; `team-
 ## Preconditions
 
 - **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, the council hasn't run — stop and point the user to `team-council` first.
-- **Project profile**: read `.council/project-profile.md`. Required: if it is missing, offer `team-scan` and stop until it has run.
+- **Project profile**: read `.council/project-profile.md`. If it is missing, offer `team-scan` and stop until it has run.
 
 ## Flow
 
@@ -47,7 +47,7 @@ Writers type in a settled design. Before any draft, list:
 - **A constraint found while planning** (by a spike, the evidence pass or a reviewer): never folded silently into the plan. It goes on the plan gate as a decision (`templates.md` § *Gate page*), like a `reverses council D<n>` option.
 
 ### 2. Draft the plan
-Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan must honor the council's decision — it implements the chosen direction, it does not relitigate it.
+Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan implements the council's chosen direction; it does not relitigate it.
 
 Writers and fixers write the plan files at the project's plan location (`docs/plans/YYYY-MM-DD-<topic>.md` by default, sub-plans beside it), not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
 
@@ -59,7 +59,7 @@ A plan that fits one file is drafted by one writer. A plan large enough to split
 A writer that needs to change the contract stops and reports. A fresh `fix-index` writer amends the contract and the keystone before any consumer adapts.
 
 ### 3. Role review (parallel)
-Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write it 3–5 sources, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder) and the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches. Each replies with one line per defect.
+Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write its `## Sources` with 3–5 entries, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder) and the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches.
 
 | Agent | Model | Tool budget |
 |-------|-------|-------------|
@@ -91,18 +91,17 @@ On full approval, a record writer adds the constraints born in § 1b to the deci
 
 ## Execution
 
-This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy* section: models, batches, and when to re-review.
+This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy*: models, batches, re-review.
 
 When the profile lists none, execute from the plan file by `team-protocol` § *Execution*, with these rules of its own:
-1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Implementers run on sonnet, opus for an L step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
-2. The implementer writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, or `blocked — <reason>`.
-3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's implementer once, then stop and ask the human.
-4. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh implementers as `fixup!` commits (`team-protocol` § *Execution*).
+1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Executors run on sonnet, opus for an L step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
+2. The executor writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
+3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's executor once, then stop and ask the human.
+4. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
 
-Set `Status: executed` on the plan when done. Keep it traceable to the decision so future readers see both the "what" and the "how".
-
+Set `Status: executed` on the plan when done.
 ## Rationalizations
 
 The shared ones are in `team-protocol`. These are the planner's own.

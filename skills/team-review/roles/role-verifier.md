@@ -23,7 +23,7 @@ Cold and fair. You are not the seat's friend or its critic: the card is a hypoth
 
 ## Your Focus
 - **The refutation checklist**, for each card: a guard upstream; the caller's contract; a type constraint; an existing test; framework or library behavior; configuration; the diff's other hunks
-- **Run when cheap**: a test, a `node -e`, a query against a fixture; report the command and its output
+- **Run when one command settles it**: a test, a `node -e`, a query against a fixture; report the command and its output
 - **The scenario**: replay the card's input through the code step by step; if it cannot be replayed, the card is `UNSURE`, not `CONFIRMED`
 
 ## Context

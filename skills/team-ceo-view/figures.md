@@ -28,12 +28,12 @@ Any type that compares two states (architecture, data model, state machine, depe
 
 ## Rules for every figure
 
-1. **Page palette.** Strokes and text are `currentColor`. Secondary marks (ordinary arrows, sublabels, gridlines) use `style="stroke: var(--ink-2)"` or `fill: var(--ink-2)`. Box fills and label masks are `var(--surface)`. No hex colour, no light fill. Green and red belong to the metric chips: a figure never uses them.
+1. **Page palette.** Strokes and text are `currentColor`. Secondary marks (ordinary arrows, sublabels, gridlines) use `style="stroke: var(--ink-2)"` or `fill: var(--ink-2)`. Box fills and label masks are `var(--surface)`, except where a type card names `var(--surface-2)`. No hex colour, no light fill. Green and red belong to the metric chips: a figure never uses them.
 2. **One focus.** `var(--accent)` marks at most 2 elements: what the human should look at first. If 4 things want it, you haven't chosen yet.
 3. **Delete before you add.** Each box is a distinct idea: two boxes that always travel together are one. Each arrow says something the layout doesn't. Each label says something the shape doesn't.
 4. **Budget.** At most 9 boxes and 12 arrows (tighter limits per type below). Over that, draw an overview and a detail, never fewer arrows than the system has.
 5. **Size.** `viewBox` 700–900 units wide, `font-size` 12–13. Names inherit the page font; technical text (paths, ports, SQL types, commands) uses `font-family: var(--mono)`.
-6. **Arrows.** Draw them before the boxes, so lines pass behind. Right angles only, except where a type card below says otherwise (state machine, Wardley map, fishbone, radar): a straight line when both ends share x or y, otherwise an elbow with an 8-unit corner radius. Dashed (`stroke-dasharray="5 4"`) means optional, async or return, and its label starts with which one, e.g. `async webhook`. No two arrows share a stroke or an attach point: offset parallel routes by 12 units, spread several arrows on one edge 12 units apart. An arrow never passes behind a box that isn't one of its ends.
+6. **Arrows.** Draw them before the boxes, so lines pass behind. Right angles only, except where a type card below says otherwise (state machine, Wardley map, fishbone, radar, slopegraph): a straight line when both ends share x or y, otherwise an elbow with an 8-unit corner radius. Dashed (`stroke-dasharray="5 4"`) means optional, async or return, and its label starts with which one, e.g. `async webhook`. No two arrows share a stroke or an attach point: offset parallel routes by 12 units, spread several arrows on one edge 12 units apart. An arrow never passes behind a box that isn't one of its ends.
 7. **Labels.** An arrow label is short (≤ 14 characters) and sits on a `var(--surface)` mask 6–10 units clear of its stroke, beside a vertical segment rather than on it. Never vertical text.
    - **Size every label before placing it:** about 7 units per character at `font-size` 12 (8 in mono capitals). A label keeps 8 units clear of every stroke it doesn't belong to, zone borders included, and 16 units inside the `viewBox`. One that doesn't fit wraps onto a second line or moves; it never crosses an edge.
    - **Text never inherits a stroke.** Put `stroke` on the shapes themselves, never on the `<svg>` root or a `<g>` that also holds text, or the text renders bold and blurred.
@@ -123,7 +123,7 @@ Any type that compares two states (architecture, data model, state machine, depe
 ### Quadrant
 **Shows:** where items fall on two named axes and what to do first.
 **Grammar:**
-- 1 units `var(--ink-2)` cross through the centre; arrows stop 60-80 units short of the edge.
+- 1-unit `var(--ink-2)` cross through the centre; arrows stop 60-80 units short of the edge.
 - Axis name: one uppercase mono word at each arrow tip, no glyphs or "high/low"; never at the midpoint.
 - Items: dots r=4, label 8-10 units away, never crossing an axis, never on one.
 - Accent the do-first item (usually top-right).

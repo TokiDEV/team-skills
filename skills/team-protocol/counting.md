@@ -1,6 +1,6 @@
 # Counting positions
 
-What the synthesizer, the gate writer and the record writer apply, and § *Confidence* what every panelist whose card rates confidence applies. A copy sits in the run folder.
+What the synthesizer, the gate writer and the record writer apply. Every panelist whose card rates confidence applies § *Confidence*. A copy sits in the run folder.
 
 Every question the roles disagree on is settled by their positions after the last round:
 
@@ -12,4 +12,4 @@ Every question the roles disagree on is settled by their positions after the las
 
 ## Confidence
 
-**High confidence survives a refutation.** A finding is `high` only if its author traced the actual code path, can name the concrete input, scenario or cost where it bites, and tried to prove it wrong — looked for the guard, the caller, the test or the doc that would refute it — and could not. The card says what was tried. Anything less is `med` at most. A `low` finding never reaches the gate; its caller says where it goes.
+**High confidence survives a refutation.** A finding is `high` only if its author traced the actual code path, can name the concrete input, scenario or cost where it bites, and tried to prove it wrong — looked for the guard, the caller, the test or the doc that would refute it — and could not. The card says what was tried. Anything less is `med` at most. A `low` finding never reaches the gate; the caller says where it goes.
