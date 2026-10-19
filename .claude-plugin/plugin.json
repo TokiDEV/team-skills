@@ -4,10 +4,10 @@
   "description": "Agent-team skills for Claude Code: a multi-role council that debates decisions, a review panel whose findings are refuted before they are raised, a panel of refactoring masters with a KISS/YAGNI gate, and a browser-based CEO gate where the human makes the final call.",
   "author": {
     "name": "Thomas Boffy",
-    "url": "https://github.com/TokiDEV"
+    "url": "https://github.com/plasminds"
   },
-  "homepage": "https://github.com/TokiDEV/team-skills#readme",
-  "repository": "https://github.com/TokiDEV/team-skills",
+  "homepage": "https://github.com/plasminds/team-skills#readme",
+  "repository": "https://github.com/plasminds/team-skills",
   "license": "MIT",
   "keywords": ["skills", "agents", "council", "refactoring", "decision-making", "multi-agent", "code-review", "security"],
   "skills": "./skills/"

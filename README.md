@@ -66,14 +66,14 @@ docs/plans/YYYY-MM-DD-*.md      # team-council-plan: the plan (or your project's
 ### As a Claude Code plugin
 
 ```
-/plugin marketplace add TokiDEV/team-skills
+/plugin marketplace add plasminds/team-skills
 /plugin install team-skills@team-skills
 ```
 
 ### Manually
 
 ```bash
-git clone https://github.com/TokiDEV/team-skills.git
+git clone https://github.com/plasminds/team-skills.git
 cp -r team-skills/skills/team-* ~/.claude/skills/
 # or symlink them, so a git pull updates them:
 for d in team-skills/skills/team-*; do ln -s "$PWD/$d" ~/.claude/skills/; done
