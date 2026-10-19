@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.10.1 — 2026-10-19
+
+- A review shared on GitHub or GitLab gives every card whose line is in the diff its own thread, minor ones included; the body keeps only the cards it cannot anchor (*Not anchored in the diff*, *Minor*), each with its location. team-review's gate writer may now put a one-click `suggestion` on a minor finding.
+
 ## 0.10.0 — 2026-10-16
 
 team-review and team-refactor work as one loop, and stop paying where they bought nothing (from an 18-run sweep's post-mortem).

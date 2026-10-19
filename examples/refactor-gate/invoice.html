@@ -1109,17 +1109,17 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       if (it.kind === 'rejected') { rejected.push('- ' + it.id + ' — ' + it.title + (it.why ? ' (' + (Array.isArray(it.why) ? it.why.join('; ') : it.why) + ')' : '')); return; }
       var chosen = (it.options || []).filter(function (o) { return o.value === (state[it.id] || {}).choice; })[0];
       if (data.kind === 'review' && chosen && chosen.negative) return; // the reviewer dropped it: not posted
-      var anchored = !it.minor && it.at && inDiff(it.at.path, it.at.line);
+      // Every card whose line is in the diff gets its own thread, minor or not; the body keeps the rest.
+      var anchored = it.at && inDiff(it.at.path, it.at.line);
       var ib = itemBlock(data, items, state, it, t, anchored ? inDiff : null, platform);
       var block = ib.text;
-      if (it.minor) { minor.push(block); return; }
       if (anchored) {
         var c = { id: it.id, path: it.at.path, line: it.at.line, body: block };
         if (ib.suggested && suggestionOf(it).s.lines > 1) { c.startLine = it.at.line; c.line = it.at.line + suggestionOf(it).s.lines - 1; }
         comments.push(c); return;
       }
       if (it.at) { var nl = block.indexOf('\n'); block = block.slice(0, nl < 0 ? block.length : nl) + '\n`' + it.at.path + ':' + it.at.line + '`' + (nl < 0 ? '' : block.slice(nl)); }
-      unanchored.push(block);
+      (it.minor ? minor : unanchored).push(block);
     });
     var body = ['## ' + data.title];
     var sum = (data.summary || []).map(function (b) {

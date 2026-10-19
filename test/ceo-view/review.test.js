@@ -71,7 +71,7 @@ test('a card whose line is outside the diff moves to the body with its location'
   assert.match(rv.body, /\*\*F1 — Rounding rule\*\*\n`src\/x\.js:99`/);
 });
 
-test('minor cards go in the body, never a comment', () => {
+test('a minor card anchored in the diff gets its own comment', () => {
   const gate = shareGate();
   gate.decisions[0].at = { path: 'src/x.js', line: 10 };
   gate.decisions[0].minor = true;
@@ -81,8 +81,17 @@ test('minor cards go in the body, never a comment', () => {
   const src = html.match(/\/\*PROMPT-START\*\/([\s\S]*?)\/\*PROMPT-END\*\//)[1];
   const data = pageData(html);
   const rv = JSON.parse(JSON.stringify(vm.runInNewContext(src + '\n({ buildReview: buildReview });').buildReview(data, data.items, {}, () => true)));
+  assert.ok(rv.comments.some(c => c.id === 'S1' && c.path === 'src/x.js' && c.line === 10));
+  assert.ok(!/### Minor/.test(rv.body), rv.body);
+});
+
+test('a minor card outside the diff stays in the body\'s Minor section, with its location', () => {
+  const gate = shareGate();
+  gate.decisions[0].at = { path: 'src/x.js', line: 10 };
+  gate.decisions[0].minor = true;
+  const rv = load({ decisions: gate.decisions }).review(state, () => false);
   assert.ok(!rv.comments.some(c => c.id === 'S1'));
-  assert.match(rv.body, /### Minor\n\*\*S1 — /);
+  assert.match(rv.body, /### Minor\n\*\*S1 — [^\n]*\*\*\n`src\/x\.js:10`/);
 });
 
 test('buildItemPrompt: preamble, choice, brief, closing line, needs', () => {

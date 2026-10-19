@@ -34,7 +34,7 @@ test('the review example renders, shares, and builds a GitHub review without the
   assert.strictEqual(r.code, 0, r.stderr);
   const payload = JSON.parse(fs.readFileSync(file.replace(/\.ceo\.json$/, '.review.github.json'), 'utf8'));
   const ids = payload.comments.map(c => c.body.match(/^\*\*([A-Z]+-\d+)/)[1]);
-  assert.deepStrictEqual(ids.sort(), ['CR-1', 'CR-2', 'IN-1', 'SE-1']);
+  assert.deepStrictEqual(ids.sort(), ['CF-1', 'CR-1', 'CR-2', 'IN-1', 'SE-1']);
   assert.ok(!JSON.stringify(payload).includes('CR-3'));
   assert.match(payload.comments.find(c => c.body.startsWith('**CR-1')).body, /```suggestion\n/);
 });

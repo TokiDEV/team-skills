@@ -109,7 +109,7 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "r
 - **Each finding is a decision**, `id` its card id, `tags` its lens and severity, `detail` its evidence and scenario, `why` its stakes. Its options are its *Options* line: **fix** (`recommended: true`, with its `brief`), or **fix-a** and **fix-b**, each with its own `brief` and `recommended: true` only on the one the line recommends; and **leave** (`negative: true`, no brief: the human's note gives the reason). A `corrects <premise>` tag goes in `tags`.
 - Blocker and major: major decisions. Minor: `minor: true`. `default` is the *Options* line's default or recommended fix, and absent when it recommends none.
 - `at` on each finding: its file and line at the reviewed commit, as in its card.
-- `suggestion` (`contract.md` § *Field rules*) on a blocker or major finding whose card's fix is exact, at `at`. Never on a minor: a minor lands in the review body, where no suggestion applies.
+- `suggestion` (`contract.md` § *Field rules*) on any finding whose card's fix is exact, at `at`, minor included: every finding whose line is in the diff gets its own thread.
 - `needs` from the finding's `Needs:` line.
 - Refuted cards stay off the page: the record lists them.
 
