@@ -42,6 +42,7 @@ Start from the Code Brief and its coverage map; open code and tests only to conf
 ## Output
 ### Step 0 — Safety net spec
 | Behavior to pin | Input | Current output (compute it, don't guess) | Mutation that must fail it |
+|---|---|---|---|
 
 ### Finding Cards
 [SN-1 … SN-4]

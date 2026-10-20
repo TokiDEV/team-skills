@@ -2,7 +2,7 @@
 const crypto = require('crypto');
 
 function buildPage({ data, items, outcome, preset, channels, share: SHARE }) {
-  const page = { kind: data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, constraints: data.constraints, outcome, figures: data.figures || [], items };
+  const page = { kind: data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, outcome, figures: data.figures || [], items };
   if (SHARE) {
     Object.assign(page, { mode: 'share', lang: data.lang || 'en', preamble: data.preamble }, preset ? { preset } : {});
     delete page.source; // a path in the sharer's repo

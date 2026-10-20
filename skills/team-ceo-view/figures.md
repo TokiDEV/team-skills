@@ -28,7 +28,7 @@ Any type that compares two states (architecture, data model, state machine, depe
 
 ## Rules for every figure
 
-1. **Page palette.** Strokes and text are `currentColor`. Secondary marks (ordinary arrows, sublabels, gridlines) use `style="stroke: var(--ink-2)"` or `fill: var(--ink-2)`. Box fills and label masks are `var(--surface)`, except where a type card names `var(--surface-2)`. No hex colour, no light fill. Green and red belong to the metric chips: a figure never uses them.
+1. **Page palette.** Strokes and text are `currentColor`. Secondary marks (ordinary arrows, sublabels, gridlines) use `style="stroke: var(--ink-2)"` or `fill: var(--ink-2)`. Box fills and label masks are `var(--surface)`, except where a type card names `var(--surface-2)`. No hex colour, no light fill. Green and red belong to the metric chips: a figure never uses them. A mark with no fill takes the text colour, so give every box its `var(--surface)` fill.
 2. **One focus.** `var(--accent)` marks at most 2 elements: what the human should look at first. If 4 things want it, you haven't chosen yet.
 3. **Delete before you add.** Each box is a distinct idea: two boxes that always travel together are one. Each arrow says something the layout doesn't. Each label says something the shape doesn't.
 4. **Budget.** At most 9 boxes and 12 arrows (tighter limits per type below). Over that, draw an overview and a detail, never fewer arrows than the system has.

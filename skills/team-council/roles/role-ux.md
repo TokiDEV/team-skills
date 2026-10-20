@@ -46,6 +46,7 @@ Analyze the decision from the user-experience perspective. Walk the user through
 
 ### Trade-offs
 | Option | Gains | Costs | Lens |
+|---|---|---|---|
 [One row per option and lens you can speak to. A cost with no evidence says "estimate"]
 
 ### Constraints

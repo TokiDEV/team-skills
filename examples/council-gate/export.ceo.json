@@ -8,10 +8,6 @@
     { "label": "Consensus", "text": "A CSV export first; a live sync waits for demand." },
     { "label": "Recommendation", "text": "Build in-house on the PDF pipeline. **Accepts:** PDF pipeline debt, to make the 1 Dec closing." }
   ],
-  "constraints": [
-    { "id": "K1", "lens": "business", "text": "Live before the 1 Dec closing", "source": "CEO, framing", "status": "confirmed" },
-    { "id": "KS1", "lens": "tech", "text": "Billing code never imports from `src/web/`", "source": ".council/decisions/2026-09-02-billing-split.md, D2", "status": "confirmed" }
-  ],
   "decisions": [
     {
       "id": "D1", "title": "Accounting export: build or buy?", "lens": "business", "tags": ["3–1"],
@@ -45,6 +41,9 @@
       "id": "D2", "title": "Where does the export code live?", "lens": "tech", "tags": ["structural", "2–1"],
       "detail": ["The PDF code sits in `src/billing/pdf.ts`; the web layer calls it"],
       "why": "A folder convention later work builds on.",
+      "constraints": [
+        { "id": "KS1", "lens": "tech", "text": "Billing code never imports from `src/web/`", "source": ".council/decisions/2026-09-02-billing-split.md, D2", "status": "confirmed" }
+      ],
       "options": [
         { "value": "billing", "label": "Inside src/billing", "recommended": true,
           "tradeoff": { "tech": "One module owns invoices; keeps KS1" } },
@@ -60,6 +59,9 @@
       "id": "D3", "title": "Charge for the export?", "lens": "business", "tags": ["3–1"],
       "detail": ["Two of the three waiting customers are on the Starter plan", "Competitors include an export in every plan"],
       "why": "Sets what customers pay for a feature they asked for.",
+      "constraints": [
+        { "id": "K1", "lens": "business", "text": "Live before the 1 Dec closing", "source": "CEO, framing", "status": "confirmed" }
+      ],
       "options": [
         { "value": "included", "label": "Included in every plan", "recommended": true,
           "tradeoff": { "business": "No new revenue; keeps the three customers" } },

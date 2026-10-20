@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { readPreset } = require('./share');
+const { linkItems } = require('./links');
 
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 // Text that points at visual evidence the human would expect to see next to it.
@@ -122,18 +123,22 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     return item;
   }
 
-  // constraints: on the page (they bind every item) or on one item. Ids are unique across the page.
-  const constraintIds = new Set();
+  // constraints: on the item they bind. Ids name one constraint across the page; a copy on another card must be identical.
+  const constraintIds = new Map();
   function checkConstraints(list, where) {
     if (list == null) return [];
     if (!Array.isArray(list)) { errors.push(`${where} must be an array of { "id", "lens", "text", "source", "status" }`); return []; }
+    const here = new Set();
     return list.filter((k, j) => {
       const at = `${where}[${j}]`;
       if (!k || typeof k !== 'object' || !k.id || !k.text || !k.source) { errors.push(`${at} needs "id", "text" and "source"`); return false; }
       if (!LENSES.includes(k.lens)) errors.push(`${at} ("${k.id}").lens must be one of ${LENSES.join(', ')}`);
       if (!STATUSES.includes(k.status)) errors.push(`${at} ("${k.id}").status must be one of ${STATUSES.join(', ')}`);
-      if (constraintIds.has(k.id)) errors.push(`duplicate constraint id "${k.id}" (constraint ids must be unique across the page)`);
-      constraintIds.add(k.id);
+      const first = constraintIds.get(k.id);
+      if (!first) constraintIds.set(k.id, k);
+      else if (['lens', 'text', 'source', 'status'].some(f => first[f] !== k[f])) errors.push(`constraint "${k.id}" differs between the cards it is copied onto — copy it unchanged, or give it another id`);
+      else if (here.has(k.id)) { errors.push(`${at}: constraint "${k.id}" is listed twice on this card`); return false; }
+      here.add(k.id);
       return true;
     });
   }
@@ -182,7 +187,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   // The bridge: what each option gains and costs per lens, the constraints it breaks, and what the pick accepts.
   function checkBridge(item, where) {
     const own = checkConstraints(item.constraints, `${where}.constraints`);
-    const known = new Set(pageConstraints.concat(own).map(k => k.id));
+    const known = new Set(own.map(k => k.id));
     let traded = false;
     item.options.forEach(o => {
       const at = `${where} ("${item.id}") option "${o.value}"`;
@@ -200,7 +205,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       }
       if (o.violates == null) return;
       if (!Array.isArray(o.violates) || o.violates.some(v => typeof v !== 'string')) { errors.push(`${at}: "violates" must be an array of constraint ids`); return; }
-      o.violates.forEach(v => { if (!known.has(v)) errors.push(`${at} violates unknown constraint "${v}" (on neither the page nor this item)`); });
+      o.violates.forEach(v => { if (!known.has(v)) errors.push(`${at} violates unknown constraint "${v}" (not on this item)`); });
       // Auto-accept takes defaults and recommendations: neither may lift a constraint, whatever its status.
       const breaks = o.violates.filter(v => known.has(v));
       if (breaks.length && (o.recommended || o.value === item.default)) {
@@ -213,12 +218,10 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     } else if (traded && item.options.some(o => o.recommended)) {
       errors.push(`${where} ("${item.id}") recommends an option with a "tradeoff" but has no "accepts" — say in one line what the pick costs`);
     }
-    const violated = new Set([].concat(...item.options.map(o => (Array.isArray(o.violates) ? o.violates : []))));
-    const shown = own.concat(pageConstraints.filter(k => violated.has(k.id)));
-    if (shown.length) item.bridge = shown;
+    if (own.length) item.bridge = own;
   }
 
-  const pageConstraints = checkConstraints(data.constraints, 'constraints');
+  if (Array.isArray(data.constraints) ? data.constraints.length : data.constraints != null) errors.push('page-level "constraints" are not supported — put each constraint on every card it binds (decisions, tensions or settled items); one that binds no card is not a constraint');
   const items = [];
 
   (data.decisions || []).forEach((d, i) => {
@@ -272,19 +275,35 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     items.push(finish(item, where));
   });
 
+  (data.settled || []).forEach((s, i) => {
+    const where = `settled[${i}]`;
+    if (!s.id || !s.title || !s.answer || !s.source || !s.who) errors.push(`${where} needs "id", "title", "answer", "source" and "who"`);
+    else if (String(s.answer).length > MAX.why) errors.push(`${where} ("${s.id}").answer is ${String(s.answer).length} characters (max ${MAX.why})`);
+    const item = Object.assign({}, s, { kind: 'settled', group: 'Settled without you' });
+    if (!item.options || !item.options.length) item.options = [{ value: 'ok', label: 'OK', recommended: true }, { value: 'reopen', label: 'Reopen' }];
+    if (item.default == null) item.default = 'ok';
+    items.push(finish(item, where));
+  });
+
   const ids = new Set();
   items.forEach(it => {
-    if (ids.has(it.id)) errors.push(`duplicate id "${it.id}" (ids must be unique across decisions, tensions and rejected)`);
+    if (ids.has(it.id)) errors.push(`duplicate id "${it.id}" (ids must be unique across decisions, tensions, settled and rejected)`);
     ids.add(it.id);
   });
   items.forEach(it => {
-    if (it.needs == null) return;
-    if (!Array.isArray(it.needs) || it.needs.some(n => typeof n !== 'string')) { errors.push(`"${it.id}".needs must be an array of ids`); return; }
-    it.needs.forEach(n => {
-      if (n === it.id) errors.push(`"${it.id}".needs names itself`);
-      else if (!ids.has(n)) errors.push(`"${it.id}".needs names unknown id "${n}"`);
+    // "needs" is the old name of "after": copied over, then dropped.
+    if (it.needs != null) {
+      if (it.after != null) { errors.push(`"${it.id}" has both "after" and its old name "needs" — keep "after"`); delete it.needs; return; }
+      it.after = it.needs; delete it.needs;
+    }
+    if (it.after == null) return;
+    if (!Array.isArray(it.after) || it.after.some(n => typeof n !== 'string')) { errors.push(`"${it.id}".after must be an array of ids`); return; }
+    it.after.forEach(n => {
+      if (n === it.id) errors.push(`"${it.id}".after names itself`);
+      else if (!ids.has(n)) errors.push(`"${it.id}".after names unknown id "${n}"`);
     });
   });
+  const ordered = linkItems(items, errors);
   // at: where a decision's or tension's code is, for the review's anchored comments.
   items.forEach(it => {
     if (it.at == null) return;
@@ -352,7 +371,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (!o.after) errors.push(`${where} needs "after": the target state`);
     ['before', 'after'].forEach(k => { if (o[k]) embed(o[k], `${where}.${k}`); });
   });
-  return { data, items, outcome, errors, preset };
+  return { data, items: ordered, outcome, errors, preset };
 }
 
 module.exports = { loadGate };

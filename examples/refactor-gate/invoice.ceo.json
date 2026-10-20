@@ -74,9 +74,6 @@
       "id": "S1",
       "group": "Backlog",
       "title": "Extract Constant: TAX_RATE",
-      "needs": [
-        "S0"
-      ],
       "detail": "The 20 % rate is written three times: once `0.2`, twice `1.2`.",
       "for": [
         {
@@ -91,15 +88,15 @@
       "code": {
         "before": "const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2",
         "after": "const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"
-      }
+      },
+      "after": [
+        "S0"
+      ]
     },
     {
       "id": "S2",
       "group": "Backlog",
       "title": "Rename Variable: grand → totalWithTax",
-      "needs": [
-        "S0"
-      ],
       "for": [
         {
           "who": "Responsibilities",
@@ -109,15 +106,15 @@
       "code": {
         "before": "const grand = net + tax\nsendInvoice(grand)",
         "after": "const totalWithTax = net + tax\nsendInvoice(totalWithTax)"
-      }
+      },
+      "after": [
+        "S0"
+      ]
     },
     {
       "id": "S3",
       "group": "Backlog",
       "title": "Remove Dead Code: exportCsv()",
-      "needs": [
-        "S0"
-      ],
       "for": [
         {
           "who": "Minimalist",
@@ -131,15 +128,15 @@
           "after": 112,
           "better": "lower"
         }
+      ],
+      "after": [
+        "S0"
       ]
     },
     {
       "id": "S4",
       "group": "Backlog",
       "title": "Extract Function: computeDiscount(tier, total)",
-      "needs": [
-        "S0"
-      ],
       "detail": "Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.",
       "for": [
         {
@@ -156,7 +153,32 @@
       "code": {
         "before": "if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …",
         "after": "const discount = computeDiscount(tier, total)"
-      }
+      },
+      "after": [
+        "S0"
+      ]
+    },
+    {
+      "id": "S5",
+      "group": "Backlog",
+      "title": "Name the rate TAX_RATE_PCT?",
+      "on": {
+        "id": "S1"
+      },
+      "detail": "S1 keeps the rate as `0.2`; this one stores `20` and divides at the call site.",
+      "why": "Changes the constant S1 introduces, not the invoice.",
+      "for": [
+        {
+          "who": "Responsibilities",
+          "point": "A percentage reads the way the business says it."
+        }
+      ],
+      "against": [
+        {
+          "who": "Minimalist",
+          "point": "One more conversion for no new behavior."
+        }
+      ]
     }
   ],
   "tensions": [
@@ -180,6 +202,15 @@
       "id": "RS-4",
       "title": "DiscountStrategy interface with one class per tier",
       "reason": "One use today; the switch is not repeated anywhere. Killed by the Minimalist gate."
+    }
+  ],
+  "settled": [
+    {
+      "id": "A1",
+      "title": "Is the tier read per invoice?",
+      "answer": "Per invoice",
+      "source": "src/invoice.js:12",
+      "who": "Mechanics"
     }
   ]
 }

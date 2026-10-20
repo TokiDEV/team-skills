@@ -92,7 +92,8 @@ Status: draft
 
 **REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the kickoff record); the gate writer builds and renders the page. Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
-- `constraints` (page level): the kickoff record's *Constraints* (`contract.md` § *Bridge fields*).
+- `settled`: what the restate and the council settled without the CEO.
+- **Constraints**: onto the cards they bind (`contract.md` § *Bridge fields*), never page level.
 - `outcome`: the v1 sketches from step 4.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*, and `"lens": "business"`.
 - **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`. Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).

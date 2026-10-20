@@ -46,6 +46,7 @@ Analyze the decision from the engineering perspective. Ground positions in the a
 
 ### Trade-offs
 | Option | Gains | Costs | Lens |
+|---|---|---|---|
 [One row per option and lens you can speak to, and one per structural choice's pick and its alternative. A cost with no evidence says "estimate"]
 
 ### Constraints

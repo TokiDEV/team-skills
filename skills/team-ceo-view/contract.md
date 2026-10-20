@@ -4,19 +4,23 @@ For the agent that writes a gate's JSON. Your dispatch gives the gate's path, it
 
 - **Show the destination.** Fill `outcome` (see *Outcome*) before the cards: the human approves where the work lands, not a list of steps.
 - **Evidence goes on the item it supports.** Arguments, metrics, code and figures belong to the decision, tension or rejected item they concern, never to a page-level section. Copy every screenshot an item relies on into `.council/gates/YYYY-MM-DD-<topic>/`: scratchpad and `/tmp` are wiped after the session.
-- **Render until it passes.** Run the `render.js` command you were given. It rejects invalid JSON with a list of errors. It also rejects any item whose text mentions a screenshot or "figure N" but carries no `figures`. Fix and re-run until it passes.
+- **Render until it passes.** Run the `render.js` command you were given. It rejects invalid JSON with a list of errors. It also rejects an item that mentions a screenshot or "figure N" but has no `figures`. Fix and re-run.
 
 ## Triage before you render
 
 The page is for decisions, not an inventory. Before writing the JSON:
-- **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`. Two cards where a choice on one makes the other moot are one question: merge them into one card whose options are the coherent combinations. Cards that only rely on each other stay separate and carry `needs`.
-- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** handles them in one click. On a review gate, a finding whose recommended fix no seat and no verifier contests is routine, whatever its severity: it stays a decision card and does not count toward the cap.
-- **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block with their default already applied.
+- **One question, one card.** Settle every open question by `counting.md`: a majority goes in `decisions`, no majority goes in `tensions`, never both. The count goes in the item's `tags`. Two cards where a choice on one makes the other moot are one question: merge them into one card whose options are the coherent combinations. A card that only makes sense within another's choice carries `on` and renders in that card's block; one that builds on another's work carries `after`. The page orders both.
+- **At most ~7 weighty decisions.** These are what the human must actually weigh: anything touching money, contracts or users, and tensions. Routine items with a clear recommendation (backlog steps, plan steps) don't count toward the cap; **Accept recommended** takes them in one click. On a review gate, a finding whose recommended fix no seat and no verifier contests is routine, whatever its severity: it stays a decision card and does not count toward the cap.
+- **Everything else is `minor: true` with a `default`.** Edge-case quirks and cosmetic items fold into a collapsed block, default applied.
+- **Structure in one card.** Unanimous, zero-cost structural choices are one card *Confirm the structure*, each choice a `detail` bullet; a choice gets its own card only when seats split or a cost is accepted.
+- **Accept recommended.** The page's *Accept recommended* takes every recommendation, and every default on a minor item; moot cards are skipped.
+- **Fold it yourself.** Over the cap, fold to minor by stakes; never ask which.
+- **Settled without you.** Everything the run decided without the CEO goes in `settled` (see *Field rules*).
 - **Order by stakes.** The item the human explicitly asked about goes first.
 
 ## Outcome
 
-`outcome` is one entry per view the work changes. The renderer rejects a `plan` or `kickoff` page without it. Include it on a `council` page when the recommended direction changes a screen or the system's shape, and on a `refactor` page when module boundaries move.
+`outcome` is one entry per view the work changes. The renderer rejects a `plan` or `kickoff` page without it. Include it on a `council` page when the direction changes a screen or the system's shape, and on a `refactor` page when module boundaries move.
 
 | `view` | Use it when | `after` is | `before` is |
 |--------|-------------|------------|-------------|
@@ -37,10 +41,10 @@ Each field has one job, so no two say the same thing:
 |-------|---------|-------|
 | `title` | The question (when `options` are custom) or the move (Approve/Decline) | ≤ 8 words |
 | `detail` | The facts the title lacks: what is true today and what it costs | ≤ 3 bullets (4 is the hard limit), ≤ 120 characters each, or one sentence; ≤ 240 characters in all |
-| `why` | Why a human must decide it | One line; ≤ 160 characters |
+| `why` | What the choice changes for the CEO, in their words; a jargon option gets a gloss in `detail` | One line; ≤ 160 characters |
 | `options` | The answers, each a different outcome | ≤ 5 words each |
 
-**An item that corrects a premise** (something the human answered, or an earlier record states) carries the tag `corrects <premise>`, e.g. `corrects answer 9`. Its `why` reads: *"You said <premise>; the code shows <fact>."* In plain words, no identifiers, a few words each so it fits the 160-character `why`; the rest goes in `detail`.
+**An item that corrects a premise** (something the human answered, or an earlier record states) carries the tag `corrects <premise>`, e.g. `corrects answer 9`. Its `why` reads: *"You said `<premise>`; the code shows `<fact>`."* In plain words, no identifiers, a few words each so it fits the 160-character `why`; the rest goes in `detail`.
 
 `detail` and `why` take an array of bullets, or a string whose `- ` lines become bullets. Inline `` `code` `` and `**bold**` are rendered; put the key number in bold.
 
@@ -50,6 +54,8 @@ Each field has one job, so no two say the same thing:
   "why": "Changes invoices customers already received.",
   "options": [ { "value": "keep", "label": "Keep floor + comment" }, { "value": "round", "label": "Round like other tiers" } ] }
 ```
+
+A weighty item's `detail` opens with what exists today: `Today: …` (the file, the tests that cover it). No option rests on a case in the data without evidence the case occurs.
 
 The renderer rejects a `detail` or `why` over its limit, a `detail` that opens with the title, an option label that repeats the title, and a `detail` that holds every word of an option label.
 
@@ -82,41 +88,44 @@ The renderer rejects a `detail` or `why` over its limit, a `detail` that opens w
       "metrics": [ { "label": "buildInvoice length", "before": 64, "after": 36, "better": "lower" } ],
       "code": { "before": "switch (tier) { case 'gold': … }", "after": "const discount = computeDiscount(tier, total)" },
       "figures": [ { "src": "2026-09-26-invoice/s1-calls.svg", "caption": "Figure 1 — buildInvoice calls computeDiscount once" } ],
-      "needs": ["S0"],
+      "after": ["S0"],
       "options": [
         { "value": "extract", "label": "Extract now", "recommended": true },
         { "value": "later", "label": "Leave for the next run", "negative": true }
       ]
     },
-    { "id": "S3", "group": "Backlog", "title": "Rename Variable: grand → total", "needs": ["S0"], "minor": true, "default": "approve" }
+    { "id": "S2", "group": "Backlog", "title": "Name the rate TAX_RATE_PCT?", "on": { "id": "S1" } },
+    { "id": "S3", "group": "Backlog", "title": "Rename Variable: grand → total", "after": ["S0"], "minor": true, "default": "approve" }
   ],
   "tensions": [
     { "id": "T1", "topic": "Extract buildInvoice?", "sides": [
       { "who": "Responsibilities + Depth", "position": "Strongest case for…" },
       { "who": "Minimalist", "position": "Strongest case against…", "recommended": true } ] }
   ],
+  "settled": [ { "id": "A1", "title": "Is the tier read per invoice?", "answer": "Per invoice", "source": "src/invoice.js:12", "who": "Mechanics" } ],
   "rejected": [ { "id": "DP-3", "title": "Per-type rule table", "reason": "One use; hides the floor quirk" } ],
   "figures": [ { "title": "Vote spread", "svg": "<svg viewBox='0 0 800 160'>…</svg>" } ]
 }
 ```
 
 ## Field rules
-- Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`. Ids are unique across decisions, tensions and rejected items.
-- `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets, and end with the recommendation. The renderer rejects a string summary.
-- **Every item** (decision, tension, rejected) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options` and `default`, and the bridge fields `lens`, `constraints` and `accepts` (*Bridge fields*).
-- `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give every weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Only use arguments the panel actually made.
-- `needs`: ids of the items this one relies on, such as refactoring steps that rely on the characterization tests, or a step built on an earlier one. A reliance, not a hard requirement: the page shows the link both ways and flags a chosen item whose needs are not chosen, and Claude asks about it before acting. Unknown ids are rejected.
-- `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card when the gate is shared as a review on the merge/pull request; a card without it goes in the review's body.
+- Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`. Ids are unique across decisions, tensions, settled and rejected items, stable from the synthesis to the record, never reused.
+- `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets; end with the recommendation. It never counts cards: the renderer counts a review's findings. The renderer rejects a string summary.
+- **Every item** (decision, tension, rejected, settled) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options`, `default` and the bridge fields `lens`, `constraints` and `accepts` (*Bridge fields*).
+- `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give a weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Use only arguments the panel made.
+- `after`: ids of the items this one builds on (old name `needs`, still read). Not a hard requirement: the page shows the link both ways and flags a chosen item whose `after` ids are not chosen, and Claude asks about it before acting. Unknown ids are rejected. It orders and links; it does not group.
+- `on`: `{ "id", "when"? }`, one relation: the card only makes sense within the target's choice; `when`: option values of the target. If the target's answer removes or forces some of its options, it is not a child: merge them into one card of the coherent combinations; on a decision or tension (minor ones too), not on a rejected or settled item. The card renders in its root's block (follow `on` to a card without one), under the root behind a rail, with a chip ("refines D3"). Moot: once the root is answered, the card is moot when its choice is negative, outside `when`, or the root is moot; it greys out, shows "not needed: D1 = …", writes `M3 = moot (D1 = hand)`, and is skipped by *Accept recommended*. The root must be a weighty decision or a tension. The renderer orders by `after` and `on`, and rejects: a loop through `after`/`on`; a weighty card that comes `after` a minor one; a decision that comes `after` a tension (use `on`); an `after` card in Tensions, Minor or Settled below it; one in another decision group only when the dependent's group is already placed above (else the groups reorder).
+- `settled`: page array of `{ "id", "title", "answer", "source", "who" }`, with the usual item fields. `title` is the question; `answer` ≤ 160 characters. They fold into *Settled without you* with options OK (pre-applied) or Reopen. The decisions block says `A1 = ok` or `A1 = reopen | note: …`. A shared review lists them under "Settled without a question", never as threads; a reopened one is an open question.
+- `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card in a shared review on the merge/pull request; a card without it goes in the body.
 - `suggestion`: `{ "lines", "text" }`, on an item or one of its options: the exact replacement for the `lines` lines starting at `at.line`, up to ~10 lines. Only for a small, certain fix on lines the change touches (a rename, a constant, a guard), written from the reviewed commit: the reader applies it in one click from the review, as written, so never guess. Anything bigger stays in the brief.
 - `options` defaults to Approve/Decline. Set `"recommended": "decline"` on the decision to recommend declining.
-- **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with <who>" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
+- **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with `<who>`" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
 - `metrics` show as before→after chips on their card. `better` (`higher` or `lower`) colors the change green or red. Page-level `metrics` are rejected by the renderer.
-- `code` is shown as before/after panes. Include it for every step that moves code, and keep each pane to about 15 lines.
+- `code` shows as before/after panes: include it for every step that moves code, ≤ 15 lines each.
 - `figures` entries take either `svg` or `src`:
-  - `src` points to an image such as a screenshot. It must be **relative to the JSON file**; absolute, `/tmp` and URL paths are rejected. The renderer embeds the image, so the `.html` stays one file. A click opens it full size. The caption says what to look at, e.g. "knob 17.6 kHz, graph still at 1 kHz". (`images` is accepted as an old name for `figures`.)
+  - `src` points to an image such as a screenshot. It must be **relative to the JSON file**; absolute, `/tmp` and URL paths are rejected. The renderer embeds the image, so the `.html` stays one file. The caption says what to look at.
   - `svg` is trusted inline SVG. Palette and size rules: `figures.md` (a narrower `viewBox` gets scaled up).
-- A figure shows what the human decides on: the result (`outcome`), or evidence for one item (a screenshot, a before/after of one module, a vote spread). Draw it by `figures.md`.
 - Page-level `figures` are only for evidence that spans many items (it shows under the outcome). Anything about one item goes on that item.
 
 ## Bridge fields
@@ -124,8 +133,7 @@ The renderer rejects a `detail` or `why` over its limit, a `detail` that opens w
 On council, plan and kickoff gates; the calling skill's mapping says what fills them, and `bridge.md` (copied beside this file) defines lens, constraint and trade-off. All optional: a gate without them renders as before.
 
 ```json
-{ "constraints": [ { "id": "K1", "lens": "business", "text": "Live before the 1 Dec closing", "source": "CEO, framing", "status": "confirmed" } ],
-  "decisions": [ { "id": "D1", "title": "Accounting export: build or buy?", "lens": "business",
+{ "decisions": [ { "id": "D1", "title": "Accounting export: build or buy?", "lens": "business",
     "constraints": [ { "id": "K2", "lens": "tech", "text": "No new database in production", "source": "CLAUDE.md:12", "status": "confirmed" } ],
     "options": [
       { "value": "build", "label": "Build in-house", "recommended": true, "tradeoff": { "business": "Live mid-November", "tech": "Duplicates the PDF pipeline (debt)" } },
@@ -137,15 +145,15 @@ On council, plan and kickoff gates; the calling skill's mapping says what fills 
 ```
 
 - `lens` (`"business"` or `"tech"`): on an item, its default; on a `for`/`against` entry, a `metrics` entry or a `figures` entry, its own. Set each argument's lens from its role's default (`bridge.md`) unless the line carries its own, and leave it out only where the item's lens already says it. `code` is always `tech`.
-- `constraints`: on the page (they bind every item and show under the summary) or on one item. Each is `{ "id", "lens", "text", "source", "status" }`, status `confirmed`, `assumed` or `contested`. Ids are unique across the page.
+- `constraints`: on items only; a page-level `constraints` is rejected. Copy each constraint onto every card it binds — decision, tension or settled; one that binds no card is not a constraint. Each is `{ "id", "lens", "text", "source", "status" }`, status `confirmed`, `assumed` or `contested`. One id is one constraint: its copies on other cards are identical.
 - `options[].tradeoff`: `{ "business"?, "tech"? }`, one line each, ≤ 80 characters. A cost with no evidence ends with `(estimate)`. A tension side takes `tradeoff` and `violates` too.
-- `options[].violates`: the ids of the constraints the option breaks, on the page or on its item. The option stays choosable, with a *lifts K2* badge; choosing it lifts them, and the decisions block says so: `D1 = buy (lifts K2)`.
+- `options[].violates`: the ids of the constraints the option breaks, on its item. The option stays choosable, with a *lifts K2* badge; choosing it lifts them, and the decisions block says so: `D1 = buy (lifts K2)`.
 - `accepts`: one line, ≤ 160 characters: what the recommended option costs. Required on an item whose options carry `tradeoff` and one is recommended.
 - `title`, `why`, `detail` and `options` stay shared, above the bridge.
 
-**On the page**, a card shows its bridge (its constraints, the page's constraints one of its options breaks, the options' trade-offs side by side, and *Accepts*) whatever the tab: at the head of the evidence column on a wide screen. Its header names each lens it concerns (from its entries, code, trade-offs and the constraints on its bridge). It shows *Business* and *Tech* tabs only when its entries span both lenses; each card switches on its own (`b` / `t`). The sidebar's lens filter hides the cards that concern only the other lens (a card with no lens stays) and turns the others to its tab.
+**On the page**, a card shows its bridge (its constraints, the options' trade-offs side by side, and *Accepts*) whatever the tab: at the head of the evidence column on a wide screen. Its header names each lens it concerns (from its entries, code, trade-offs and the constraints on its bridge). It shows *Business* and *Tech* tabs only when its entries span both lenses; each card switches on its own (`b` / `t`). The sidebar's lens filter hides the cards that concern only the other lens (a card with no lens stays) and turns the others to its tab.
 
-**The renderer rejects** a `lens` other than `business` or `tech`; an entry of a lensed item with no lens; a constraint missing a field, with an unknown status or a duplicate id; a `violates` id on neither the page nor the item; a `tradeoff` with neither key, another key, or a line over 80 characters; a missing or over-long `accepts`; and a recommended or default option that violates any constraint: only the CEO lifts one, and auto-accept takes the recommendations.
+**The renderer rejects** a `lens` other than `business` or `tech`; an entry of a lensed item with no lens; a constraint missing a field, with an unknown status, or an id whose copies differ, or the same id twice on one card; a page-level `constraints`; a `violates` id not on its item; a `tradeoff` with neither key, another key, or a line over 80 characters; a missing or over-long `accepts`; and a recommended or default option that violates any constraint: only the CEO lifts one, and auto-accept takes the recommendations.
 
 ## Share fields
 
@@ -161,7 +169,7 @@ The reader is someone else, typically the owner of the branch the review looked 
 **`lang`**: `"fr"` or `"en"`, the conversation's language. Write `preamble` and every brief in it.
 
 **`preamble`** (Markdown), in this order:
-- Put in it only what holds whatever the reader chooses; a rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `needs`.
+- Put in it only what holds whatever the reader chooses; a rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `after`.
 - `# Mission:` one line.
 - **Context**: the repo, the branch, the reviewed commit's full SHA, and the scope as a list of files relative to the repo root.
 - **Baseline**: which tests are green and how many, the command for each, known failures that come from the environment.
@@ -176,7 +184,7 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **Verify**: the exact command, and what green looks like.
 - **Commit**: the message, in the repo's convention.
 
-**`needs`, `at`, `suggestion`**: by *Field rules*. What sharing adds: when the reader keeps a finding but not what it `needs`, the prompt tells their agent to ask first.
+**`after`, `at`, `suggestion`**: by *Field rules*. What sharing adds: when the reader keeps a finding but not what it comes `after`, the prompt tells their agent to ask first.
 
 **Rules**
 - **Only what the review found.** Where the review left the *how* open (a fix whose mechanics nobody settled), the brief says so and ends: "Ask me before doing this, with the options you see."

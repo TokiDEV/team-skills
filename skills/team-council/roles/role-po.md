@@ -45,6 +45,7 @@ Analyze the decision from the product perspective. Name the outcome it serves, r
 
 ### Trade-offs
 | Option | Gains | Costs | Lens |
+|---|---|---|---|
 [One row per option and lens you can speak to. A cost with no evidence says "estimate"]
 
 ### Constraints

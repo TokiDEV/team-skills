@@ -10,7 +10,7 @@ Two: `business` (outcome, users, money, legal, time to market, UX) and `tech` (c
 
 ## Constraint
 
-A limit that removes options: a deadline, a regulation, "no new database in production".
+A K is a limit whose breach cannot be repaired inside the plan: a dependency direction, a public contract, a security rule, a deadline, a budget. A code behaviour is a fact; a library or a message list is *Structure*. About 8 K at framing at most. `confirmed` needs a source someone checked (a `file:line`, the CEO's answer, a doc), not the roles' agreement. A K binds at least one card; one that binds none is not a K.
 - **Test before recording one:** *"what happens if we break it?"* If the answer is "not much", it is a preference: it becomes a criterion in the trade-offs instead.
 - **Each constraint has** an id (`K1`…; the profile's standing ones are `KS1`…), a lens, a source (a file, a record, or "CEO, framing") and a status:
 
@@ -32,4 +32,4 @@ A trade-off is a cost knowingly taken on. It is neither a tension (a question wi
 
 ## Structural choices and constraints
 
-A settled structural choice (`team-protocol` § *Structural choices*) that later work could break becomes a `tech` constraint, `confirmed`: a dependency direction or import rule, a public contract, a folder convention. Its source is where the CEO settled it: the council gate (`<record path>, D<n>`) or the plan's *Structure* (`<plan path>, Structure`). A new package, module or layer is a decision, not a constraint: it stays in the plan's *Structure*, and only the rules it comes with become constraints.
+Only choices whose breach cannot be repaired inside the plan become K. A settled structural choice (`team-protocol` § *Structural choices*) that later work could break becomes a `tech` constraint, `confirmed`: a dependency direction or import rule, a public contract, a folder convention. Its source is where the CEO settled it: the council gate (`<record path>, D<n>`) or the plan's *Structure* (`<plan path>, Structure`). A new package, module or layer is a decision, not a constraint: it stays in the plan's *Structure*, and only the rules it comes with become constraints. The record holds the constraints table once.

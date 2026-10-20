@@ -12,7 +12,7 @@ The second half of the council workflow. `team-council` decides **what**; `team-
 ## Preconditions
 
 - **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, the council hasn't run — stop and point the user to `team-council` first.
-- **Project profile**: read `.council/project-profile.md`. If it is missing, offer `team-scan` and stop until it has run.
+- **Project profile**: read `.council/project-profile.md`. If it is missing, run `team-scan` at once, announced in one line.
 
 ## Flow
 
@@ -40,9 +40,9 @@ Read the decision file and the profile. The *Council Summary* and the CEO decisi
 
 ### 1b. Settle before drafting
 Writers type in a settled design. Before any draft, list:
-- **Open design questions**: what the decision leaves open that would change the plan's shape (which path a call takes, where a type lives, whether two entry points share one route). Settle each with the user (AskUserQuestion, a recommendation first), or with a spike agent that writes its numbers into the brief.
-- **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is an open design question, settled with the user like the others, and recorded in the plan's *Structure*. One whose rule later work could break is also a constraint (`bridge.md` § *Structural choices and constraints*): it gets the next `K<n>` id, on its *Structure* line and in the plan's *Constraints*, source `<plan path>, Structure`.
-- **Human-only inputs**: captures, probes, credentials, measurements on the user's machine. Collect them now. A writer that needs one waits for it, never guesses it.
+- **Open design questions**: what the decision leaves open that would change the plan's shape (which path a call takes, where a type lives, whether two entry points share one route). Settle each with the user (AskUserQuestion, a recommendation first), or with a spike agent that writes its numbers into the brief. A spike answers a fact; a choice it opens that the user will see goes to the CEO (`team-protocol` § *Structural choices*).
+- **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is settled as above and recorded in the plan's *Structure*. One whose rule later work could break is also a constraint (`bridge.md` § *Structural choices and constraints*): it gets the next `K<n>` id, on its *Structure* line and in the plan's *Constraints*, source `<plan path>, Structure`.
+- **Human-only inputs**: captures, probes, credentials, measurements on the user's machine. Human-only inputs include what the profile's `## Environment limits` says the sandbox cannot run. Collect them now. A writer that needs one waits for it, never guesses it.
 - **Unobserved facts**: when the plan rests on what the code does today, one evidence-pass agent gathers them first (agent id `evidence`).
 - **A constraint found while planning** (by a spike, the evidence pass or a reviewer): never folded silently into the plan. It goes on the plan gate as a decision (`templates.md` § *Gate page*), like a `reverses council D<n>` option.
 
@@ -72,20 +72,20 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 | Record writer (amendments, approval) | sonnet | ~8 |
 
 ### 4. Reconcile
-Fold review feedback into a revised plan through fresh fixers, each given the defect lines for its file. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*). Never override the trade-off silently.
+Fold review feedback into a revised plan. One fixer per round takes every defect at once and writes the amendment's line under `## Plan gate` in the decision record. Its brief adds: "Add nothing unasked; list your own additions first." Before the approval pass, one consolidation pass deletes superseded rules and their references. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*).
 
 ### 5. Approve & write
-The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top, so the two stay linked.
+The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top.
 
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block.
 
-Declines or notes → revise the draft through fixers and re-render.
+Declines or notes → revise by § 4 and re-render.
 
 **The CEO amends the decision at the gate** (picks a `reverses council D<n>` option, or says so in a note):
-1. A record writer (sonnet, ~8) records the amendment under `## Plan gate` in the decision record: the item, the new direction, the CEO's words.
+1. No fixer ran, so a record writer (sonnet, ~8) writes that `## Plan gate` line: the item, the new direction, the CEO's words.
 2. Revise only the sub-plans or steps it changes.
 3. One CTO reviewer (sonnet, ~10) checks the changed steps.
-4. Re-gate only those steps, in `<topic>-plan-r<N>.ceo.json`. The earlier `.decisions.txt` stays on record.
+4. Re-gate only those steps. An amendment merges into the gate while it is unanswered; `-r<N>` only for a gate already answered (`<topic>-plan-r<N>.ceo.json`; the earlier `.decisions.txt` stays on record).
 
 On full approval, a record writer adds the constraints born in § 1b to the decision record's `## Constraints` (source `<plan path>, Structure`); records each `(lifts K<n>)` of the plan gate's decisions as `K<n> lifted by the CEO, <their words>` and marks a lifted `KS<n>` line of the profile `lifted by <record path>`; adds each constraint found while planning that the CEO kept (`confirmed`, source `<plan path>`, the next free `K<n>` id); and appends every new `tech` constraint, from the council gate or § 1b or kept at the plan gate, to the profile's `## Constraints` with the next free `KS<n>` id (`team-scan`), unless the rule is already listed there, `lifted by` ones included. Then remove `Status: draft` and hand off (`team-protocol`): *"`/clear`, then: execute `<plan path>` with `<plan-execution skill>`."* Name the skill the profile lists (see *Execution*); if it lists none, drop the "with" part. Execution starts from the plan file, not from a context holding the planning.
 
@@ -94,7 +94,7 @@ On full approval, a record writer adds the constraints born in § 1b to the deci
 This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy*: models, batches, re-review.
 
 When the profile lists none, execute from the plan file by `team-protocol` § *Execution*, with these rules of its own:
-1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Executors run on sonnet, opus for an L step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
+1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Executors run on sonnet, opus for a design-heavy step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
 2. The executor writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
 3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's executor once, then stop and ask the human.
 4. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
@@ -112,7 +112,6 @@ The shared ones are in `team-protocol`. These are the planner's own.
 | "The writers can start now and align on names later" | Consumers that guess the keystone's API get rewritten. Freeze the contract first. |
 | "I'll leave that design question to the writer" | A writer who meets an open question guesses, and the gate undoes the guess. Settle it before drafting. |
 | "This extra step is small and useful" | Nothing smuggled in, nothing dropped: that is what the PO reviewer checks. Raise it at the gate instead. |
-| "The reviewer can't sketch the outcome, so skip the figure" | A plan whose result can't be drawn doesn't say what it builds. Fix the plan. |
 | "It's approved, I'll start executing here" | Execution starts from the plan file, in a fresh session. |
 
 ## Red Flags

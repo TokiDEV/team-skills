@@ -12,9 +12,9 @@ function load(gate) {
   const html = fs.readFileSync(file.replace(/\.ceo\.json$/, '.share.html'), 'utf8');
   const src = html.match(/\/\*PROMPT-START\*\/([\s\S]*?)\/\*PROMPT-END\*\//)[1];
   const data = pageData(html);
-  const fns = vm.runInNewContext(src + '\n({ buildPrompt: buildPrompt, missingNeeds: missingNeeds });');
+  const fns = vm.runInNewContext(src + '\n({ buildPrompt: buildPrompt, missingAfter: missingAfter });');
   const build = state => fns.buildPrompt(data, data.items, state);
-  build.missingNeeds = (it, state) => fns.missingNeeds(it, data.items, state);
+  build.missingAfter = (it, state) => fns.missingAfter(it, data.items, state);
   build.items = data.items;
   return build;
 }
@@ -89,38 +89,40 @@ test('lang fr switches the headers', () => {
 
 function needsGate(needs) {
   const g = shareGate();
-  g.decisions[0].needs = needs;
+  g.decisions.push({ id: 'F2', title: 'Another rule', brief: 'Do F2.' }); // needs a decision: a tension is linked with "on"
+  g.decisions[0].after = needs;
   return load(g);
 }
 
 test('needs: a kept item whose prerequisite is not working carries a warning before its brief', () => {
-  const warn = 'Relies on F1, which you did not choose: ask me before doing it without it.';
+  const warn = 'Comes after F1, which you did not choose: ask me before doing it without it.';
   const build = needsGate(['F1']);
   const declined = section(build({ S1: { choice: 'approve' }, F1: { choice: 'ask' } }), 'To do');
   assert.ok(declined.includes(warn));
   assert.ok(declined.indexOf(warn) < declined.indexOf('Do S1.'));
-  assert.doesNotMatch(section(build({ S1: { choice: 'approve' }, F1: { choice: 'round' } }), 'To do'), /Relies on/);
+  assert.doesNotMatch(section(build({ S1: { choice: 'approve' }, F1: { choice: 'round' } }), 'To do'), /Comes after/);
   assert.ok(section(build({ S1: { choice: 'approve' } }), 'To do').includes(warn));
 });
 
 test('needs: several missing ids, and French', () => {
-  const many = needsGate(['F1', 'T1'])({ S1: { choice: 'approve' } });
-  assert.ok(many.includes('Relies on F1, T1, which you did not choose: ask me before doing it without them.'));
+  const many = needsGate(['F1', 'F2'])({ S1: { choice: 'approve' } });
+  assert.ok(many.includes('Comes after F1, F2, which you did not choose: ask me before doing it without them.'));
   const g = shareGate({ lang: 'fr' });
-  g.decisions[0].needs = ['F1'];
+  g.decisions[0].after = ['F1'];
   const fr = load(g)({ S1: { choice: 'approve' } });
-  assert.ok(fr.includes("Dépend de F1, que tu n'as pas retenu : demande-moi avant de le faire sans."));
+  assert.ok(fr.includes("Vient après F1, que tu n'as pas retenu : demande-moi avant de le faire sans."));
 });
 
-test('missingNeeds: lists the needs that are not chosen', () => {
+test('missingAfter: lists the after ids that are not chosen', () => {
   const g = shareGate();
-  g.decisions[0].needs = ['F1', 'T1'];
+  g.decisions.push({ id: 'F2', title: 'Another rule', brief: 'Do F2.' });
+  g.decisions[0].after = ['F1', 'F2'];
   const build = load(g);
   const s1 = build.items.find(i => i.id === 'S1');
-  const miss = state => JSON.parse(JSON.stringify(build.missingNeeds(s1, state)));
-  assert.deepStrictEqual(miss({ F1: { choice: 'round' }, T1: { choice: 'Responsibilities' } }), []);
-  assert.deepStrictEqual(miss({ F1: { choice: 'ask' }, T1: { choice: 'Responsibilities' } }), ['F1']);
-  assert.deepStrictEqual(miss({}), ['F1', 'T1']);
-  const rej = JSON.parse(JSON.stringify(build.missingNeeds({ needs: ['RS-1'] }, {})));
+  const miss = state => JSON.parse(JSON.stringify(build.missingAfter(s1, state)));
+  assert.deepStrictEqual(miss({ F1: { choice: 'round' }, F2: { choice: 'approve' } }), []);
+  assert.deepStrictEqual(miss({ F1: { choice: 'ask' }, F2: { choice: 'approve' } }), ['F1']);
+  assert.deepStrictEqual(miss({}), ['F1', 'F2']);
+  const rej = JSON.parse(JSON.stringify(build.missingAfter({ after: ['RS-1'] }, {})));
   assert.deepStrictEqual(rej, ['RS-1']);
 });

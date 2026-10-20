@@ -46,6 +46,7 @@ Run the pre-mortem on the likeliest direction, then propose the alternatives it 
 
 ### Trade-offs
 | Option | Gains | Costs | Lens |
+|---|---|---|---|
 [One row per option and lens you can speak to. A cost with no evidence says "estimate"]
 
 ### Constraints

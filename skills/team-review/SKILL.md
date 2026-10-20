@@ -1,6 +1,6 @@
 ---
 name: team-review
-description: Use when a change needs reviewing before it merges — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge. Not for restructuring code that works: team-refactor.
+description: "Use when a change needs reviewing before it merges — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge. Not for restructuring code that works: team-refactor."
 ---
 
 # team-review
@@ -60,14 +60,14 @@ Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `template
 | Recon | sonnet | ~30 | scope, profile | *Review Brief* |
 | Recon (intake) | sonnet | ~30 | the refactor records, profile | *Review Brief*, then *Intake cards* |
 | Seat ×3–4 (R1) | sonnet | ~15 | role file + Review Brief | *Finding Card* |
-| Verifier | opus | ~25 | `{CARDS}` + read access to the code | *Verdict* |
+| Verifier | opus (sonnet if all minor) | ~3 per card | `{CARDS}` + read access to the code | *Verdict* |
 | Synthesizer | sonnet | ~10 | cards + verdicts + the Review Brief | *Synthesis* |
 | Gate writer (none on an auto-accept run on your own branch or an audit) | sonnet | ~12 | the synthesis | *Gate page* |
 | Record writer | sonnet | ~8 | the synthesis + the gate's fix briefs + the decisions or share block (auto-accept, no page: the synthesis + the chat answers) | *Record and exec brief* |
 | Executor | sonnet | — | **one** batch of Fix cards + the exec brief's header | *Fix card* |
 | Final reviewer | opus | — | full diff + exec brief | *Final review* |
 
-The verifier receives each card's title, location, scenario and fix — never its Evidence or Refutation lines. Put this line first in each seat's *How to work* block: `- Start from the Review Brief. Open a file only to confirm or cite evidence.` Seats and the verifier also get `team-protocol`'s *leave the project tree as you found it* line.
+The verifier receives each card's title, location, scenario and fix — never its Evidence or Refutation lines. Put this line first in each seat's *How to work* block: `- Start from the Review Brief. Open a file only to confirm or cite evidence. Before a test-gap card, grep the specs for the behaviour; before a convention card, check the line is added by the diff.` Seats and the verifier also get `team-protocol`'s *leave the project tree as you found it* line.
 
 ## Flow
 
@@ -82,20 +82,20 @@ The verifier receives each card's title, location, scenario and fix — never it
 ```
 
 ### 0. Preconditions
-- **Scope**: a diff (a branch, an MR/PR), a path or module, the whole repo, or one or more refactor records (§ *Intake*), sized by `team-protocol` § *Code scope*, counting changed lines. To narrow it, Recon ranks zones by churn × complexity × exposure, one option per zone, plus one option "all of them, by `team-protocol` § *Sweep*". Review a diff at its head: check it out first. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
+- **Scope**: a diff (a branch, an MR/PR), a path or module, the whole repo, or one or more refactor records (§ *Intake*), sized by `team-protocol` § *Code scope*, counting changed lines. To narrow it, Recon ranks zones by churn × complexity × exposure, one option per zone, plus "all of them" (one panel per zone, one page, by `team-protocol` § *Sweep*). Resolve the forge's head first (`glab mr view` / `gh pr view`: the head SHA) and review that commit; when the local branch differs, say so on the first line and offer to align it. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
 - **Owner**: `git -C <checkout> log --format=%ae <base>..HEAD | sort -u` against `git -C <checkout> config user.email`. Only yours → own branch; none yours → someone else's; mixed, or a shared account → ask. A path or module → audit.
 - **MR/PR**: take the host from `git -C <checkout> remote get-url origin` (`<origin URL>`). GitHub: `gh pr view <branch> -R <owner/repo> --json number,headRefOid,baseRefName`; GitLab: `glab mr view <branch> -R <origin URL> --output json` (the `iid`). Then get its refs and diff by loading `team-ceo-view` (Skill tool) and using its *Share* → `as: review` → *Refs and diff*, writing the diff to the run folder instead of `$TMPDIR`. Recon reads them from there.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
 - **Red tests do not block.** Recon records them; they become a finding.
 
 ### 1. Recon → Review Brief
-One agent writes the brief by `templates.md` § *Review Brief*, following the Recon rules of `team-protocol` § *Code scope*. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1.
+One agent writes the brief by `templates.md` § *Review Brief*, following the Recon rules of `team-protocol` § *Code scope*. Long gates (integration, E2E) go to their own sonnet agent; only the verifier and synthesizer read its result. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1.
 
 ### 2. Round 1 — blind seats (parallel)
 Dispatch the seats in one message, agent ids `seat-correctness`, `seat-intent`, `seat-craft`, and `seat-security` unless Recon's reply gives *Trust boundaries: none* (§ *Proportionality*). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{REVIEW_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
 
 ### 3. Verification
-Strip the cards of their reasoning without reading them: `sh <base directory>/cards.sh <run folder>` keeps each `high` and `med` card's title, *Scenario* and *Fix* from the `seat-*.md` files into `<run folder>/cards.md`, drops `low` cards, and prints `cards ok: <n>` or `MISMATCH: …`. Fences and bold fields are handled. On `MISMATCH`, stop: re-dispatch that seat (or a fresh agent to repair its file), then rerun the script. On `cards ok: 0` there is nothing to verify: skip to Synthesis. Otherwise dispatch the verifier with `{PROJECT_PROFILE}`, `{SCOPE}` and `{CARDS}` → `cards.md`. It writes one verdict per card by § *Verdict*: `CONFIRMED`, `REFUTED` or `UNSURE`. It never proposes a finding.
+Strip the cards of their reasoning without reading them: `sh <base directory>/cards.sh <run folder>` keeps each `high` and `med` card's title, *Scenario* and *Fix* from the `seat-*.md` files into `<run folder>/cards.md`, drops `low` cards, and prints `cards ok: <n>` or `MISMATCH: …`. On `MISMATCH`, stop: re-dispatch that seat (or a fresh agent to repair its file), then rerun the script. On `cards ok: 0` there is nothing to verify: skip to Synthesis. Otherwise dispatch one verifier for all zones, after the last zone's seats, with `{PROJECT_PROFILE}`, `{SCOPE}` and `{CARDS}` → `cards.md`. It writes one verdict per card by § *Verdict*: `CONFIRMED`, `REFUTED` or `UNSURE`.
 
 ### 4. Synthesis
 A separate synthesizer agent writes the review by `templates.md` § *Synthesis*: dedup, rank, cap, verdict.

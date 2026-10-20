@@ -155,6 +155,25 @@ dialog.help td:first-child { white-space: nowrap; }
 .rel a:hover { text-decoration: underline; }
 .rel-gap { display: block; color: var(--warn); margin-top: 2px; }
 .rel-gap:empty { display: none; }
+/* Linked cards: a block is its root card and the cards linked to it. A rail drops from the root to the last member;
+   an elbow ties it to each member. Every link is a refinement, so rail, elbow and chip share the accent blue. */
+.block { margin: 14px 0; --rel: var(--accent); --rail: var(--accent); }
+.block > .card:first-child { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); margin-bottom: 12px; }
+.block > .card + .card { position: relative; margin: 0 0 12px 36px; border-left: 4px solid var(--rel); }
+.block > .card + .card:last-child { margin-bottom: 0; }
+.block > .card + .card::before { content: ""; position: absolute; left: -26px; top: -12px; bottom: -12px; border-left: 2px solid var(--rail); }
+.block > .card + .card:last-child::before { bottom: auto; height: 38px; }
+.block > .card + .card::after { content: ""; position: absolute; left: -26px; top: 25px; width: 22px; height: 0; border-top: 3px solid var(--rel); }
+.tag.rel-kind { text-transform: uppercase; letter-spacing: .04em; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+.card.moot { opacity: .55; }
+.tag.rel-kind.refines { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.rely { font-size: 13px; color: var(--ink-2); margin: 6px 0 0 4px; }
+.rely > div + div { margin-top: 2px; }
+.rely a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.rely a:hover { text-decoration: underline; }
+.rely .ok { color: var(--ok); }
+.rely .neg { color: var(--no); }
+.rely .wait { color: var(--warn); }
 .chip.gap { box-shadow: inset 0 0 0 2px var(--warn); }
 .detail p, .why p { margin: 0; }
 .detail ul, .why ul { margin: 2px 0 0; padding-left: 18px; }
@@ -201,7 +220,6 @@ dialog.help td:first-child { white-space: nowrap; }
 .btable .lift { display: block; width: fit-content; margin-top: 4px; }
 .bridge .accepts { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .bridge .accepts b { color: var(--ink-2); font-weight: 650; }
-.head-constraints { margin-top: 12px; }
 /* Lenses: the header names what a card concerns; a card with both switches its arguments by tab. The bridge never hides */
 .licon { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .lens-chips { display: inline-flex; gap: 4px; margin-left: auto; align-self: center; }
@@ -250,7 +268,8 @@ pre.before { background: var(--del); } pre.after { background: var(--add); }
 .outcome .shots img { max-height: 420px; }
 .figure .ftitle { font-size: 13px; font-weight: 600; }
 .figure .svgwrap { overflow-x: auto; }
-.figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); }
+/* unfilled marks take the text colour, not SVG's default black */
+.figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); fill: currentColor; }
 figcaption { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
 .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 12px; }
 .shots figure { margin: 0; }
@@ -474,13 +493,6 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     sum.appendChild(ul); head.appendChild(sum);
   }
-  // Page constraints, under the summary: they bind every card.
-  if (data.constraints && data.constraints.length) {
-    var pk = el('div', 'summary head-constraints');
-    pk.appendChild(el('div', 'slabel', 'Constraints'));
-    pk.appendChild(constraintList(data.constraints));
-    head.appendChild(pk);
-  }
   // Outcome, right under the summary: the human approves a destination, not a list of steps.
   if (data.outcome && data.outcome.length) {
     var oc = el('section', 'outcome');
@@ -506,16 +518,20 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   }
   if (data.figures && data.figures.length) head.appendChild(figures(data.figures));
 
-  // Sections, in page order: weighty decision groups, tensions, minor items, rejected.
+  // Sections, in page order: weighty decision groups, tensions, minor items, settled, rejected.
   var sections = [];
   function sectionFor(name, folded) {
     for (var i = 0; i < sections.length; i++) if (sections[i].name === name) return sections[i];
     var sec = { name: name, folded: folded, items: [] }; sections.push(sec); return sec;
   }
-  items.filter(function (it) { return it.kind === 'decision' && !it.minor; }).forEach(function (it) { sectionFor(it.group || 'Decisions', false).items.push(it); });
-  items.filter(function (it) { return it.kind === 'tension'; }).forEach(function (it) { sectionFor('Tensions', false).items.push(it); });
-  items.filter(function (it) { return it.kind === 'decision' && it.minor; }).forEach(function (it) { sectionFor('Minor items', true).items.push(it); });
-  items.filter(function (it) { return it.kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
+  // A linked card (it.block = its root's id) belongs to its root's section, right after the root: filters run on home(it).
+  var byIdx = {}; items.forEach(function (it) { byIdx[it.id] = it; });
+  function home(it) { return it.block ? byIdx[it.block] : it; }
+  items.filter(function (it) { return home(it).kind === 'decision' && !home(it).minor; }).forEach(function (it) { sectionFor(home(it).group || 'Decisions', false).items.push(it); });
+  items.filter(function (it) { return home(it).kind === 'tension'; }).forEach(function (it) { sectionFor('Tensions', false).items.push(it); });
+  items.filter(function (it) { return home(it).kind === 'decision' && home(it).minor; }).forEach(function (it) { sectionFor('Minor items', true).items.push(it); });
+  items.filter(function (it) { return home(it).kind === 'settled'; }).forEach(function (it) { sectionFor('Settled without you', true).items.push(it); });
+  items.filter(function (it) { return home(it).kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
 
   // Sidebar: search and filters
   var filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
@@ -583,8 +599,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
 
   // Cards
   var cards = {};
-  var reliedOnBy = {};
-  items.forEach(function (it) { (it.needs || []).forEach(function (id) { (reliedOnBy[id] = reliedOnBy[id] || []).push(it.id); }); });
+  var comesAfter = reverseAfter(items);
   function relLinks(ids) {
     var s = el('span');
     ids.forEach(function (id, i) {
@@ -669,6 +684,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     h.appendChild(el('span', 'card-id', it.id));
     h.appendChild(el('h3', null, it.title));
     if (it.kind !== 'decision') h.appendChild(el('span', 'tag kind', it.kind));
+    if (it.on) h.appendChild(el('span', 'tag rel-kind refines', 'refines ' + it.on.id));
     (it.tags || []).forEach(function (t) { h.appendChild(el('span', 'tag' + (/behavio|risk|money|breaking/i.test(t) ? ' warn' : ''), t)); });
     if (it.lenses) {
       var lc = el('span', 'lens-chips');
@@ -678,20 +694,24 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     c.appendChild(h);
     // Body areas: text and decide on the left, evidence on the right when the screen is wide enough.
     var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
+    // A settled item: the answer first, then who found it and where.
+    if (it.kind === 'settled') {
+      text.appendChild(el('div', 'detail', it.answer));
+      text.appendChild(el('div', 'why', '— ' + it.who + ' · ' + it.source));
+    }
     if (it.detail) text.appendChild(rich('detail', it.detail));
     if (it.why) text.appendChild(rich('why', it.why));
     var gap = el('span', 'rel-gap');
-    if ((it.needs && it.needs.length) || reliedOnBy[it.id]) {
+    // The reliance line: live, filled by render() from what the cards it comes after currently have chosen.
+    var rely = null;
+    if (relyLines(it, items, {}).length) { rely = el('div', 'rely'); text.appendChild(rely); }
+    if (comesAfter[it.id]) {
       var rel = el('div', 'rel');
-      if (it.needs && it.needs.length) {
-        var up = el('div', null, 'Relies on '); up.appendChild(relLinks(it.needs)); rel.appendChild(up);
-      }
-      if (reliedOnBy[it.id]) {
-        var down = el('div'); down.appendChild(relLinks(reliedOnBy[it.id]));
-        down.appendChild(document.createTextNode(reliedOnBy[it.id].length > 1 ? ' rely on this' : ' relies on this')); rel.appendChild(down);
-      }
-      rel.appendChild(gap); text.appendChild(rel);
+      var down = el('div'); down.appendChild(relLinks(comesAfter[it.id]));
+      down.appendChild(document.createTextNode(comesAfter[it.id].length > 1 ? ' come after this' : ' comes after this')); rel.appendChild(down);
+      text.appendChild(rel);
     }
+    text.appendChild(gap);
     var tabs = !!it.lensTabs;
     // On a tabbed card each argument, metric, figure and the code carries its lens; the page shows one lens at a time.
     function lensed(node, lens) { if (tabs) node.dataset.lens = lens; return node; }
@@ -770,7 +790,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();
     c.addEventListener('mousedown', function () { setCurrent(it.id, false); });
-    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, tabs: tb && tb.tabs };
+    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, rely: rely, tabs: tb && tb.tabs };
     if (tb) setCardLens(cards[it.id], 'business');
     return c;
   }
@@ -784,7 +804,15 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       sec.fold.appendChild(sec.summary);
       app.appendChild(sec.fold); host = sec.fold;
     }
-    sec.items.forEach(function (it) { host.appendChild(card(it)); });
+    // A root with linked cards sits in a .block: the root, then its members behind the rail.
+    sec.items.forEach(function (it) {
+      if (it.block) return;
+      var members = sec.items.filter(function (m) { return m.block === it.id; });
+      if (!members.length) { host.appendChild(card(it)); return; }
+      var b = el('div', 'block'); b.appendChild(card(it));
+      members.forEach(function (m) { var mc = card(m); if (m.on) mc.className += ' linked'; b.appendChild(mc); });
+      host.appendChild(b); (sec.blocks = sec.blocks || []).push(b);
+    });
   });
   app.appendChild(empty);
 
@@ -813,6 +841,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         c.card.hidden = !ok; chipsById[it.id].classList.toggle('dim', !!active && !ok);
         if (ok) visible++;
       });
+      // A .block is hidden only when every card in it is hidden.
+      (sec.blocks || []).forEach(function (b) { b.hidden = !visible || !Array.prototype.some.call(b.children, function (k) { return !k.hidden; }); });
       sec.heading.hidden = !visible;
       sec.gname.setAttribute('aria-pressed', String(filters.group === sec.name));
       if (sec.fold) {
@@ -957,17 +987,35 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     items.forEach(function (it) {
       var c = cards[it.id], v = choiceOf(it.id);
       c.buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.value === v)); });
-      c.card.dataset.state = v ? 'decided' : '';
+      var moot = mootBy(it, items, state);
+      c.card.dataset.state = moot ? 'moot' : v ? 'decided' : '';
       var opt = it.options.filter(function (o) { return o.value === v; })[0];
       var chip = chipsById[it.id], dim = chip.classList.contains('dim');
-      var miss = opt && !opt.negative ? missingNeeds(it, items, state) : [];
+      c.card.classList.toggle('moot', !!moot);
+      c.buttons.forEach(function (b) { b.disabled = !!moot; });
+      var miss = opt && !opt.negative && !moot ? missingAfter(it, items, state) : [];
       c.gap.textContent = miss.length ? miss.join(', ') + " not chosen: you'll be asked before " + it.id + ' runs without ' + (miss.length > 1 ? 'them' : 'it') + '.' : '';
-      chip.className = 'chip' + (v ? (opt && opt.negative ? ' neg' : ' done') : '') + (miss.length ? ' gap' : '') + (dim ? ' dim' : '') + (it.id === cur ? ' cur' : '');
-      chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided') + (miss.length ? ' — relies on ' + miss.join(', ') + ', not chosen' : '');
-      if (v) done++;
+      chip.className = 'chip' + (moot ? ' dim' : v ? (opt && opt.negative ? ' neg' : ' done') : '') + (miss.length ? ' gap' : '') + (dim ? ' dim' : '') + (it.id === cur ? ' cur' : '');
+      chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided') + (miss.length ? ' — comes after ' + miss.join(', ') + ', not chosen' : '');
+      if (c.rely) {
+        c.rely.textContent = '';
+        if (moot) {
+          var ml = el('div', 'neg'); ml.appendChild(document.createTextNode('↳ not needed: ')); ml.appendChild(relLinks([moot.id]));
+          ml.appendChild(document.createTextNode(' = ' + moot.label)); c.rely.appendChild(ml);
+        }
+        else relyLines(it, items, state).forEach(function (r) {
+          var ln = el('div', r.label === null ? 'wait' : r.negative ? 'neg' : 'ok');
+          ln.appendChild(document.createTextNode('↳ ' + relyType(it, r.id) + ' '));
+          ln.appendChild(relLinks([r.id]));
+          ln.appendChild(document.createTextNode(r.label === null ? ' — ' : ' — chosen: ' + r.label + ' ✓'));
+          if (r.label === null) ln.appendChild(document.createTextNode('answer it first ↑'));
+          c.rely.appendChild(ln);
+        });
+      }
+      if (v || moot) done++;
     });
     sections.forEach(function (sec) {
-      var n = sec.items.filter(function (it) { return choiceOf(it.id); }).length;
+      var n = sec.items.filter(function (it) { return choiceOf(it.id) || mootBy(it, items, state); }).length;
       sec.count.textContent = n + '/' + sec.items.length;
       sec.fill.style.width = (sec.items.length ? 100 * n / sec.items.length : 0) + '%';
       // "1 minor item", not "1 minor items"
@@ -984,34 +1032,71 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   // Share mode: the prompt the reader pastes into their coding agent on their checkout. Self-contained, so tests load it with node:vm.
   var PROMPT_TEXT = {
     en: { todo: 'To do', choice: 'Choice: ', left: 'Left as is', none: 'Nothing.',
-      needs1: 'Relies on %s, which you did not choose: ask me before doing it without it.', needsN: 'Relies on %s, which you did not choose: ask me before doing it without them.',
+      after1: 'Comes after %s, which you did not choose: ask me before doing it without it.', afterN: 'Comes after %s, which you did not choose: ask me before doing it without them.',
       revived: 'Revived — propose first', revivedRule: 'Do not do these yet: propose each one to me first (scope, size, risk) and wait for my answer.',
       open: 'Undecided — ask me first', openRule: 'Ask me before touching any of these.',
       notes: 'My notes', end: 'Finally',
-      needsCheck1: 'Relies on %s: check it is done; if not, ask me first.', needsCheckN: 'Relies on %s: check they are done; if not, ask me first.',
-      suggestion: 'Reviewer\'s suggestion: ', noteOnly: 'Reviewer\'s note: ', reliesThread: 'Relies on %s (see its thread or the review body).',
+      afterCheck1: 'Comes after %s: check it is done; if not, ask me first.', afterCheckN: 'Comes after %s: check they are done; if not, ask me first.',
+      suggestion: 'Reviewer\'s suggestion: ', noteOnly: 'Reviewer\'s note: ', afterThread: 'Comes after %s (see its thread or the review body).',
       suggestionLabel: 'Suggested change (apply in one click):', suggestionFor: 'Suggested change for «%s» (apply in one click):',
       prompt: 'Correction prompt', promptFor: 'Correction prompt — ',
       howTo: 'One thread per card. To act on one, open its correction prompt, copy it and paste it into your coding agent on the branch.',
+      counts: 'Findings posted — major: %m, minor: %k.', reopened: 'Reopened — to discuss', settled: 'Settled without a question',
       notAnchored: 'Not anchored in the diff', minor: 'Minor', rejected: 'Considered and rejected',
       endText: "Read the repo's agent instructions (AGENTS.md, CLAUDE.md or similar), check the baseline is green, then work through «To do» in order. Stop and ask if a step needs a behavior change it does not list." },
     fr: { todo: 'À faire', choice: 'Choix : ', left: 'Laissé tel quel', none: 'Rien.',
-      needs1: 'Dépend de %s, que tu n\'as pas retenu : demande-moi avant de le faire sans.', needsN: 'Dépend de %s, que tu n\'as pas retenus : demande-moi avant de le faire sans.',
+      after1: 'Vient après %s, que tu n\'as pas retenu : demande-moi avant de le faire sans.', afterN: 'Vient après %s, que tu n\'as pas retenus : demande-moi avant de le faire sans.',
       revived: 'Idées rejetées relancées — propose d\'abord', revivedRule: 'Ne les fais pas encore : propose-les-moi d\'abord (périmètre, taille, risque) et attends ma réponse.',
       open: 'Non tranché — demande-moi d\'abord', openRule: 'Demande-moi avant de toucher à l\'un de ces points.',
       notes: 'Mes notes', end: 'Pour finir',
-      needsCheck1: 'Dépend de %s : vérifie que c\'est fait ; sinon, demande-moi d\'abord.', needsCheckN: 'Dépend de %s : vérifie que c\'est fait ; sinon, demande-moi d\'abord.',
-      suggestion: 'Suggestion du relecteur : ', noteOnly: 'Note du relecteur : ', reliesThread: 'Dépend de %s (voir son fil ou le corps de la revue).',
+      afterCheck1: 'Vient après %s : vérifie que c\'est fait ; sinon, demande-moi d\'abord.', afterCheckN: 'Vient après %s : vérifie qu\'ils sont faits ; sinon, demande-moi d\'abord.',
+      suggestion: 'Suggestion du relecteur : ', noteOnly: 'Note du relecteur : ', afterThread: 'Vient après %s (voir son fil ou le corps de la revue).',
       suggestionLabel: 'Modification suggérée (applicable en un clic) :', suggestionFor: 'Modification suggérée pour « %s » (applicable en un clic) :',
       prompt: 'Prompt de correction', promptFor: 'Prompt de correction — ',
       howTo: 'Un fil par carte. Pour en traiter une, ouvre son prompt de correction, copie-le et colle-le dans ton agent de code, sur la branche.',
+      counts: 'Constats publiés — majeurs : %m, mineurs : %k.', reopened: 'Rouvert — à discuter', settled: 'Réglé sans question',
       notAnchored: 'Hors du diff', minor: 'Mineurs', rejected: 'Envisagés et écartés',
       endText: 'Lis les instructions pour agents du repo (AGENTS.md, CLAUDE.md ou équivalent), vérifie que la base est verte, puis traite « À faire » dans l\'ordre. Arrête-toi et demande si une étape exige un changement de comportement non listé.' }
   };
-  // The ids an item relies on (its "needs") that are not chosen: undecided, a "no work" option, or a rejected item.
-  function missingNeeds(it, items, state) {
-    return (it.needs || []).filter(function (id) {
+  // The ids an item comes after (its "after") that are not chosen: undecided, a "no work" option, or a rejected item.
+  // The live line atop a dependent card: each card it comes after ("after") or refines ("on") and its current choice.
+  function relyLines(it, items, state) {
+    var ids = (it.after || []).slice();
+    if (it.on && ids.indexOf(it.on.id) < 0) ids.push(it.on.id);
+    return ids.map(function (id) {
+      var dep = items.filter(function (x) { return x.id === id; })[0] || {};
+      var c = (state[id] || {}).choice;
+      var opt = (dep.options || []).filter(function (o) { return o.value === c; })[0];
+      return { id: id, label: opt ? opt.label : null, negative: !!(opt && opt.negative) };
+    });
+  }
+  // 'refines' for the card's "on" root, 'after' for any other card it comes after.
+  function relyType(it, id) { return it.on && it.on.id === id ? 'refines' : 'after'; }
+  // id -> ids of the cards that come after it ("after" only: a block child is already visible under its root).
+  function reverseAfter(items) {
+    var m = {};
+    items.forEach(function (it) { (it.after || []).forEach(function (id) { (m[id] = m[id] || []).push(it.id); }); });
+    return m;
+  }
+  // A card with "on" is moot once its root is answered and the choice excludes it: a negative option, an option outside "on.when",
+  // or a root that is itself moot. Returns null, or { id, value, label } of the root's choice.
+  function mootBy(it, items, state) {
+    if (!it.on) return null;
+    var root = items.filter(function (x) { return x.id === it.on.id; })[0];
+    if (!root) return null;
+    var up = mootBy(root, items, state);
+    if (up) return up;
+    var c = (state[root.id] || {}).choice;
+    var opt = (root.options || []).filter(function (o) { return o.value === c; })[0];
+    if (!opt) return null;
+    var w = it.on.when == null ? null : [].concat(it.on.when);
+    if (opt.negative || (w && w.indexOf(c) < 0)) return { id: root.id, value: c, label: opt.label };
+    return null;
+  }
+  function missingAfter(it, items, state) {
+    return relyLines(it, items, state).map(function (r) { return r.id; }).filter(function (id) {
       var dep = items.filter(function (x) { return x.id === id; })[0];
+      if (dep && mootBy(dep, items, state)) return false;
       if (!dep || dep.kind === 'rejected') return true;
       var c = (state[id] || {}).choice;
       return !(dep.options || []).some(function (o) { return o.value === c && !o.negative; });
@@ -1025,7 +1110,9 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     items.forEach(function (it) {
       var s = state[it.id] || {};
       var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
+      if (mootBy(it, items, state)) return;
       if (s.note && s.note.trim()) notes.push('- ' + it.id + ': ' + s.note.trim().replace(/\s+/g, ' '));
+      if (it.kind === 'settled') { if (s.choice === 'reopen') open.push(line(it, it.answer)); return; }
       if (it.kind === 'rejected') {
         if (s.choice === 'revive') revived.push(line(it, Array.isArray(it.why) ? it.why.join('; ') : it.why));
         return;
@@ -1034,8 +1121,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       if (opt.negative) { left.push(line(it, opt.label)); return; }
       var block = ['### ' + it.id + ' — ' + it.title];
       if (custom(it)) block.push(t.choice + opt.label);
-      var missing = missingNeeds(it, items, state);
-      if (missing.length) block.push((missing.length > 1 ? t.needsN : t.needs1).replace('%s', missing.join(', ')));
+      var missing = missingAfter(it, items, state);
+      if (missing.length) block.push((missing.length > 1 ? t.afterN : t.after1).replace('%s', missing.join(', ')));
       block.push('', opt.brief || it.brief || '');
       todo.push(block.join('\n'));
     });
@@ -1053,7 +1140,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
     var block = ['### ' + it.id + ' — ' + it.title];
     if (hasCustomOptions(it)) block.push(t.choice + opt.label);
-    if (it.needs && it.needs.length) block.push((it.needs.length > 1 ? t.needsCheckN : t.needsCheck1).replace('%s', it.needs.join(', ')));
+    if (it.after && it.after.length) block.push((it.after.length > 1 ? t.afterCheckN : t.afterCheck1).replace('%s', it.after.join(', ')));
     block.push('', opt.brief || it.brief || '');
     return [data.preamble || '', '', '## ' + t.todo, '', block.join('\n'), '', '## ' + t.end, t.endText].join('\n');
   }
@@ -1074,7 +1161,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     var note = s.note && s.note.trim() ? s.note.trim().replace(/\s+/g, ' ') : '';
     if (opt) out.push(t.suggestion + opt.label + (note ? ' — ' + note : ''));
     else if (note) out.push(t.noteOnly + note);
-    if (it.needs && it.needs.length) out.push(t.reliesThread.replace('%s', it.needs.join(', ')));
+    if (it.after && it.after.length) out.push(t.afterThread.replace('%s', it.after.join(', ')));
     var sug = suggestionOf(it);
     var emitted = false;
     if (sug && it.at && inDiff) {
@@ -1104,11 +1191,19 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   // The review: { body, comments: [{ id, path, line, body }] }. inDiff(path, line) says whether a comment can sit on that line.
   function buildReview(data, items, state, inDiff, platform) {
     var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
-    var comments = [], unanchored = [], minor = [], rejected = [];
+    var comments = [], unanchored = [], minor = [], rejected = [], settled = [], reopened = [], nMajor = 0, nMinor = 0;
     items.forEach(function (it) {
+      if (it.kind === 'settled') {
+        var st = state[it.id] || {};
+        if (st.choice === 'reopen') reopened.push('- ' + it.id + ' — ' + it.title + (st.note && st.note.trim() ? ' — ' + st.note.trim().replace(/\s+/g, ' ') : ''));
+        else settled.push('- ' + it.id + ' — ' + it.title + ': ' + it.answer + ' (' + it.who + ')');
+        return;
+      }
       if (it.kind === 'rejected') { rejected.push('- ' + it.id + ' — ' + it.title + (it.why ? ' (' + (Array.isArray(it.why) ? it.why.join('; ') : it.why) + ')' : '')); return; }
       var chosen = (it.options || []).filter(function (o) { return o.value === (state[it.id] || {}).choice; })[0];
       if (data.kind === 'review' && chosen && chosen.negative) return; // the reviewer dropped it: not posted
+      if (mootBy(it, items, state)) return;
+      if (it.minor) nMinor++; else nMajor++;
       // Every card whose line is in the diff gets its own thread, minor or not; the body keeps the rest.
       var anchored = it.at && inDiff(it.at.path, it.at.line);
       var ib = itemBlock(data, items, state, it, t, anchored ? inDiff : null, platform);
@@ -1129,7 +1224,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     if (sum.length) body.push(sum.join('\n'));
     body.push(t.howTo);
-    [[t.notAnchored, unanchored, '\n\n'], [t.minor, minor, '\n\n'], [t.rejected, rejected, '\n']].forEach(function (sec) {
+    body.push(t.counts.replace('%m', nMajor).replace('%k', nMinor));
+    [[t.notAnchored, unanchored, '\n\n'], [t.minor, minor, '\n\n'], [t.reopened, reopened, '\n'], [t.settled, settled, '\n'], [t.rejected, rejected, '\n']].forEach(function (sec) {
       if (sec[1].length) body.push('### ' + sec[0] + '\n' + sec[1].join(sec[2]));
     });
     return { body: body.join('\n\n'), comments: comments };
@@ -1139,7 +1235,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   function acceptRecommended(items, state) {
     var n = 0;
     items.forEach(function (it) {
-      if ((state[it.id] || {}).choice) return;
+      if ((state[it.id] || {}).choice || mootBy(it, items, state)) return;
       var rec = it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
       if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec; n++; }
     });
@@ -1151,6 +1247,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     if (mode) lines.push('mode: ' + mode);
     items.forEach(function (it) {
       var s = state[it.id] || {};
+      var moot = mootBy(it, items, state);
+      if (moot) { lines.push(it.id + ' = moot (' + moot.id + ' = ' + moot.value + ')'); return; }
       var line = it.id + ' = ' + (s.choice || 'UNDECIDED');
       // An option that breaks a constraint lifts it: the record says so (bridge.md).
       var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];

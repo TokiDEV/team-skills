@@ -2,6 +2,34 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.11.0 — 2026-10-20
+
+Gate clarity and lean runs (from a post-mortem of six runs on 0.10.x: you answered through free-text notes, gates were bloated, and each run spent 11–47M input tokens).
+
+**Gate page**
+- **Linked cards.** A card that only makes sense within another card's choice carries `on: { "id", "when"? }` and renders in that card's block, right under it, behind a coloured rail, with a chip ("refines D1"). When the root's answer is negative or outside `when` (chains too), the child is moot: greyed, written `M3 = moot (D1 = hand)` in the decisions block, and skipped by *Accept recommended*, the share prompt and the review. A refutation is an `against` argument or a premise correction on the card it refutes. A card whose options the other's answer removes or forces is merged with it into one card of combinations.
+- **Order you can trust.** `needs` is now `after` (work order, no hierarchy; `needs` is still read). The renderer orders the page so nothing shows before what it relies on, and a card shows "↳ after S0 — chosen ✓" or "answer it first ↑"; the other card shows "S2 comes after this". Nothing locks.
+- **Settled without you.** What an agent answered from the code, every `assumed` premise taken as true, every default the orchestrator took, and every question sent to the author's comment fold into a last section, pre-applied **OK** with **Reopen** (`A3 = reopen | note`). A reopened one is an open question.
+- **Constraints on the cards they bind.** The unreadable page-level block is gone, and a constraint binding no card is dropped. A copy of a constraint on several cards keeps one id and stays identical.
+- Triage: a plan step with no decision is minor and approved at once; unanimous, zero-cost structural choices are one card *Confirm the structure*; at most ~7 weighty cards, folded by the writer, never by asking you. A card says what it changes for you, glosses jargon and opens with what exists today.
+- A review's counts in the shared body come from the cards, never typed. An amendment merges into an unanswered gate; `-r<N>` only for one already answered.
+- Old gates that now fail the renderer, and how to fix them: a page-level `constraints` (move each onto the cards it binds); a decision that comes `after` a tension (use `on`); a weighty card after a minor one (drop `minor` on the one it relies on); a card relied on in another decision group, when the dependent's group is already placed above (the page otherwise reorders the groups; put both cards in one group, or link them with `on`); a card relied on in Tensions, Minor or Settled below it (drop `minor` or `settled` on it, or link with `on`). Gates without the new fields render and save as before.
+
+**All skills**
+- **Lean runs.** Agents return asynchronously; while a round is incomplete a notice gets one line (under 10 words) and no tool call. A follow-up needing more than one grep goes to a Sonnet evidence agent, and a record amendment of five lines or fewer is appended directly.
+- `team-protocol` is split: `scope.md`, `execution.md` (Execution, Sweep, Weakened checks), `auto-accept.md` and `lane-handoffs.md` are read only by the step that needs them. Total SKILL.md size does not grow, and the run folder is created after the preconditions pass.
+- **Only real questions reach you.** A question the code answers is answered with `file:line` and goes to *Settled without the CEO*; a negative claim lists what was searched, else it is `unverified`; every `assumed` premise sits in a question or in *Settled*.
+- **Visible choices are yours** (UI placement, wording, flow), as structural choices already were; a spike answers a fact, never such a choice.
+- **Open answers.** An UNDECIDED or a note that asks a question gets one check, then one chat question stating only what the run's files hold; the record says "gate pick X, changed in chat to Y".
+- **Handoff checks.** Before the run folder is deleted, the deliverables are grepped for `runs/` and run-only ids; what is worth keeping goes to `decisions/<name>-sources/`. The commit question names any gitignored file the next phase needs.
+
+**Per skill**
+- team-council: framing lists the *variants* of the decided object and a *glossary* of your terms, used verbatim; the evidence pass runs first, with `file:line`, and lists its own contradictions. Constraints are limited to what cannot be repaired inside the plan (about 8 K); `confirmed` needs a checked source.
+- team-council-plan: traces cite decision ids only, no run-folder paths; about 40 lines per task and 800 per plan, beyond that sub-plans; one fixer per review round; a consolidation pass before approval; Opus executors only for a step marked design-heavy, with the reason.
+- team-review: the forge head SHA is resolved first and a stale local branch is said and offered for alignment; long gates run in parallel; one Recon size cap; a missing tool is `Ungated … (tool missing)`; one verifier for all zones; an optional `Replacement:` line feeds `suggestion`.
+- team-scan: the profile gains `## Environment limits`. team-review and team-refactor offer a scan when the profile is missing; team-council and team-council-plan run it at once.
+- Records: a correction folds into its decision with a one-line *History*; a decision record opens with *Decisions in 10 lines*.
+
 ## 0.10.1 — 2026-10-19
 
 - A review shared on GitHub or GitLab gives every card whose line is in the diff its own thread, minor ones included; the body keeps only the cards it cannot anchor (*Not anchored in the diff*, *Minor*), each with its location. team-review's gate writer may now put a one-click `suggestion` on a minor finding.

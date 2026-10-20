@@ -2,7 +2,7 @@
 
 **Agent-team skills for [Claude Code](https://claude.com/claude-code).** Instead of one model giving one opinion, these skills dispatch a *team* of agents, each in its own isolated context. The agents debate with evidence, a gate kills speculative work, and **you, the CEO, make the final call** on a local HTML decision page. A review can be handed on from there: the owner of the branch you reviewed gets a page to decide on alone.
 
-![The CEO gate: a refactoring backlog with arguments, metrics and before/after code on every card](docs/ceo-view.png)
+![The CEO gate on a refactoring backlog: card S5 refines its root S1, tied to it by a blue rail, with arguments, metrics and before/after code on the cards](docs/ceo-view.png)
 
 ## The skills
 
@@ -14,7 +14,7 @@
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | Bootstraps a brand-new project: vision → scan → council → project brief → initial profile and `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | **Responsibilities, Mechanics, Sequencing, Safety Net and Depth** review scoped code blind for its structure, and a **Minimalist** KISS/YAGNI gate kills speculative abstractions. You approve the backlog; it then runs one behavior-preserving step per commit behind characterization tests. Suspected bugs go to `team-review`. |
 | [`team-review`](skills/team-review/SKILL.md) | **Correctness, Security, Intent and Craft** review a diff or a module blind, and a **Verifier** tries to refute every finding before it is raised. You curate the few that survive, then share them as a review on the merge/pull request, or have them fixed test-first. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). On council, plan and kickoff gates, each card names the lenses it concerns, business or tech, and shows its bridge: the constraints that bind it and what each option gains and costs on each side. A card argued on both sides switches its arguments by tab, and the sidebar filters cards by lens. **Send to Claude** hands your decisions back to the session. **Share**, on review gates only, turns the gate into a page for the owner of the branch you reviewed: they decide alone, starting from your choices, and copy a prompt for their own coding agent. Share asks what they get (the file, a claude.ai link, or a review on the merge/pull request that you submit) and where it goes (you send it, a merge/pull request comment, a prepared email or Slack message). |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Renders any gate as one HTML page: where the work lands beside today's state, then one card per decision with its arguments, metrics, code diff and figures (drawing guide adapted from [diagram-design](https://github.com/cathrynlavery/diagram-design)). On council, plan and kickoff gates, each card names the lenses it concerns, business or tech, and shows its bridge: the constraints that bind it and what each option gains and costs on each side. A card argued on both sides switches its arguments by tab, and the sidebar filters cards by lens. A card that refines another renders inside that card's block, under it, and is skipped once the other's answer makes it moot; a card that merely comes after another is ordered below it, with a live reminder of that answer. What the run settled without you folds into *Settled without you*, each with a Reopen. Constraints live on the cards they bind. **Send to Claude** hands your decisions back to the session. **Share**, on review gates only, turns the gate into a page for the owner of the branch you reviewed: they decide alone, starting from your choices, and copy a prompt for their own coding agent. Share asks what they get (the file, a claude.ai link, or a review on the merge/pull request that you submit) and where it goes (you send it, a merge/pull request comment, a prepared email or Slack message). |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | The shared rules: dispatch, writers, the agent contract, counting positions, the bridge (`bridge.md`: lenses, constraints, trade-offs), structural choices, code scope, the handoff, execution, weakened checks, the off-model seat and `auto-accept`. The other skills load it. |
 
 ## Which skill?
@@ -114,9 +114,9 @@ node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --se
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --accept-recommended
 ```
 
-[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on the page and on a card, an option that breaks one, the bridge, and the lens filter. D1 weighs both lenses and switches them by tab; D2 is tech only and D3 business only, so the filter can hide them.
+[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens filter. D1 weighs both lenses and switches them by tab; D2 is tech only and D3 business only, so the filter can hide them.
 
-![A council gate: page constraints under the summary; card D1 with Business and Tech chips and tabs, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
+![A council gate: card D1 with Business and Tech chips and tabs, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.ceo.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send, or with `--artifact` for a claude.ai Artifact.
 

@@ -1,6 +1,6 @@
 {
   "commit_id": "9b1e4c7a2f3d5e6b8c0a1d2e3f4a5b6c7d8e9f01",
-  "body": "## Review — refund route (acme/shop !142)\n\n- **Verdict**: Not mergeable: one confirmed blocker\n- **Blockers**:\n  - SE-1: any logged-in user can refund any invoice\n- **Not raised**:\n  - med, unsure: the gateway may already reject a refund above the captured amount (CR-4)\n  - outside the diff: src/routes/invoices.js has the same missing ownership check\n- **For team-refactor**:\n  - refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do\n- **Recommendation**:\n  - Request changes\n\nOne thread per card. To act on one, open its correction prompt, copy it and paste it into your coding agent on the branch.",
+  "body": "## Review — refund route (acme/shop !142)\n\n- **Verdict**: Not mergeable: one confirmed blocker\n- **Blockers**:\n  - SE-1: any logged-in user can refund any invoice\n- **Not raised**:\n  - med, unsure: the gateway may already reject a refund above the captured amount (CR-4)\n  - outside the diff: src/routes/invoices.js has the same missing ownership check\n- **For team-refactor**:\n  - refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do\n- **Recommendation**:\n  - Request changes\n\nOne thread per card. To act on one, open its correction prompt, copy it and paste it into your coding agent on the branch.\n\nFindings posted — major: 4, minor: 1.",
   "comments": [
     {
       "path": "src/routes/refunds.js",

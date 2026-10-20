@@ -11,11 +11,13 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 
 ## Preconditions
 
-- **Project profile**: read `.council/project-profile.md`. If it is missing, offer `team-scan` and stop until it has run.
+- **Project profile**: read `.council/project-profile.md`. If it is missing, run `team-scan` at once, announced in one line.
 - **Decision framing**: every role gets the same framing, so a skewed one skews them all. Write your read of it:
   - the question, the options on the table, what is out of scope, and whether it is reversible;
   - **the facts every role will assume**: who the user is, their platform and locale (OS, language, keyboard layout), and what the work may add: fixes only, or new features too. Back each one with a file or the profile, or mark it *unchecked*;
   - **the constraints**: each limit that removes options and passes the test "what happens if we break it?" (`team-protocol` § *Bridge*), with its lens and its source (a file, a record, or the user's words), or marked *unchecked*. Those of an earlier decision on the same question, and the profile's standing ones (its `## Constraints`, `KS<n>`), come in `confirmed`, with their own source;
+  - **Variants.** Each mode, type or state the decided object comes in (an enum, a flag set at creation); each is a fact or a question.
+  - **Glossary.** The CEO's own terms for the objects in play, written into the decision context; roles and writers use them verbatim. A term that names another object in the project is a question.
   - the answer you expect from the user to each open sub-question;
   - your confidence in that read (a percentage).
 
@@ -36,9 +38,9 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 
 **Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 sources (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
-**Evidence pass**: when the question rests on facts nobody has observed (what the app does today, which commands exist, what a measurement gives), one agent gathers them before Round 1 (agent id `evidence`). Its file goes to every role as a shared input, and its open questions join the question pause. It leaves the project tree as it found it (`team-protocol` agent contract).
+**Evidence pass**: when the question rests on facts nobody has observed, one agent gathers them (agent id `evidence`). It runs before Round 1, and before the restate when a constraint rests on code behaviour. Every claim carries `file:line`; it ends with any two of its own claims that conflict. Its file goes to every role; its open questions join the pause. It leaves the project tree as found (`team-protocol` agent contract).
 
-**Scope control**: each role may invoke only its allowed specialists. Never let a role invoke a tool that modifies state during debate.
+**Scope control**: a role invokes only its allowed specialists, never a tool that modifies state.
 
 ### Roster: who sits
 
@@ -47,7 +49,7 @@ PO, CTO and Philosopher always sit. Add:
 - **Wildcard** when the question is open: the user hasn't named the options, or asks "how should we…". Skip it when the choice is between options already on the table.
 - **Specialists** as above.
 
-Tell the user the roster in one line before dispatching, with the reason for each role left out ("UX out: no user-facing change"). The user can add any role back. The page's *Decision* bullet names who sat.
+Tell the user the roster in one line before dispatching, with the reason for each role left out ("UX out: no user-facing change"); they can add one back. The page's *Decision* bullet names who sat.
 
 **Off-model seat**: the Philosopher, whose job is to test what everyone else assumed. When the profile lists a model CLI, follow *Off-model seat* in `team-protocol` and add its offer to the roster line. The seat stays off-model in both rounds.
 
@@ -72,10 +74,10 @@ CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
 
 ### Round 1 — independent positions (parallel)
-Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke the specialists their role file lists, when a claim needs evidence. Agents may flag questions for the human.
+Dispatch the roster simultaneously. Each agent receives: its role template, the project profile, the decision context, and the roster of other members (but not their output). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile's path, `{DECISION_CONTEXT}` → the confirmed framing, inline, plus the path of any earlier decision and of the evidence file. Agents invoke the specialists their role file lists, when a claim needs evidence, and may flag questions for the human. PO and CTO name the variants their option handles.
 
 ### Question pause
-Collect flagged questions, present them grouped and attributed by role. Every constraint a role marked `assumed` is a question too, asked with that role's guess attached: the answer confirms it or drops it (`bridge.md`). With none flagged, skip the pause.
+Collect flagged questions, present them grouped and attributed by role. Run the `assumed` grep and settle what you can by `team-protocol` § *Settled without the CEO*; ask the rest, each with its role's guess attached (`bridge.md`). With none left, skip the pause.
 
 Save the answers to `<run folder>/ceo-answers.md` in this shape, and feed that file into Round 2 (or the synthesis at one-round depth):
 
@@ -123,7 +125,6 @@ Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<de
 
 - Keep each agent's context lean: profile + decision + role template + `bridge.md` + (Round 2) the specific counterpart positions. Writers get their `templates.md` section and `bridge.md`, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
 - Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.
-- The council is standalone — it needs only a decision context and a profile, and the roles use the specialists the profile lists.
 
 ## Rationalizations
 

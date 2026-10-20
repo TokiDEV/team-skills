@@ -206,27 +206,27 @@ test('--preset rejects an unknown id, an unknown option and a missing file', () 
 });
 
 test('needs stays on share items and on the local page', () => {
-  const file = writeGate(shareGate({ decisions: [{ id: 'S1', title: 'Extract Constant: RATE', brief: 'Do S1.', needs: ['F1'] }, shareGate().decisions[1]] }));
+  const file = writeGate(shareGate({ decisions: [{ id: 'S1', title: 'Extract Constant: RATE', brief: 'Do S1.', after: ['F1'] }, shareGate().decisions[1]] }));
   assert.strictEqual(render(file, '--share').code, 0);
-  assert.deepStrictEqual(pageData(fs.readFileSync(shareOf(file), 'utf8')).items.find(i => i.id === 'S1').needs, ['F1']);
+  assert.deepStrictEqual(pageData(fs.readFileSync(shareOf(file), 'utf8')).items.find(i => i.id === 'S1').after, ['F1']);
   assert.strictEqual(render(file).code, 0);
-  assert.deepStrictEqual(pageData(fs.readFileSync(localOf(file), 'utf8')).items.find(i => i.id === 'S1').needs, ['F1']);
+  assert.deepStrictEqual(pageData(fs.readFileSync(localOf(file), 'utf8')).items.find(i => i.id === 'S1').after, ['F1']);
 });
 
 test('needs rejects unknown ids, itself and non-arrays', () => {
   const bad = needs => {
-    const g = shareGate(); g.decisions[0].needs = needs;
+    const g = shareGate(); g.decisions[0].after = needs;
     return render(writeGate(g));
   };
   let r = bad(['ZZ']);
   assert.strictEqual(r.code, 1);
-  assert.match(r.stderr, /"S1"\.needs names unknown id "ZZ"/);
+  assert.match(r.stderr, /"S1"\.after names unknown id "ZZ"/);
   r = bad(['S1']);
   assert.strictEqual(r.code, 1);
-  assert.match(r.stderr, /"S1"\.needs names itself/);
+  assert.match(r.stderr, /"S1"\.after names itself/);
   r = bad('F1');
   assert.strictEqual(r.code, 1);
-  assert.match(r.stderr, /"S1"\.needs must be an array of ids/);
+  assert.match(r.stderr, /"S1"\.after must be an array of ids/);
 });
 
 test('--channels needs --serve', () => {

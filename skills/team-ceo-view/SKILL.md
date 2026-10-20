@@ -32,10 +32,11 @@ Turns a CEO gate into a local HTML decision page: where the work lands beside to
    S9 = UNDECIDED
    ```
    `T*` lines are tension verdicts (the side the human took, or `defer`). A rejected item comes back as `keep-rejected` or `revive`, and a revived one re-enters the calling skill's flow as a new candidate.
-   A `(lifts K<n>)` after a choice: the CEO took an option that breaks constraint K<n>, which lifts it (`team-protocol` § *Bridge*); the calling skill's record writer records the lift. With no note on that line, ask once for the reason, in one line, to record as their words.
+   A `(lifts K<n>)` after a choice: the CEO took an option that breaks constraint `K<n>`, which lifts it (`team-protocol` § *Bridge*); the calling skill's record writer records the lift. With no note on that line, ask once for the reason, in one line, to record as their words.
+   `= reopen` on a settled item: that answer is open again; ask it in chat like an UNDECIDED. `= moot (D1 = x)`: the card is dropped; record it `moot`. `= ok`: nothing to do.
    Any `UNDECIDED` → ask about just those, in chat.
    A choice on an item tagged `corrects <premise>` that is not its recommended option → before recording it, ask once, in plain words and without code identifiers: what the page found, and whether the human still wants that option.
-   A chosen item whose `needs` (in the gate JSON) holds an item that is not chosen (declined, deferred, undecided, rejected) → before recording, ask once: what it relies on, what doing it without that means, and the alternatives (choose that item too, drop this one, or go ahead anyway).
+   A chosen item whose `after` (in the gate JSON) holds an item that is not chosen (declined, deferred, undecided, rejected) → before recording, ask once: what it comes after, what doing it without that means, and the alternatives (choose that item too, drop this one, or go ahead anyway).
    A `mode: auto-accept` block → also ask about every item tagged `corrects <premise>`, whatever its choice: the human has not seen what the page found. All these questions go in one chat message.
 5. **Record** the decisions (with notes) into the `.md` record through the calling skill's record writer, then continue the calling skill's flow. A `mode: auto-accept` block: the writer adds *"Auto-accepted: every recommendation taken without opening the page"* to the record, beside any answers given in chat.
 
@@ -45,7 +46,7 @@ Turns a CEO gate into a local HTML decision page: where the work lands beside to
 - `<gate>.share.txt`: the `CEO SHARE` block, saved by the Share dialog.
 - `<gate>.share.html` (`--share`) and `<gate>.share.artifact.html` (`--artifact`): the page for the reader.
 - `<gate>.review.github.json` or `<gate>.review.gitlab/`: the pending review (`--review=`).
-- `<topic>-plan-r<N>.ceo.json`: a team-council-plan re-gate after an amendment, with its own `.html` and `.decisions.txt`.
+- `<topic>-plan-r<N>.ceo.json`: a team-council-plan re-gate after an amendment, with its own `.html` and `.decisions.txt`. An amendment merges into the gate while it is unanswered; write `-r<N>` only for a gate already answered.
 - `YYYY-MM-DD-<topic>/`: the sketches and screenshots the page embeds.
 
 `.council/gates/` can be committed or gitignored: the decisions live in the `.md` record, and the page regenerates from its JSON.
@@ -73,7 +74,7 @@ For a team-review gate. On someone else's branch, Share hands the review to the 
    - If the claude.ai Slack or Gmail connector is connected, you may offer to send the prepared message yourself, after the human's "ok".
    Never edit the page by hand: fix the JSON and re-render.
 4. **Record:** the line goes to the review record, through team-review's record writer: `Shared YYYY-MM-DD as <file|link|review> via <route> (<destination>). Decisions left to the branch owner.` For a review: `Shared YYYY-MM-DD as review via review (pending on !<iid>).`
-5. **Tell the human**, in their language: what you did or prepared (the path, the link, the posted comment's URL, or the pending review on !<iid> / #<n> to submit, the mail link, the Slack message), what the reader does next, and the briefs that say "ask me first", by finding id.
+5. **Tell the human**, in their language: what you did or prepared (the path, the link, the posted comment's URL, or the pending review on `!<iid> / #<n>` to submit, the mail link, the Slack message), what the reader does next, and the briefs that say "ask me first", by finding id.
 
 ## Who calls this
 

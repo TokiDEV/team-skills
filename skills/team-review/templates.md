@@ -6,7 +6,7 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 ## Review Brief (Recon)
 
-The *only* shared context for the seats, so the seats don't each re-read the same files. Its length and its gate-command rule: `team-protocol` § *Code scope*. It holds:
+The *only* shared context for the seats, so the seats don't each re-read the same files. Its size cap and gate-command rule: `team-protocol` § *Code scope*. It holds:
 - **Scope**: the changed line ranges per file (`git diff --unified=0`), so seats can tell new code from old; the reviewed commit's full SHA; for an MR/PR, its refs (base, start, head SHAs) from the run folder.
 - **Intent**, from the first that exists, with its source named: the MR/PR title and description and its linked ticket (`gh pr view <n> --json title,body`, `glab mr view <iid>`); the commit messages; a matching `.council/decisions/` record and its plan. None → write `Intent: none found`; the orchestrator asks the user.
 - **Intake only**: in place of *Intent*, the refactor records' paths and their *For team-review* lines, copied as written.
@@ -28,7 +28,8 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 - Scenario: <the concrete input, state or call where it breaks, and what happens>
 - Evidence: <cited lines, opened in source, not only quoted from the Review Brief>
 - Refutation: <what you checked that could have proved this wrong — the guard, the caller, the test — and what you found>
-- Fix: <the fix; when it is an exact replacement of a few lines at one place, the line range and the new text verbatim: the gate writer may make it a one-click suggestion (`contract.md` § *Field rules*). When two fixes are defensible, both, as `(a) …` and `(b) …`, each saying what behavior or data it keeps and what it loses>
+- Fix: <the fix. When two fixes are defensible, both, as `(a) …` and `(b) …`, each saying what behavior or data it keeps and what it loses>
+- Replacement: <optional: the exact new lines at one place, ≤ ~10, for a one-click suggestion>
 - Severity: <blocker | major | minor>
 - Confidence: <high|med|low> (by `counting.md` § *Confidence*; a low card skips the verifier and goes to *Not raised*)
 ```
@@ -79,12 +80,12 @@ Security: <seated | not seated (no trust boundary) | intake: no seats>
 
 ### Findings
 [Ranked blocker → major → minor, at most ~15. Each: the card's fields in full
-(title, Lens, In diff, Scenario, Evidence, Fix, Severity), its seat, the
+(title, Lens, In diff, Scenario, Evidence, Fix, Replacement when present, Severity), its seat, the
 verifier's verdict with its Checked, Found and Scenario lines, and its
 *Options* line, its `Tags:` line when it has one, and a `Needs: <card ids>` line when its fix assumes another finding fixed first]
 
 ### Refuted
-[<card id> — what refuted it, from the verdict]
+[<card id> — one line: what refuted it, from the verdict]
 
 ### Not raised
 [One line each: UNSURE cards (now med), low cards, findings over the cap,
@@ -105,12 +106,14 @@ the seats' *Not raised* lines (defects outside the diff)]
 ## Gate page (gate writer)
 
 Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "review"`:
-- `summary`: labelled bullets *Verdict*, *Blockers*, *Not raised*, *For team-refactor*, *Recommendation*. `source` is the review record, `.council/reviews/YYYY-MM-DD-<topic>.md`.
+- `summary`: labelled bullets *Verdict*, *Blockers*, *Not raised*, *For team-refactor*, *Recommendation*; no card counts (the renderer adds them). `source` is the review record, `.council/reviews/YYYY-MM-DD-<topic>.md`.
 - **Each finding is a decision**, `id` its card id, `tags` its lens and severity, `detail` its evidence and scenario, `why` its stakes. Its options are its *Options* line: **fix** (`recommended: true`, with its `brief`), or **fix-a** and **fix-b**, each with its own `brief` and `recommended: true` only on the one the line recommends; and **leave** (`negative: true`, no brief: the human's note gives the reason). A `corrects <premise>` tag goes in `tags`.
 - Blocker and major: major decisions. Minor: `minor: true`. `default` is the *Options* line's default or recommended fix, and absent when it recommends none.
 - `at` on each finding: its file and line at the reviewed commit, as in its card.
-- `suggestion` (`contract.md` § *Field rules*) on any finding whose card's fix is exact, at `at`, minor included: every finding whose line is in the diff gets its own thread.
-- `needs` from the finding's `Needs:` line.
+- `after` from the finding's `Needs:` line.
+- `suggestion`: the card's `Replacement:` line, copied.
+- Threads: every finding whose line is in the diff gets its own.
+- `settled`: author-intent questions on someone else's branch, `who` the seat, `answer` "asked the author".
 - Refuted cards stay off the page: the record lists them.
 
 Write the share fields by `contract.md` § *Share fields* on every review gate, whoever owns the branch. The record does not exist yet: the synthesis stands in for the review record that section says to read first. The fix briefs feed the exec brief too, so write each one for an executor who never sees the page. Render the page until it passes.

@@ -95,11 +95,11 @@ test('--channels reaches the served page without changing its _rev', async t => 
   assert.strictEqual(plain.channels, undefined);
 });
 
-test('the template links needs both ways and flags a chosen item whose needs are not chosen', () => {
+test('the template links after both ways and flags a chosen item whose after ids are not chosen', () => {
   const html = fs.readFileSync(TEMPLATE, 'utf8');
-  assert.match(html, /missingNeeds\(it, items, state\)/);
-  assert.ok(html.includes(' rely on this'));
-  assert.ok(html.includes('Relies on '));
+  assert.match(html, /missingAfter\(it, items, state\)/);
+  assert.ok(html.includes(' come after this'));
+  assert.ok(html.includes('after '));
   assert.ok(html.includes("you'll be asked before"));
   assert.ok(html.includes('.chip.gap {'));
 });
@@ -108,4 +108,9 @@ test('the Share dialog forces the review route when the reader gets a review', (
   const html = fs.readFileSync(TEMPLATE, 'utf8');
   assert.match(html, /sel\.as === 'review'/);
   assert.match(html, /sel\.via = 'review'/);
+});
+
+test('the template makes unfilled figure marks take the text colour', () => {
+  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  assert.match(html, /\.figure svg \{[^}]*fill: currentColor;/);
 });

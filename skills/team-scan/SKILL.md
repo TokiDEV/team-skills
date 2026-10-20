@@ -5,7 +5,7 @@ description: Use before the first team-council, team-council-plan, team-kickoff,
 
 # team-scan
 
-Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints` and `## Known flakes`, which it keeps (see *Procedure*); git tracks history.
+Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes` and `## Environment limits`, which it keeps (see *Procedure*); git tracks history.
 
 ## What to detect
 
@@ -28,7 +28,7 @@ Produces the project profile that every council skill reads. Run it once per pro
 
 1. Confirm the target directory (default: cwd).
 2. Gather the signals above with read-only tools. Prefer batched, non-interactive commands; do not modify project files other than the profile.
-3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes` lines as they are too.
+3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes` and `## Environment limits` lines as they are too.
 4. Report a one-line summary and the profile path.
 
 ## Output: `.council/project-profile.md`
@@ -73,6 +73,10 @@ Standing `tech` constraints (`team-protocol` § *Bridge*), one line each, ids st
 ## Known flakes
 Tests that fail, then pass on a rerun, one line each; an executor counts a red one as green only when its brief lists it (`team-protocol` § *Execution*):
 - <test name or file:line> — <what makes it flaky, e.g. wall-clock timing under load> — <first seen: record path>
+
+## Environment limits
+What this machine or sandbox cannot run (sandbox limits, missing tools), one line each; a gate that needs one is `Ungated`:
+- <limit> — <the gate it blocks>
 ```
 
 ## Notes

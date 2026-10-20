@@ -101,9 +101,9 @@ test('buildItemPrompt: preamble, choice, brief, closing line, needs', () => {
   assert.ok(p.includes('Use Math.round.'));
   assert.ok(p.includes('## To do\n\n### F1 — Rounding rule\nChoice: Round'));
   assert.match(p, /## Finally\nRead the repo's agent instructions[^\n]*$/);
-  const g = shareGate(); g.decisions[1].needs = ['S1'];
+  const g = shareGate(); g.decisions[1].after = ['S1'];
   const q = load({ decisions: g.decisions }).prompt('F1', 'round');
-  assert.ok(q.includes('Relies on S1: check it is done; if not, ask me first.'));
+  assert.ok(q.includes('Comes after S1: check it is done; if not, ask me first.'));
 });
 
 test('lang fr', () => {

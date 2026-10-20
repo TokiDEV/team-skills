@@ -1,6 +1,6 @@
 ---
 name: team-refactor
-description: Use when code needs refactoring or cleanup, or its structure judged — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code. Not for bugs, security or whether a change can merge: team-review.
+description: "Use when code needs refactoring or cleanup, or its structure judged — god functions, tangled responsibilities, duplication, over-engineering, legacy code without tests, or code that resists the next change. Also when the user invokes Uncle Bob, Fowler, Beck, Feathers, Ousterhout, SOLID, KISS, YAGNI or clean code on existing code. Not for bugs, security or whether a change can merge: team-review."
 ---
 
 # team-refactor

@@ -50,6 +50,7 @@ In Round 1, analyze the decision's underlying assumptions and name what would fa
 
 ### Trade-offs
 | Option | Gains | Costs | Lens |
+|---|---|---|---|
 [One row per option and lens you can speak to. A cost with no evidence says "estimate"]
 
 ### Constraints

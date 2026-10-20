@@ -12,10 +12,10 @@ function bridgeGate(overrides) {
     kind: 'council',
     title: 'Export',
     source: '.council/decisions/2026-10-14-export.md',
-    constraints: [{ id: 'K1', lens: 'business', text: 'Live before the 1 Dec closing', source: 'CEO, framing', status: 'confirmed' }],
     decisions: [{
       id: 'D1', title: 'Accounting export: build or buy?', lens: 'business',
-      constraints: [{ id: 'K2', lens: 'tech', text: 'No new database in production', source: 'CLAUDE.md:12', status: 'confirmed' }],
+      constraints: [{ id: 'K2', lens: 'tech', text: 'No new database in production', source: 'CLAUDE.md:12', status: 'confirmed' },
+        { id: 'K1', lens: 'business', text: 'Live before the 1 Dec closing', source: 'CEO, framing', status: 'confirmed' }],
       options: [
         { value: 'build', label: 'Build in-house', recommended: true, tradeoff: { business: 'Live mid-November', tech: 'Duplicates the PDF pipeline (debt)' } },
         { value: 'buy', label: 'Third-party service', tradeoff: { business: '200 €/month', tech: 'No debt; one new dependency' }, violates: ['K2'] }
@@ -50,18 +50,18 @@ const plain = (kind, d) => ({ kind, title: 'G', decisions: [Object.assign({ id: 
 test('a council gate with both lenses: entries take the item lens, the bridge holds the item constraint', () => {
   const data = page(bridgeGate());
   const d1 = item(data, 'D1');
-  assert.deepStrictEqual(ids(data.constraints), ['K1']);
+  assert.strictEqual(data.constraints, undefined);
   assert.strictEqual(d1.for[0].lens, 'business');
   assert.strictEqual(d1.against[0].lens, 'tech');
   assert.strictEqual(d1.metrics[0].lens, 'tech');
   assert.strictEqual(d1.lensTabs, true);
   assert.deepStrictEqual(d1.lenses, ['business', 'tech']);
-  assert.deepStrictEqual(ids(d1.bridge), ['K2']);
+  assert.deepStrictEqual(ids(d1.bridge), ['K2', 'K1']);
   assert.strictEqual(d1.accepts, 'PDF pipeline debt, to make the 1 Dec closing');
   assert.deepStrictEqual(d1.options[1].violates, ['K2']);
 });
 
-test('a page constraint shows on the bridge of a card whose option violates it', () => {
+test('an item constraint an option violates shows on its bridge', () => {
   const g = bridgeGate(); g.decisions[0].options[1].violates = ['K2', 'K1'];
   assert.deepStrictEqual(ids(item(page(g), 'D1').bridge), ['K2', 'K1']);
 });
@@ -112,15 +112,15 @@ test('tabs: a lens-free item keeps no lens, even with code', () => {
 });
 
 test('a tension side carries its trade-off and the constraints it breaks', () => {
-  const g = bridgeGate({ tensions: [{ topic: 'Ship a sync too?', lens: 'business', accepts: 'Users download a file for now', sides: [
+  const g = bridgeGate({ tensions: [{ topic: 'Ship a sync too?', lens: 'business', constraints: [{ id: 'K1t', lens: 'business', text: 'Live before the 1 Dec closing', source: 'CEO, framing', status: 'confirmed' }], accepts: 'Users download a file for now', sides: [
     { who: 'PO', position: 'Later.', recommended: true, tradeoff: { business: 'One feature at a time' } },
-    { who: 'UX', position: 'Now.', tradeoff: { business: 'Users never download' }, violates: ['K1'] }
+    { who: 'UX', position: 'Now.', tradeoff: { business: 'Users never download' }, violates: ['K1t'] }
   ] }] });
   const t1 = item(page(g), 'T1');
   const ux = t1.options.find(o => o.value === 'UX');
-  assert.deepStrictEqual(ux.violates, ['K1']);
+  assert.deepStrictEqual(ux.violates, ['K1t']);
   assert.deepStrictEqual(ux.tradeoff, { business: 'Users never download' });
-  assert.deepStrictEqual(ids(t1.bridge), ['K1']);
+  assert.deepStrictEqual(ids(t1.bridge), ['K1t']);
   delete g.tensions[0].accepts;
   rejects(g, /tensions\[0\] \("T1"\) recommends an option with a "tradeoff" but has no "accepts"/);
 });
@@ -137,18 +137,18 @@ test('on a lensed item, an entry with no lens of its own and none from the item 
   rejects(g, /decisions\[0\]\.for\[0\] has no lens and its item none to give/);
 });
 
-test('constraints need every field, a known lens and status, and a unique id', () => {
+test('constraints need every field, a known lens and status, and one id for identical copies only', () => {
   const a = bridgeGate(); delete a.decisions[0].constraints[0].source;
   rejects(a, /decisions\[0\]\.constraints\[0\] needs "id", "text" and "source"/);
-  const b = bridgeGate(); b.constraints[0].lens = 'legal';
-  rejects(b, /constraints\[0\] \("K1"\)\.lens must be one of business, tech/);
-  const c = bridgeGate(); c.constraints[0].status = 'maybe';
-  rejects(c, /constraints\[0\] \("K1"\)\.status must be one of confirmed, assumed, contested/);
+  const b = bridgeGate(); b.decisions[0].constraints[1].lens = 'legal';
+  rejects(b, /constraints\[1\] \("K1"\)\.lens must be one of business, tech/);
+  const c = bridgeGate(); c.decisions[0].constraints[1].status = 'maybe';
+  rejects(c, /constraints\[1\] \("K1"\)\.status must be one of confirmed, assumed, contested/);
   const d = bridgeGate(); d.decisions[0].constraints[0].id = 'K1';
-  rejects(d, /duplicate constraint id "K1"/);
+  rejects(d, /constraint "K1" differs/);
 });
 
-test('violates names constraints on the page or the item', () => {
+test('violates names constraints on the item', () => {
   const a = bridgeGate(); a.decisions[0].options[1].violates = ['K9'];
   rejects(a, /decisions\[0\] \("D1"\) option "buy" violates unknown constraint "K9"/);
   const b = bridgeGate(); b.decisions[0].options[1].violates = 'K2';
@@ -185,14 +185,15 @@ test('a recommended option never violates a constraint, whatever its status', ()
 
 test('a default option never violates a constraint', () => {
   const g = bridgeGate();
-  g.decisions.push({ id: 'D2', title: 'Cache the export', minor: true, default: 'cache', options: [
-    { value: 'cache', label: 'Cache it', violates: ['K1'] }, { value: 'skip', label: 'Skip' }
+  g.decisions.push({ id: 'D2', title: 'Cache the export', minor: true, default: 'cache', constraints: [{ id: 'K3', lens: 'business', text: 'Exports are never cached', source: 'CEO', status: 'confirmed' }], options: [
+    { value: 'cache', label: 'Cache it', violates: ['K3'] }, { value: 'skip', label: 'Skip' }
   ] });
-  rejects(g, /decisions\[1\] \("D2"\) option "cache" is the default but violates K1/);
+  rejects(g, /decisions\[1\] \("D2"\) option "cache" is the default but violates K3/);
 });
 
 test('--preset reads a choice that lifts a constraint', () => {
-  const gate = shareGate({ constraints: [{ id: 'K9', lens: 'business', text: 'Invoices already sent stay as they are', source: 'CEO, framing', status: 'confirmed' }] });
+  const gate = shareGate();
+  gate.decisions[1].constraints = [{ id: 'K9', lens: 'business', text: 'Invoices already sent stay as they are', source: 'CEO, framing', status: 'confirmed' }];
   gate.decisions[1].options[1].violates = ['K9'];
   const file = writeGate(gate);
   const preset = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'ceo-preset-')), 'g.share.txt');

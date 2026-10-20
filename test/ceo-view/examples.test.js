@@ -45,10 +45,10 @@ test('the council example shows both lenses, its constraints, and auto-accept li
   assert.strictEqual(render(file).code, 0);
   const data = pageData(fs.readFileSync(file.replace(/\.ceo\.json$/, '.html'), 'utf8'));
   const byId = Object.fromEntries(data.items.map(it => [it.id, it]));
-  assert.deepStrictEqual(data.constraints.map(k => k.id), ['K1', 'KS1']);
+  assert.strictEqual(data.constraints, undefined);
   assert.deepStrictEqual(byId.D1.bridge.map(k => k.id), ['K2']);
   assert.deepStrictEqual(byId.D2.bridge.map(k => k.id), ['KS1']);
-  assert.deepStrictEqual(byId.D3.bridge.map(k => k.id), ['K1']); // a page constraint its option breaks
+  assert.deepStrictEqual(byId.D3.bridge.map(k => k.id), ['K1']); // a constraint its option breaks
   assert.strictEqual(byId.D1.lensTabs, true);
   // A one-lens card has no tabs; its header names the lens, and the lens filter can hide it.
   assert.deepStrictEqual(byId.D1.lenses, ['business', 'tech']);
