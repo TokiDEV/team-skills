@@ -2,6 +2,29 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.13.0 — 2026-10-21
+
+The gate page is redesigned as a decision console: one screen to move through the cards, weigh them and answer.
+
+**Layout**
+- **Three panes.** Left, the list of every card by section; centre, the current card (what's at stake, details, For and Against with each point tagged Business or Tech, your choice with keycaps, a note); right, the evidence (constraints, one trade-off table with Business and Tech columns, numbers, code before and after, suggestion, location, figures). Arguments appear only in the centre. A card whose only evidence is a location spans the evidence column.
+- **Rails.** In the list, a solid elbow means a card refines another (`on`), a dashed one that it needs another first (`after`). Each row carries a status mark and word, and lens marks. Search and a Filter menu sit above it.
+- **Lenses.** A *Both | Business | Tech* switch narrows the evidence pane; `l` cycles it, `b` and `t` pick one.
+- **Colours keep one meaning each.** Amber marks the recommended option only, green what you chose, red blockers and lifted constraints. For and Against keep their blue and copper, never the green and red of a code diff; Tech is teal so it never reads as For.
+- **A collapsible list.** The list narrows to a rail (marks and ids) or hides entirely, by the buttons on the pane or `[`; the state is remembered per gate.
+- **Top bar and summary.** Title, kind, date, record, *Decided n of m*, Reset, Accept recommended, Send to Claude (served) or Copy decisions, Share (review gates), Keys. A one-line summary strip opens *Full summary* (summary, outcome and figures) as a *Summary* item at the top of the list.
+- **Dark only.** On phones: Cards, Card and Evidence tabs and a bottom bar.
+
+**Keys**
+- `←` `→` `↑` `↓` `j` `k` move, `1`–`9` choose, `Enter`, `Tab` / `Shift+Tab` step through options, `u` next to decide, `n` note, `r` recommended, `l` lens, `b` / `t` Business / Tech, `a` accept recommended, `s` send (served), `c` copy, `z` full summary, `/` search, `[` list pane, `Esc`, `?` keys.
+
+**Behaviour**
+- `Tab` cycles the options only while focus is on an option or nowhere.
+- The list follows the dependency tree order.
+- `u` skips cards no longer needed.
+- Minor, settled and rejected sections are rows marked "Defaults applied, open to change." instead of folded boxes.
+- README screenshots retaken; skill docs describe the new page.
+
 ## 0.12.0 — 2026-10-21
 
 Two review gaps: breakage outside the diff, and scale judged without a load.

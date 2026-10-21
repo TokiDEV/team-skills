@@ -1,0 +1,382 @@
+---
+name: CEO Gate
+description: A calm decision console. Three panes and one cursor, dark only.
+colors:
+  ground: "#161514"
+  panel: "#201e1c"
+  raised: "#2a2825"
+  cur: "#34312d"
+  edge: "#2f2c29"
+  line: "#77716a"
+  foot: "#24221f"
+  rail: "#6c665f"
+  rail-lit: "#e6e1d9"
+  ink: "#eeeae4"
+  ink-2: "#c6c0b7"
+  ink-3: "#a8a198"
+  amber: "#e8b65c"
+  amber-bg: "#3a2f1c"
+  green: "#93d18c"
+  green-bg: "#1f2b1d"
+  red: "#f09080"
+  red-bg: "#33201c"
+  biz: "#d9a8e8"
+  biz-bg: "#2e2433"
+  tech: "#72cfc0"
+  tech-bg: "#1a2d2a"
+  pro: "#9db6ff"
+  pro-bg: "#1b2440"
+  con: "#e8935a"
+  con-bg: "#36220f"
+typography:
+  headline:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "27px"
+    fontWeight: 650
+    lineHeight: 1.25
+    letterSpacing: "-0.012em"
+  title:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "18px"
+    fontWeight: 650
+    lineHeight: 1.3
+    letterSpacing: "-0.005em"
+  lead:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "18px"
+    fontWeight: 400
+    lineHeight: 1.5
+  pane-title:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "16px"
+    fontWeight: 650
+  body:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.55
+  control:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "14.5px"
+    fontWeight: 550
+  label:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "13.5px"
+    fontWeight: 650
+  caption:
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI Variable Text\", \"Segoe UI\", \"Noto Sans\", \"Adwaita Sans\", Cantarell, Ubuntu, \"Helvetica Neue\", Arial, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+  mono-id:
+    fontFamily: "ui-monospace, \"SF Mono\", \"Cascadia Mono\", \"JetBrains Mono\", \"Noto Sans Mono\", \"DejaVu Sans Mono\", Menlo, Consolas, monospace"
+    fontSize: "12.5px"
+    fontWeight: 600
+  code:
+    fontFamily: "ui-monospace, \"SF Mono\", \"Cascadia Mono\", \"JetBrains Mono\", \"Noto Sans Mono\", \"DejaVu Sans Mono\", Menlo, Consolas, monospace"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.6
+  keycap:
+    fontFamily: "ui-monospace, \"SF Mono\", \"Cascadia Mono\", \"JetBrains Mono\", \"Noto Sans Mono\", \"DejaVu Sans Mono\", Menlo, Consolas, monospace"
+    fontSize: "11.5px"
+    fontWeight: 600
+    lineHeight: 1
+rounded:
+  keycap: "5px"
+  badge: "6px"
+  control-sm: "8px"
+  control: "10px"
+  popover: "12px"
+  panel: "14px"
+  dialog: "16px"
+  pill: "20px"
+spacing:
+  hair: "4px"
+  tight: "6px"
+  sm: "8px"
+  md: "10px"
+  base: "12px"
+  gutter: "14px"
+  edge: "20px"
+  block: "26px"
+  inset: "30px"
+components:
+  button:
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.ink}"
+    typography: "{typography.control}"
+    rounded: "{rounded.control}"
+    padding: "6px 12px 6px 14px"
+    height: "38px"
+  button-hover:
+    backgroundColor: "{colors.raised}"
+  button-primary:
+    backgroundColor: "#3a3631"
+    textColor: "{colors.ink}"
+    typography: "{typography.control}"
+    rounded: "{rounded.control}"
+    padding: "6px 12px 6px 14px"
+    height: "38px"
+  button-primary-hover:
+    backgroundColor: "#45403a"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-2}"
+    rounded: "{rounded.control}"
+    padding: "6px 10px"
+  option:
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.ink}"
+    rounded: "11px"
+    padding: "6px 14px 6px 8px"
+    height: "44px"
+  option-chosen:
+    backgroundColor: "{colors.green-bg}"
+    textColor: "{colors.ink}"
+  recommended-tag:
+    backgroundColor: "{colors.amber-bg}"
+    textColor: "{colors.amber}"
+    rounded: "{rounded.badge}"
+    padding: "0 7px"
+    height: "20px"
+  keycap:
+    backgroundColor: "{colors.ground}"
+    textColor: "{colors.ink-2}"
+    typography: "{typography.keycap}"
+    rounded: "{rounded.keycap}"
+    padding: "0 5px"
+    height: "20px"
+  input:
+    backgroundColor: "{colors.ground}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+    padding: "0 11px"
+    height: "36px"
+  panel:
+    backgroundColor: "{colors.panel}"
+    rounded: "{rounded.panel}"
+  list-row:
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.control}"
+    padding: "3px 10px 3px 36px"
+  list-row-hover:
+    backgroundColor: "{colors.raised}"
+  list-row-current:
+    backgroundColor: "{colors.cur}"
+  tag:
+    backgroundColor: "{colors.raised}"
+    textColor: "{colors.ink-2}"
+    rounded: "7px"
+    padding: "0 9px"
+    height: "24px"
+  tag-blocker:
+    backgroundColor: "{colors.red-bg}"
+    textColor: "{colors.red}"
+  lens-mark-business:
+    backgroundColor: "{colors.biz-bg}"
+    textColor: "{colors.biz}"
+    rounded: "{rounded.pill}"
+    padding: "0 7px 0 6px"
+    height: "20px"
+  lens-mark-tech:
+    backgroundColor: "{colors.tech-bg}"
+    textColor: "{colors.tech}"
+    rounded: "{rounded.pill}"
+    padding: "0 7px 0 6px"
+    height: "20px"
+  lens-switch:
+    backgroundColor: "{colors.ground}"
+    rounded: "{rounded.popover}"
+    padding: "4px"
+  lens-switch-selected:
+    backgroundColor: "{colors.cur}"
+    textColor: "{colors.ink}"
+    rounded: "9px"
+  evidence-box:
+    backgroundColor: "{colors.ground}"
+    rounded: "11px"
+---
+
+# Design System: CEO Gate
+
+## Overview
+
+**Creative North Star: "The Calm Decision Console"**
+
+The gate is an instrument, not a page to read. Three panes share one cursor: the list of every card with its dependency rails on the left, the card being decided in the centre with its choice pinned at the bottom, its evidence by lens on the right. The lineage is the keyboard console (lazygit, tig) translated into plain language: every action has a key, every key is shown on a real keycap, and the screen never scrolls as a whole; only panes scroll inside a fixed frame.
+
+The world is a warm lifted dark. The ground is near-black with a brown cast, and soft-edged panels sit one step above it, so the three working areas read as objects on a desk rather than regions of one sheet. Colour is almost absent. What colour there is carries meaning, one meaning per hue: amber for the recommendation, green for what has been chosen or improved, red for blockers and lifted constraints, and a violet and a blue for the Business and Tech lenses. Density is that of a tool used for minutes at a time: 15px body, compact rows, no ornament between the eye and the decision.
+
+Dark only. A light theme was built and rejected as glaring; shared pages use the same world.
+
+**Key Characteristics:**
+- Fixed full-viewport frame; panes scroll, the page does not.
+- Warm neutral ladder (ground, panel, raised, cur) carries all hierarchy; colour carries only meaning.
+- One hue per meaning, always paired with a word or a drawn mark.
+- Real controls: bordered buttons with keycaps, a real progress bar, a pressed state you can see.
+- System sans for the interface, monospace only for ids, code, paths and keycaps.
+
+## Colors
+
+A warm brown-grey neutral ladder with five small semantic hues, each lifted to pastel brightness on the dark and given a matching deep tint for fills.
+
+### Primary
+- **Recommendation Amber** (amber, with amber-bg fill): marks the recommended option and nothing else: the border of the recommended choice and its "Recommended" tag. It is the rarest colour on screen.
+
+### Secondary
+- **Chosen Green** (green, with green-bg fill): what the human decided or what got better. Chosen option fill and ring, the progress fill, "Decided" status words, satisfied relations, improving metrics, added diff lines.
+- **Blocker Red** (red, with red-bg fill): what stops or costs. Blocker severity, lifted constraints, an undecided base under a chosen card, worsening metrics, removed diff lines.
+
+### Tertiary
+- **For Blue** (pro, with pro-bg fill): the For sign. Arguments never take the green and red of a code diff.
+- **Against Copper** (con, with con-bg fill): the Against sign. Copper, not amber: amber stays "Recommended".
+- **Business Violet** (biz, with biz-bg fill): the Business lens mark, tag and column label.
+- **Tech Teal** (tech, with tech-bg fill): the Tech lens mark, tag and column label. Teal, so it never reads as For Blue.
+
+### Neutral
+- **Ground** (ground): the page, and recessed wells inside panels (inputs, the lens switch, evidence boxes, keycaps).
+- **Panel** (panel): the three panes, the summary strip, dialogs, resting buttons and options.
+- **Raised** (raised): hover fill, inline code, tags, relation rows, popover menus.
+- **Cursor** (cur): the current row, a pressed pill or lens, the selected tab. One step above raised.
+- **Foot** (foot): the pinned "Your choice" bar and the accepted-by footer, a half step above panel.
+- **Edge** (edge): hairline dividers and panel borders; barely there.
+- **Line** (line): control borders (buttons, inputs, options), the current-row ring, link underlines. The only neutral meant to be seen as a stroke.
+- **Rail / Rail Lit** (rail, rail-lit): dependency rails in the list at rest and when the cursor's family lights them.
+- **Ink / Ink 2 / Ink 3** (ink, ink-2, ink-3): primary text; secondary text, labels and section heads; tertiary text, counts, hints and placeholders.
+
+### Named Rules
+**The One Meaning Per Hue Rule.** Each semantic hue means one thing across the whole gate. Amber is never decoration, green is never a brand colour, red is never emphasis.
+
+**The Word Beside The Colour Rule.** No state is carried by colour alone: status is a drawn mark plus a word ("To decide", "Blocker", "Recommended"), lenses are an icon plus a name.
+
+**The Tint Pair Rule.** A semantic fill uses its own deep tint (amber-bg, green-bg, red-bg, pro-bg, con-bg, biz-bg, tech-bg) with the bright hue as text; never the bright hue as a fill under ink.
+
+## Typography
+
+**Interface Font:** the platform system sans (system-ui, falling back through Segoe UI Variable, Noto Sans, Cantarell, Helvetica Neue, Arial)
+**Mono Font:** the platform monospace (ui-monospace, falling back through SF Mono, Cascadia Mono, JetBrains Mono, Menlo, Consolas)
+
+**Character:** Native and quiet: the gate must render offline inside an Artifact sandbox with no font fetch, so it speaks in the reader's own system face and earns hierarchy through weight (400, 550, 600, 650) and the neutral ladder rather than through a typeface.
+
+### Hierarchy
+- **Headline** (650, 27px, 1.25, -0.012em, balanced, max 36ch): the current card's title. 22px on phones.
+- **Title** (650, 18px, 1.3): the gate title in the top bar; ellipsised to one line.
+- **Lead** (400, 18px, 1.5, max 62ch): "What's at stake" and the summary answer.
+- **Pane title** (650, 16px): the list pane heading.
+- **Body** (400, 15px, 1.55, prose max 68ch): details, arguments, the note.
+- **Control** (550, 14.5px): buttons, options (15px), list row titles, relation rows, lens switch (14px).
+- **Label** (650, 13.5–15px, ink-2): block heads ("Details", "Your choice"), evidence heads, section names in the list, argument authors. Sentence case.
+- **Caption** (400, 13px, ink-3): counts, hints, figure captions, the key legend.
+- **Mono id** (600, 12.5px mono): card ids in rows and constraints; 14px inside the headline's id chip.
+- **Code** (400, 13px/1.6 mono): diffs and code blocks; inline code at 0.88em on a raised chip.
+- **Keycap** (600, 11.5px mono): every keyboard hint.
+
+### Named Rules
+**The Mono Means Machine Rule.** Monospace is reserved for ids, file paths, code and keycaps. Prose, labels and numbers stay in the sans.
+
+**The Tabular Count Rule.** Every count and figure that changes (progress, section counts, metrics) uses tabular numerals.
+
+**The Sentence Case Rule.** Every label is sentence case at normal tracking. Nothing is set in capitals or letter-spaced.
+
+## Layout
+
+A fixed 100dvh grid: top bar, a one-line summary strip, the three panes, and a quiet key legend at the foot. Only panes scroll. The page edge is 20px, panes sit 14px apart.
+
+- **Wide (above 1400px):** list 400px, card fluid, evidence 460px. A card marked wide spans card and evidence columns.
+- **1400px and below:** list 340px, evidence 400px; top-bar keycaps drop.
+- **1180px and below:** the top bar wraps: title on its own line, progress stretches.
+- **Tablet (761–1100px):** list beside the card; evidence stacks under the card (3:2 rows); For/Against stack.
+- **Phone (760px and below):** one pane at a time, chosen by a segmented tab bar; progress and actions pin to the bottom; the card scrolls as one with "Your choice" following the arguments; touch navigation replaces the key legend.
+- **640px and below:** the trade-off table becomes one block per option, each cost labelled by its lens.
+
+The list collapses to a 116px rail (status marks, rails and ids only) or closes entirely; the centre and evidence take the room.
+
+Spacing rhythm is small and even: 4–14px inside components, 26px between blocks in the card, 30px card inset (22px tablet, 18px phone).
+
+**The Evidence Beside The Choice Rule.** Arguments live only in the centre; evidence lives only in the right pane; neither is ever behind a click or a disclosure.
+
+## Elevation & Depth
+
+Depth is tonal first. Hierarchy comes from the neutral ladder (ground, panel, foot, raised, cur), each step a few points lighter, plus hairline edges. A single soft shadow lifts the panes off the ground; everything else is flat, and rings are inset strokes, not shadows.
+
+### Shadow Vocabulary
+- **Pane lift** (`box-shadow: 0 1px 0 rgba(255,255,255,.025) inset, 0 10px 28px -16px rgba(0,0,0,.7)`): the three panes only. A top highlight and a low diffuse fall.
+- **Inset ring** (`box-shadow: inset 0 0 0 1px <colour>`): the current row and selected lens (line), the chosen option (green), a gap row (red at 60%), the progress track (edge).
+- **Dialog scrim** (`background: rgba(10,9,8,.72)`): behind keys, share and zoom dialogs.
+
+### Named Rules
+**The One Lift Rule.** Only panes cast a shadow. Buttons, menus, dialogs and cards inside panes are separated by tone and a 1px border.
+
+## Shapes
+
+Soft, consistent corners that scale with the object: 5px keycaps and inline code, 6px badges, 8px small controls, 10px buttons, inputs and rows, 12px popovers and segmented controls, 14px panes, 16px dialogs, full-round (20px) only for lens marks and counts. Borders are 1px; keycaps carry a 2px bottom edge to read as physical keys.
+
+Rails are the system's own geometry: 2px strokes, solid with an elbow for "refines", dashed for "needs … first", with 16px drawn nodes. Status marks are small drawn SVG glyphs (open ring for to decide, filled for decided), never emoji or font icons.
+
+## Components
+
+### Buttons
+Real, bordered, quiet until touched.
+- **Shape:** gently rounded (10px), 38px tall, 1px line border.
+- **Default:** panel fill, ink text, control weight; a keycap sits inside at the right when the action has a key.
+- **Primary:** one step warmer fill with an ink-3 border, for Copy decisions and Send to Claude.
+- **Ghost:** no border or fill, ink-2 text; for Reset and Keys.
+- **Hover:** fill steps up one tone (0.2s ease-out). **Disabled:** ink-3 text, edge border, no fill. **Focus:** 2px ink outline, 2px offset.
+
+### Options ("Your choice")
+The decision itself, pinned in the foot bar of the centre pane.
+- **Shape:** 11px corners, at least 44px tall, keycap number on the left.
+- **Recommended:** amber border plus an amber "Recommended" tag.
+- **Chosen:** green border, inset green ring, green-bg fill, check mark and "your choice" word, keycap turns green.
+- **Lifted constraint:** a red inline word on the option. **Moot:** dashed border, no fill, ink-3.
+
+### Chips, tags and lens marks
+- **Tag:** raised fill, ink-2, 7px corners, 24px; blocker variant red on red-bg, warn variant an inset line ring.
+- **Lens mark:** full-round, icon plus "Business" or "Tech" in its hue on its deep tint.
+- **Filter pill:** panel fill with edge border; pressed state takes the cursor fill and an ink-3 border.
+
+### Inputs / Fields
+- **Style:** recessed: ground fill, 1px line border, 10px corners, 36px search, 38px note.
+- **Focus:** 2px ink outline; the note grows to 76px on focus.
+
+### Panes
+- **Corner Style:** 14px. **Background:** panel. **Border:** 1px edge. **Shadow:** the pane lift.
+- **Internal Padding:** 18px pane heads, 30px card body, 18px evidence body. A pane whose list overflows fades to panel at its foot.
+
+### Card list (navigation)
+- **Row:** two lines: mono id and title, then status word, relation and lens marks indented past the id. 10px corners.
+- **States:** hover raised; current takes the cursor fill, an inset line ring and a 600 title; a newly reached row flashes briefly.
+- **Rails:** drawn to the left of the rows; the cursor's family lights to rail-lit.
+
+### Lens switch
+A segmented control (Both | Business | Tech) recessed in ground with a 4px inner padding; the selected segment takes the cursor fill and an inset line ring. Counts sit beside each name in ink-3.
+
+### Evidence boxes
+Recessed ground wells with a 1px edge and 11px corners holding constraints, the trade-off table, metrics, code and location; rows inside divide with edge hairlines. Code diffs tint whole lines green or red.
+
+### Progress
+"Decided n of m" over a 6px full-round track (raised with an edge ring) and a green fill that scales from the left (0.45s, expo-out).
+
+### Keycap
+Inline-grid, 20px, ground fill, line border with a 2px bottom edge, 5px corners, 600 11.5px mono in ink-2. Used everywhere a key works; the bottom legend shows only the keys that work now.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** keep the frame fixed at full viewport height and scroll inside panes only.
+- **Do** build hierarchy from the neutral ladder (ground, panel, raised, cur) and weight before reaching for colour.
+- **Do** pair every semantic colour with a word or a drawn mark.
+- **Do** show a keycap on every control that has a key, and keep the key legend to the keys that work now.
+- **Do** use monospace only for ids, paths, code and keycaps; tabular numerals for every count.
+- **Do** use the pane lift shadow on panes only; separate everything inside with tone and 1px edges.
+- **Do** keep evidence beside the choice: arguments in the centre, evidence in the right pane, nothing behind a click.
+
+### Don't:
+- **Don't** ship a light theme or a light shared page; the world is dark only.
+- **Don't** use amber for anything but the recommended option.
+- **Don't** use a semantic hue for decoration, emphasis or brand.
+- **Don't** fetch fonts, icons or libraries; the file is self-contained and works offline.
+- **Don't** set labels in capitals or letter-spaced small type, and don't put a label above a heading to introduce it.
+- **Don't** use emoji or font glyphs as icons; status and lens marks are drawn SVG.
+- **Don't** stack scrolling SaaS cards beside a filter sidebar; the gate is three panes and one cursor.

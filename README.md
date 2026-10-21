@@ -2,7 +2,7 @@
 
 **Agent-team skills for [Claude Code](https://claude.com/claude-code).** Instead of one model giving one opinion, these skills dispatch a *team* of agents, each in its own isolated context. The agents debate with evidence, a gate kills speculative work, and **you, the CEO, make the final call** on a local HTML decision page. A review can be handed on from there: the owner of the branch you reviewed gets a page to decide on alone.
 
-![The CEO gate on a refactoring backlog: card S5 refines its root S1, tied to it by a blue rail, with arguments, metrics and before/after code on the cards](docs/ceo-view.png)
+![The CEO gate on a refactoring backlog, a three-pane console: the card list with rails (S5 refines S1 by a solid elbow, S1 and the others come after S0 by dashed ones), card S1 in the centre with its For and Against, and its before/after code in the evidence pane](docs/ceo-view.png)
 
 ## The skills
 
@@ -14,12 +14,12 @@
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → council → brief, profile, `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a card per decision (arguments, metrics, diff, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); linked cards in one block; what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Business or Tech, your choice), and its evidence (trade-offs, numbers, diff, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
 ## Which skill?
 
-![A review gate of the refund route, with the security blocker's card open](docs/review-gate.png)
+![A review gate of the refund route in the console, the security blocker SE-1 current, with the list of findings beside it](docs/review-gate.png)
 
 | Skill | Question | When |
 |-------|----------|------|
@@ -114,9 +114,9 @@ node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --se
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --accept-recommended
 ```
 
-[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens filter. D1 weighs both lenses and switches them by tab; D2 is tech only and D3 business only, so the filter can hide them.
+[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens switch. D1 weighs both lenses; its evidence pane switches between Both, Business and Tech (`l`, `b`, `t`). D2 is tech only and D3 business only, so the Filter menu can hide them.
 
-![A council gate: card D1 with Business and Tech chips and tabs, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
+![A council gate: card D1 current with Business and Tech marks, its arguments tagged by lens, and in the evidence pane the Both | Business | Tech switch, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.ceo.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send, or with `--artifact` for a claude.ai Artifact.
 
@@ -132,7 +132,7 @@ Or hand it over as a pending review on the pull request, which you submit yourse
 node skills/team-ceo-view/render.js examples/review-gate/refund.ceo.json --share --preset=examples/review-gate/refund.share.txt --review=github --head=<sha> --diff=examples/review-gate/refund.diff
 ```
 
-Keyboard: `←`/`→` move between cards (a folded group opens as you reach it), `Tab` cycles the options, `Enter` chooses, `u` jumps to the next undecided card, `b` / `t` switch the current card between its business and tech arguments, and `?` lists every shortcut.
+Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `l` / `b` / `t` switch the evidence between both lenses, Business and Tech, `/` searches, `[` narrows or hides the list, `z` opens the full summary, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut.
 
 ## Changelog
 

@@ -5,369 +5,582 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CEO Gate</title>
 <style>
+/* The CEO gate: a calm decision console. Three panes and one cursor: the list of every card with its rails,
+   the card being decided, and its evidence by lens. Dark only. */
 :root {
   color-scheme: dark;
-  --bg: #141412; --surface: #1d1d1a; --surface-2: #262622; --ink: #ecebe4; --ink-2: #a3a299;
-  --line: #34332e; --accent: #7d9cff; --accent-ink: #0d1330;
-  --ok: #5fd39a; --ok-bg: #173226; --no: #ff8a7d; --no-bg: #3a1c18; --warn: #f0c050; --warn-bg: #3a2f12;
-  --pro: #9db6ff; --pro-bg: #1b2440; --con: #f3b660; --con-bg: #36270f;
-  --code-bg: #232320; --del: #3a1f1c; --add: #1b3324;
-  --radius: 10px; --side-w: 300px; --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", sans-serif;
+  --ground: #161514; --panel: #201e1c; --raised: #2a2825; --cur: #34312d; --edge: #2f2c29; --line: #77716a; --foot: #24221f;
+  --rail: #6c665f; --rail-lit: #e6e1d9;
+  --ink: #eeeae4; --ink-2: #c6c0b7; --ink-3: #a8a198;
+  --amber: #e8b65c; --amber-bg: #3a2f1c; --green: #93d18c; --green-bg: #1f2b1d; --red: #f09080; --red-bg: #33201c;
+  --biz: #d9a8e8; --biz-bg: #2e2433; --tech: #72cfc0; --tech-bg: #1a2d2a;
+  --pro: #9db6ff; --pro-bg: #1b2440; --con: #e8935a; --con-bg: #36220f;
+  --add-bg: #1f2b1d; --del-bg: #33201c;
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", "Adwaita Sans", Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "Noto Sans Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  --r: 14px;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
-h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 4px; letter-spacing: -0.01em; }
-h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 36px 0 12px; font-weight: 600; }
-h3 { font-size: 16px; margin: 0; }
+html, body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
+::selection { background: #4b4438; color: var(--ink); }
+* { scrollbar-width: thin; scrollbar-color: #4a4641 transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #4a4641; border: 3px solid var(--panel); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line); }
+::-webkit-scrollbar-track { background: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+a, .link { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; cursor: pointer; }
+a:hover, .link:hover { text-decoration-color: var(--ink); }
+code { font: 0.88em/1 var(--mono); color: var(--ink); background: var(--raised); padding: .15em .4em; border-radius: 5px; border: 1px solid var(--edge); }
+kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; font: 600 11.5px/1 var(--mono); color: var(--ink-2);
+  background: var(--ground); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; vertical-align: 1px; }
+svg.ic { width: 16px; height: 16px; flex: none; display: block; }
+.licon { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.l-business { color: var(--biz); }
+.l-tech { color: var(--tech); }
+.muted { color: var(--ink-3); }
 
-/* Layout: sticky sidebar on the left, header and cards on the right */
-.layout { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); grid-template-areas: "side head" "side main"; align-items: start; }
-#head { grid-area: head; padding: 32px 32px 0; max-width: 920px; }
-#app { grid-area: main; padding: 0 32px 60px; max-width: 920px; }
-#side { grid-area: side; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
-  background: var(--surface); border-right: 1px solid var(--line); }
-.side-scroll { flex: 1; overflow-y: auto; padding: 16px 16px 12px; }
-.side-foot { border-top: 1px solid var(--line); padding: 12px 16px; background: var(--surface); }
+/* Frame: top bar, summary strip, (tabs on a phone), the three panes, the key legend */
+.layout { height: 100vh; height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto; grid-template-areas: "top" "sum" "tabs" "panes" "foot"; overflow: hidden; }
+#head { grid-area: top; } .sumwrap { grid-area: sum; } .tabs { grid-area: tabs; } .panes { grid-area: panes; } .foot { grid-area: foot; }
 
-/* Header */
-.meta { color: var(--ink-2); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
-.meta code { font-family: var(--mono); font-size: 12px; }
-.badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-  padding: 3px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
-.summary { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent);
-  border-radius: var(--radius); padding: 14px 18px; margin-top: 20px; }
-.summary ul { margin: 0; padding-left: 18px; }
-.summary > ul > li + li { margin-top: 6px; }
-.summary li ul { margin-top: 2px; }
-.summary > ul > li { break-inside: avoid; }
-.summary .slabel { font-weight: 650; }
+/* Top bar */
+.top { display: flex; align-items: center; gap: 20px; padding: 14px 20px 12px; min-width: 0; }
+.gt { min-width: 0; flex: 1; }
+.gt h1 { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 650; letter-spacing: -0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { font-size: 13px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0 14px; }
+.meta code { font-size: 12px; }
+.meta .preset { color: var(--ink-2); }
+.progress { display: grid; gap: 5px; width: 200px; flex: none; }
+.progress .txt { font-size: 14px; color: var(--ink-2); }
+.progress .txt b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.progress .track { height: 6px; border-radius: 6px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); overflow: hidden; }
+.progress .fill { height: 100%; width: 100%; background: var(--green); border-radius: 6px; transform: scaleX(0); transform-origin: left;
+  transition: transform .45s cubic-bezier(.16, 1, .3, 1); }
+.actions { display: flex; gap: 8px; flex: none; align-items: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 38px; padding: 6px 12px 6px 14px; font-size: 14.5px; font-weight: 550;
+  color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; white-space: nowrap; transition: background-color .2s ease-out; }
+.btn:hover { background: var(--raised); }
+.btn:disabled { color: var(--ink-3); background: none; border-color: var(--edge); cursor: default; }
+.btn:disabled kbd { color: var(--ink-3); border-color: var(--edge); }
+.btn.primary { background: #3a3631; border-color: var(--ink-3); }
+.btn.primary:hover { background: #45403a; }
+.btn.ghost { border-color: transparent; background: none; color: var(--ink-2); padding: 6px 10px; }
+.btn.ghost:hover { color: var(--ink); background: var(--panel); }
+.side-open { flex: none; }
 
-/* Sidebar: search, filters, overview */
-.side-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 16px 0 6px; }
-.side-title:first-child { margin-top: 0; }
-#side input[type=search] { width: 100%; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-#side select { width: 100%; font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); margin-top: 8px; }
-.pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.pill { font: inherit; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink-2); cursor: pointer; }
-.pill:hover { border-color: var(--accent); color: var(--ink); }
-.pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-#side input:focus-visible, #side select:focus-visible, .pill:focus-visible, .gname:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.shown-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
-.link { font: inherit; font-size: 12px; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; }
-.group { padding: 8px 0; border-top: 1px solid var(--line); }
-.group:first-of-type { border-top: 0; }
-.gname { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 4px; }
-.gname:hover span:first-child { color: var(--accent); }
-.gname[aria-pressed="true"] span:first-child { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.gname .count { color: var(--ink-2); font-weight: 500; font-variant-numeric: tabular-nums; }
-.gtrack { height: 3px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 5px 0 6px; }
-.gfill { height: 100%; background: var(--ok); }
-.chips { display: flex; flex-wrap: wrap; gap: 3px; }
-.chip { font: 11px/1.2 var(--mono); padding: 3px 5px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg);
-  color: var(--ink-2); cursor: pointer; }
-.chip:hover { border-color: var(--accent); color: var(--ink); }
-.chip.done { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
-.chip.neg { background: var(--no-bg); color: var(--no); border-color: transparent; }
-.chip.dim { opacity: .35; }
-.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.progress .txt { font-size: 13px; color: var(--ink-2); }
-.progress .track { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 4px 0 10px; }
-.progress .fill { height: 100%; width: 100%; background: var(--ok); transform: scaleX(0); transform-origin: left; transition: transform .2s; }
-.actions { display: grid; grid-template-columns: auto 1fr; gap: 6px; }
-.btn { font: inherit; font-size: 13.5px; font-weight: 600; border-radius: 8px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--line);
-  background: var(--surface); color: var(--ink); }
-.btn:disabled { opacity: .45; cursor: default; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); grid-column: 1 / -1; }
-.btn.wide { grid-column: 1 / -1; }
-/* Reset / Accept recommended edit the page; the buttons below them send it somewhere: keep the two groups apart */
-#reset, #recAll { margin-bottom: 14px; }
-.btn[hidden] { display: none; }
-.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-#out { display: none; width: 100%; font: 12px/1.5 var(--mono); height: 140px; margin-top: 8px; padding: 8px;
-  border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-.toast { font-size: 12.5px; color: var(--ok); font-weight: 600; margin-top: 6px; min-height: 1em; }
-/* No message yet: no reserved line under the buttons */
-.toast:empty { margin-top: 0; min-height: 0; }
-/* Keyboard: the current card, its chip, and option number hints */
-.card.card.current { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent), 0 0 0 1px var(--accent); }
-.chip.cur { outline: 2px solid var(--accent); outline-offset: 1px; }
-.opt .k { display: none; font: 11px/1 var(--mono); padding: 2px 5px; border-radius: 4px; background: var(--surface-2); color: var(--ink-2); }
-.card.current .opt .k { display: inline-block; }
-.opt[aria-pressed="true"] .k { background: color-mix(in srgb, var(--accent-ink) 20%, transparent); color: inherit; }
-.kbd-hint { font-size: 12px; color: var(--ink-2); margin-top: 8px; }
-kbd { font: 11px/1 var(--mono); padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-dialog.help { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 18px 22px; max-width: 420px; }
-dialog.help::backdrop { background: rgb(0 0 0 / .6); }
-dialog.help h3 { margin-bottom: 10px; }
-.share-picker { max-width: 480px; }
-.share-q { border: 0; padding: 0; margin: 0 0 12px; }
-.share-q legend { font-size: 12.5px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-.chan { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; cursor: pointer; }
-.chan.off { opacity: .55; cursor: default; }
-.chan small { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 2px; }
-.chan-to { display: flex; gap: 10px; align-items: center; margin: 4px 0 12px; }
-.chan-to input { flex: 1; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
-.share-picker .buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
-dialog.help table { border-collapse: collapse; font-size: 14px; }
-dialog.help td { padding: 4px 12px 4px 0; vertical-align: top; }
-dialog.help td:first-child { white-space: nowrap; }
-/* Sidebar toggle. Closed: the sidebar folds away and its footer becomes a bottom bar. */
-.side-top { display: flex; justify-content: space-between; align-items: center; }
-.side-top .side-title { margin: 0; }
-.icon-btn { font: inherit; font-size: 14px; line-height: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink-2); cursor: pointer; }
-.icon-btn:hover { color: var(--ink); border-color: var(--accent); }
-.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.side-open { position: fixed; top: 14px; left: 14px; z-index: 7; }
-.side-closed .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "main"; }
-.side-closed #head, .side-closed #app { padding-left: 64px; }
-.side-closed .side-scroll { display: none; }
-.side-closed #side { position: fixed; left: 0; right: 0; bottom: 0; top: auto; height: auto; z-index: 6; border: 0; margin: 0; border-radius: 0; background: none; }
-.side-closed .side-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 24px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); position: static; }
-.side-closed .progress { flex: 1; min-width: 160px; }
-.side-closed .progress .track { margin-bottom: 0; }
-.side-closed .actions { display: flex; }
-.side-closed #reset, .side-closed #recAll { margin-bottom: 0; }
-.side-closed #recAll { margin-right: 14px; }
-.side-closed .toast { margin: 0; }
-.side-closed #app { padding-bottom: 120px; }
-.empty { color: var(--ink-2); text-align: center; padding: 40px 0; display: none; }
+/* Summary strip: one line, never a cropped box. The full summary is its own item in the centre pane. */
+.sumwrap { padding: 0 20px; }
+.sum { display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 5px 8px 5px 18px; background: var(--panel); border: 1px solid var(--edge); border-radius: var(--r); }
+.sumline { flex: 1; min-width: 0; margin: 0; font-size: 14.5px; /* the body size: both parts read at one size */ line-height: 1.45; display: flex; align-items: baseline; gap: 0 .7em; }
+.sumline b { color: var(--ink-2); font-weight: 600; margin-right: .4em; }
+.sumline .sp.rec { font-weight: 550; }
+.sumline .sp.rec b { color: var(--ink); font-weight: 700; }
+.sumline .sep { color: var(--ink-3); flex: none; }
+/* The verdict gives way first (two lines, then a cut); the recommendation always shows in full and wraps. */
+.sumline .sp.vd { flex: 0 1 auto; max-width: 62%; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.sumline .sp.rec { flex: 1 1 0; min-width: 0; }
+.sumline .sp.only { flex: 1 1 0; max-width: none; }
+.sumbtn { flex: none; }
+.sumbtn[aria-pressed="true"] { color: var(--ink); background: var(--cur); }
 
-/* Cards */
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px;
-  transition: border-color .15s, box-shadow .15s; scroll-margin-top: 16px; }
-.card[data-state="decided"] { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
-.card.flash { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
-.card-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.card-id { font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--surface-2); padding: 1px 7px; border-radius: 6px; }
-.tag { font-size: 11px; padding: 1px 7px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); }
-.tag.warn { background: var(--warn-bg); color: var(--warn); }
-.tag.kind { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 10px; }
-.detail { color: var(--ink); margin-top: 8px; }
-.why { color: var(--ink-2); font-size: 13px; margin-top: 6px; }
-.rel { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
-.rel > div + div { margin-top: 2px; }
-.rel a { color: var(--accent); font-weight: 600; text-decoration: none; }
-.rel a:hover { text-decoration: underline; }
-.rel-gap { display: block; color: var(--warn); margin-top: 2px; }
+/* Three panes. #app and the current card are transparent to the grid: the card's two halves land in the centre and evidence columns. */
+.panes { display: grid; grid-template-columns: 400px minmax(0, 1fr) 460px; grid-template-rows: minmax(0, 1fr); grid-template-areas: "list card ev";
+  gap: 14px; padding: 14px 20px 0; min-height: 0; }
+#side { grid-area: list; }
+#app { display: contents; }
+.card { display: none; }
+.card.current { display: contents; }
+.c-main { grid-area: card; }
+.c-ev { grid-area: ev; }
+.card.wide .c-main { grid-area: card-start / card-start / ev-end / ev-end; }
+.side-closed .panes { grid-template-columns: minmax(0, 1fr) 460px; grid-template-areas: "card ev"; }
+.side-closed #side { display: none; }
+/* The list as a slim rail: status marks, rails and ids only; the centre and evidence take the room */
+.side-rail .panes { grid-template-columns: 116px minmax(0, 1fr) 500px; }
+.side-rail #side .phead { flex-direction: column; align-items: center; padding: 10px 0 6px; gap: 2px; }
+.side-rail #side .phead h2, .side-rail #side .phead .c, .side-rail .helpbtn, .side-rail .find, .side-rail .shown-row, .side-rail .rlegend, .side-rail .row .l2,
+.side-rail .rti, .side-rail .nmark, .side-rail .sec-hint, .side-rail .empty, .side-rail .sumrow .l1 { display: none; }
+.side-rail .list { padding: 0 6px 12px; }
+.side-rail .sec { margin: 8px 6px 4px; padding: 0; border-top: 1px solid var(--edge); }
+.side-rail .sec > * { display: none; }
+.side-rail .row { padding-right: 6px; min-height: 40px; }
+.narrow-btn .wide-ic, .side-rail .narrow-btn .narrow-ic { display: none; }
+.side-rail .narrow-btn .wide-ic { display: block; }
+.panel { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--r);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+  min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.scroll { overflow: auto; min-height: 0; flex: 1; }
+.phead { display: flex; align-items: center; gap: 12px; padding: 14px 12px 8px 18px; flex: none; }
+.phead h2 { margin: 0; font-size: 16px; font-weight: 650; }
+.phead .c { font-size: 13.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; margin-left: auto; }
+.icon-btn { width: 32px; height: 32px; display: inline-grid; place-items: center; border-radius: 8px; color: var(--ink-3); flex: none; }
+.icon-btn:hover { color: var(--ink); background: var(--raised); }
+
+/* List pane: search, a compact filter menu, then every card by section with its rails */
+.find { position: relative; display: flex; gap: 8px; padding: 0 14px 10px; flex: none; }
+.find input[type=search] { flex: 1; min-width: 0; height: 36px; font: inherit; font-size: 14px; padding: 0 11px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--ground); color: var(--ink); caret-color: var(--ink); }
+.find input[type=search]::placeholder { color: var(--ink-3); }
+.find input[type=search]:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.fbtn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px 0 10px; border-radius: 10px; border: 1px solid var(--line);
+  font-size: 14px; font-weight: 550; color: var(--ink-2); background: var(--panel); flex: none; }
+.fbtn:hover, .fbtn[aria-expanded="true"] { color: var(--ink); background: var(--raised); }
+.fbtn .n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 12px; font-weight: 650; display: inline-grid; place-items: center;
+  color: var(--ground); background: var(--ink-2); font-variant-numeric: tabular-nums; }
+.fmenu { position: absolute; z-index: 5; top: 44px; left: 14px; right: 14px; padding: 14px 16px 16px; display: grid; gap: 14px;
+  background: var(--raised); border: 1px solid var(--line); border-radius: 12px; }
+.fgroup .fl { font-size: 13px; font-weight: 650; color: var(--ink-2); margin-bottom: 6px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; font-size: 13.5px; color: var(--ink-2);
+  background: var(--panel); border: 1px solid var(--edge); }
+.pill:hover { color: var(--ink); border-color: var(--line); }
+.pill[aria-pressed="true"] { color: var(--ink); background: var(--cur); border-color: var(--ink-3); font-weight: 600; }
+.fmenu select { width: 100%; height: 34px; font: inherit; font-size: 14px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.shown-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0 18px 8px; font-size: 13px; color: var(--ink-3); flex: none; }
+.link { font-size: 13px; }
+.empty { padding: 28px 18px; color: var(--ink-3); font-size: 14.5px; }
+.list { padding: 0 8px 12px; }
+.sec { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 16px 10px 6px; }
+.list > .sec:first-child, .list > .row:first-child + .sec { padding-top: 6px; }
+.gname { font-size: 13.5px; font-weight: 650; color: var(--ink-2); text-align: left; border-radius: 6px; }
+.gname:hover { color: var(--ink); }
+.gname[aria-pressed="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.sec .count { font-size: 13.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; flex: none; }
+.sec-hint { padding: 0 10px 6px; margin-top: -4px; font-size: 13px; color: var(--ink-3); }
+.row { --rowbg: var(--panel); position: relative; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; row-gap: 0; width: 100%; padding: 3px 10px 3px var(--pl, 36px); text-align: left;
+  border-radius: 10px; background: var(--rowbg); transition: background-color .25s cubic-bezier(.16, 1, .3, 1); }
+.row:hover { --rowbg: var(--raised); }
+.row.cur { --rowbg: var(--cur); box-shadow: inset 0 0 0 1px var(--line); }
+.row.flash { --rowbg: #3f3a33; }
+.row .l1 { display: flex; align-items: baseline; gap: 9px; min-width: 0; max-width: 100%; line-height: 22px; }
+.rid { font: 600 12.5px var(--mono); color: var(--ink-3); flex: none; min-width: 2.6em; }
+.rti { font-size: 14.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.rti code { font-size: .82em; }
+.row.cur .rti { font-weight: 600; }
+.row.cur .rid, .row.kin .rid { color: var(--ink); }
+.nmark { flex: none; color: var(--ink-3); align-self: center; }
+.nmark svg { width: 14px; height: 14px; }
+/* Line 2 of every row: status, then relation and marks, left-aligned under the title (past the id column) */
+.row .l2 { display: flex; align-items: center; gap: 2px 10px; flex-wrap: wrap; flex: 1 0 100%; padding-left: calc(2.6 * 12.5px + 9px); font-size: 13px; color: var(--ink-2); line-height: 20px; }
+.stw { font-weight: 550; }
+.stw.yes { color: var(--green); }
+.stw.todo { color: var(--ink-2); }
+.stw.no, .stw.preset, .stw.moot { color: var(--ink-3); }
+.relw { color: var(--ink-3); }
+.relw b { font: 600 12px var(--mono); color: var(--ink-2); }
+.sevw { font-weight: 550; color: var(--ink-3); }
+.sevw.blocker { color: var(--red); }
+.gapw { color: var(--red); font-weight: 550; }
+.gapw:empty { display: none; }
+.lm { display: inline-flex; gap: 5px; }
+.lp { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px 0 6px; border-radius: 20px; font-size: 12px; font-weight: 550; }
+.lp .licon { width: 12px; height: 12px; }
+.lp.l-business { background: var(--biz-bg); }
+.lp.l-tech { background: var(--tech-bg); }
+.sumrow .l2 { flex: 1 1 auto; }
+.row.moot .rti { color: var(--ink-3); }
+/* A chosen card whose base is still undecided: a red ring on its row */
+.chip.gap { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--red) 60%, transparent); }
+.rails { position: absolute; inset: 0; pointer-events: none; }
+.rv { position: absolute; width: 0; border-left: 2px solid var(--rail); margin-left: -1px; }
+.rh { position: absolute; height: 0; border-top: 2px solid var(--rail); margin-top: -1px; }
+.rv.after { border-left-style: dashed; }
+.rh.after { border-top-style: dashed; }
+.rv.lit, .rh.lit { border-color: var(--rail-lit); }
+.filtering .rv, .filtering .rh { display: none; }
+.node { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+.node svg { width: 16px; height: 16px; display: block; }
+/* The rails key lives in the Keys dialog, and behind the ? beside the list title */
+.rlegend { display: grid; gap: 8px; font-size: 14.5px; color: var(--ink-2); margin-top: 14px; }
+.rlegend div { display: flex; align-items: center; gap: 12px; }
+.rlegend i { width: 26px; border-top: 2px solid var(--rail-lit); flex: none; }
+.rlegend i.after { border-top-style: dashed; }
+.rlegend b { font-weight: 600; color: var(--ink); }
+.helpbtn { margin-left: -6px; }
+/* A list that overflows fades at its foot, so a clipped row never looks broken */
+.sidebody { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.sidebody::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 34px; pointer-events: none; opacity: 0; transition: opacity .2s ease-out;
+  background: linear-gradient(to bottom, transparent, var(--panel)); }
+.sidebody.more::after { opacity: 1; }
+
+/* Centre pane: the card being decided, its choice pinned at the bottom */
+.c-scroll { padding: 26px 30px 26px; }
+.ch { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.cloc { flex-basis: 100%; margin-top: -2px; font: 13.5px var(--mono); color: var(--ink-2); overflow-wrap: anywhere; min-width: 0; }
+.cid { font: 600 14px var(--mono); color: var(--ink-2); background: var(--raised); border: 1px solid var(--edge); padding: 2px 8px; border-radius: 7px;
+  flex: none; position: relative; top: -3px; }
+.ctitle { margin: 0; font-size: 27px; line-height: 1.25; font-weight: 650; letter-spacing: -0.012em; text-wrap: balance; max-width: 36ch; }
+.sub { margin: 6px 0 0; color: var(--ink-2); font-size: 15px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 7px; font-size: 13px; color: var(--ink-2); background: var(--raised); }
+.tag.blocker { color: var(--red); background: var(--red-bg); font-weight: 600; }
+.tag.warn { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.tag.lens { border-radius: 20px; font-weight: 550; }
+.tag.lens.l-business { background: var(--biz-bg); }
+.tag.lens.l-tech { background: var(--tech-bg); }
+.lens-chips { display: contents; }
+.rels { margin: 18px 0 0; display: grid; gap: 8px; }
+.rely { display: grid; gap: 8px; }
+.rely:empty { display: none; }
+.relx { --rowbg: var(--raised); display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; }
+.relx .ri { flex: none; width: 30px; height: 22px; display: block; }
+.relx .rt { flex: 1; min-width: 0; }
+.relx .rs { flex: none; display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink); }
+.relx .rs svg { width: 16px; height: 16px; display: block; }
+.relx.ok .rs { color: var(--green); }
+.relx.neg .rs { color: var(--ink-3); }
+.relx.neg .rt { color: var(--ink-2); }
+.rel-gap { display: flex; gap: 10px; align-items: baseline; margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: var(--red-bg); color: var(--ink); font-size: 14.5px; }
+.rel-gap::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--red); position: relative; top: 1px; }
 .rel-gap:empty { display: none; }
-/* Linked cards: a block is its root card and the cards linked to it. A rail drops from the root to the last member;
-   an elbow ties it to each member. Every link is a refinement, so rail, elbow and chip share the accent blue. */
-.block { margin: 14px 0; --rel: var(--accent); --rail: var(--accent); }
-.block > .card:first-child { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); margin-bottom: 12px; }
-.block > .card + .card { position: relative; margin: 0 0 12px 36px; border-left: 4px solid var(--rel); }
-.block > .card + .card:last-child { margin-bottom: 0; }
-.block > .card + .card::before { content: ""; position: absolute; left: -26px; top: -12px; bottom: -12px; border-left: 2px solid var(--rail); }
-.block > .card + .card:last-child::before { bottom: auto; height: 38px; }
-.block > .card + .card::after { content: ""; position: absolute; left: -26px; top: 25px; width: 22px; height: 0; border-top: 3px solid var(--rel); }
-.tag.rel-kind { text-transform: uppercase; letter-spacing: .04em; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
-.card.moot { opacity: .55; }
-.tag.rel-kind.refines { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
-.rely { font-size: 13px; color: var(--ink-2); margin: 6px 0 0 4px; }
-.rely > div + div { margin-top: 2px; }
-.rely a { color: var(--accent); font-weight: 600; text-decoration: none; }
-.rely a:hover { text-decoration: underline; }
-.rely .ok { color: var(--ok); }
-.rely .neg { color: var(--no); }
-.rely .wait { color: var(--warn); }
-.chip.gap { box-shadow: inset 0 0 0 2px var(--warn); }
-.detail p, .why p { margin: 0; }
-.detail ul, .why ul { margin: 2px 0 0; padding-left: 18px; }
-.detail code, .why code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
-.detail strong, .why strong { font-weight: 650; }
-.mchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.mchip { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
-.mchip b { color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
-.mchip.good b { color: var(--ok); } .mchip.bad b { color: var(--no); }
-/* Arguments use blue/amber so they never read as the red/green code diff */
-.args { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-.args > div { border-radius: 8px; padding: 10px 12px; min-width: 0; border-left: 3px solid; }
-.args .pro { background: var(--pro-bg); border-color: var(--pro); } .args .con { background: var(--con-bg); border-color: var(--con); }
-.args .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-bottom: 4px; }
-.args .pro .lbl { color: var(--pro); } .args .con .lbl { color: var(--con); }
-.args ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
-.args li + li { margin-top: 4px; }
-.args .who { font-weight: 650; }
-.args .none { font-size: 13px; color: var(--ink-2); font-style: italic; }
-/* The bridge: what binds the decision and what each option gains and costs per lens. Above the arguments, outside the tabs */
-.bridge { margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--bg); font-size: 13.5px; }
-.bridge .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
-.bridge .klist + .lbl { margin-top: 14px; }
-.klist { list-style: none; margin: 0; padding: 0; }
-.summary .klist { padding-left: 0; }
-.klist li + li { margin-top: 4px; }
-.klist code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); padding: 0 4px; border-radius: 4px; }
-.klens { font-size: 12px; font-weight: 650; color: var(--ink-2); margin-right: 6px; white-space: nowrap; }
-.klens .licon { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; }
-.kid { font: 11px/1.2 var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--surface-2); color: var(--ink-2); margin-left: 6px; }
-.kstat { font-size: 11px; color: var(--warn); margin-left: 6px; }
-.ksrc { font-size: 12px; color: var(--ink-2); margin-left: 6px; }
-.btable { width: 100%; border-collapse: collapse; }
-.btable th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-weight: 700; padding: 0 10px 6px 0; }
-.btable td { padding: 6px 10px 6px 0; vertical-align: top; border-top: 1px solid var(--line); }
-.btable th:first-child, .btable td:first-child { padding-left: 8px; }
-.btable td:first-child { font-weight: 600; }
-.btable tr.pick td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.btable tr.pick td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
-.btable .rec { display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-top: 1px; }
-/* Breaking a constraint: the option stays choosable and says what choosing it costs */
-.lift { font: 600 11px/1.3 var(--mono); padding: 1px 6px; border-radius: 5px; white-space: nowrap;
-  color: var(--no); background: var(--no-bg); border: 1px solid color-mix(in srgb, var(--no) 40%, transparent); }
-.btable .lift { display: block; width: fit-content; margin-top: 4px; }
-.bridge .accepts { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-.bridge .accepts b { color: var(--ink-2); font-weight: 650; }
-/* Lenses: the header names what a card concerns; a card with both switches its arguments by tab. The bridge never hides */
-.licon { width: 13px; height: 13px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.lens-chips { display: inline-flex; gap: 4px; margin-left: auto; align-self: center; }
-.tag.lens { display: inline-flex; align-items: center; gap: 4px; font-weight: 650; color: var(--ink); background: none; border: 1px solid var(--line); padding: 1px 7px 1px 6px; }
-.pill .licon { width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; }
-.lens-tabs { display: flex; gap: 20px; margin-top: 14px; border-bottom: 1px solid var(--line); }
-.ltab { font: inherit; font-size: 13px; font-weight: 650; padding: 6px 2px 7px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent;
-  background: none; color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: color .15s ease-out, border-color .15s ease-out; }
-.ltab .n { font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; min-width: 18px; padding: 0 5px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); text-align: center; }
-.ltab:hover { color: var(--ink); }
-.ltab[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-.ltab[aria-pressed="true"] .n { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
-.ltab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-@media (max-width: 640px) {
-  /* The trade-off table stacks: one block per option, each cost labelled by its lens */
-  .btable, .btable tbody, .btable tr, .btable td { display: block; }
-  .btable tr:first-child { display: none; }
-  .btable tr { border-top: 1px solid var(--line); padding: 6px 0; }
-  .btable td { border-top: 0; padding: 2px 8px; }
-  .btable td[data-l]::before { content: attr(data-l); display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
-  .lens-chips { margin-left: 0; }
-}
-.lens-none { font-size: 13px; color: var(--ink-2); font-style: italic; margin-top: 8px; }
+.blk { margin: 26px 0 0; }
+.blk > h3 { margin: 0 0 6px; font-size: 15px; font-weight: 650; color: var(--ink-2); }
+.lead { font-size: 18px; line-height: 1.5; margin: 0; max-width: 62ch; }
+.prose { max-width: 68ch; }
+.prose p { margin: 0; }
+.prose p + p { margin-top: 8px; }
+.prose ul { margin: 4px 0 0; padding-left: 1.2em; }
+.prose li + li { margin-top: 5px; }
+.prose li::marker, .sumcol li::marker { color: var(--ink-3); }
+.prose strong, .lead strong { font-weight: 650; }
+.answer { font-size: 22px; font-weight: 600; margin: 0; }
+.found { margin: 6px 0 0; font-size: 14px; }
+.args { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 8px; }
+.argcol { padding: 2px 26px 4px; min-width: 0; }
+.argcol:first-child { padding-left: 0; }
+.argcol:last-child { padding-right: 0; border-left: 1px solid var(--edge); }
+.argcol h4 { margin: 0 0 10px; font-size: 14.5px; font-weight: 650; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.argcol h4 .n { color: var(--ink-3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.sg { width: 20px; height: 20px; border-radius: 6px; display: inline-grid; place-items: center; flex: none; }
+/* For/Against stay blue and copper, never the green/red of a code diff */
+.pro .sg { background: var(--pro-bg); color: var(--pro); }
+.con .sg { background: var(--con-bg); color: var(--con); }
+.ten .sg { background: var(--raised); color: var(--ink-2); }
+.argcol .pos { margin: 0 0 12px; font-size: 15px; }
+.arg { margin: 0 0 12px; }
+.arg .who { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
+.arg p { margin: 2px 0 0; font-size: 15px; line-height: 1.5; }
+.none { font-size: 14.5px; color: var(--ink-3); margin: 0 0 12px; }
+.rectag { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--amber); background: var(--amber-bg); white-space: nowrap; }
+/* The lens filters both panes and says what it hides */
 .card[data-lens="business"] [data-lens="tech"], .card[data-lens="tech"] [data-lens="business"] { display: none; }
-.tension { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
-.side { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); }
-.side .who { font-weight: 650; font-size: 13px; margin-bottom: 4px; }
-.diff { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-.diff > div { min-width: 0; }
-.diff .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); margin-bottom: 4px; }
-pre { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--code-bg); font: 12.5px/1.5 var(--mono);
-  overflow-x: auto; white-space: pre; }
-pre.before { background: var(--del); } pre.after { background: var(--add); }
+.lens-none, .lens-off { display: none; }
+.card[data-lens="business"] .lens-none.business, .card[data-lens="tech"] .lens-none.tech { display: block; }
+.card[data-lens="business"] .lens-off.tech, .card[data-lens="tech"] .lens-off.business { display: flex; }
+.lens-none { font-size: 14.5px; color: var(--ink-3); margin: 10px 0 0; }
+.argcol .lens-none { margin: 0 0 12px; }
+.lens-off { gap: 10px; align-items: baseline; flex-wrap: wrap; margin-top: 10px; font-size: 14px; color: var(--ink-2); }
+
+.c-decide { border-top: 1px solid var(--edge); padding: 16px 30px 18px; background: var(--foot); flex: none; }
+.dh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.dh h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.dh .hint { font-size: 13px; color: var(--ink-3); }
+.options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.opt { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px 6px 8px; font-size: 15px; font-weight: 550; color: var(--ink); text-align: left;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 11px; transition: background-color .2s ease-out, border-color .2s ease-out; }
+.opt:hover { background: var(--raised); }
+.opt kbd { min-width: 24px; height: 24px; font-size: 12.5px; }
+.opt.is-rec { border-color: var(--amber); }
+.opt .lift { font-size: 12.5px; font-weight: 600; color: var(--red); }
+.opt .ck { display: none; color: var(--green); }
+.opt .yc { display: none; font-size: 12.5px; font-weight: 600; color: var(--green); }
+.opt[aria-pressed="true"] { border-color: var(--green); background: var(--green-bg); box-shadow: 0 0 0 1px var(--green) inset; }
+.opt[aria-pressed="true"] .ck { display: block; }
+.opt[aria-pressed="true"] .yc { display: inline; }
+.opt[aria-pressed="true"] kbd { border-color: var(--green); color: var(--green); }
+.opt:disabled { color: var(--ink-3); border-style: dashed; border-color: var(--line); cursor: default; background: none; box-shadow: none; }
+.opt:disabled .rectag { color: var(--ink-3); background: var(--raised); }
+.mootmsg { display: flex; gap: 10px; align-items: center; font-size: 14.5px; color: var(--ink-2); margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: var(--raised); }
+.notewrap { display: flex; align-items: flex-start; gap: 12px; }
+.notewrap label { flex: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); padding-top: 8px; }
+.note { flex: 1; min-width: 0; font: 14.5px/1.45 var(--sans); color: var(--ink); background: var(--ground); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 11px; min-height: 38px; height: 38px; resize: vertical; caret-color: var(--ink); }
+.note:focus { height: 76px; outline: 2px solid var(--ink); outline-offset: 1px; }
+.note::placeholder { color: var(--ink-3); }
+
+/* Right pane: evidence by lens. Arguments live in the centre only. */
+.lswitch { display: flex; gap: 4px; padding: 4px; margin: 14px 16px 4px; background: var(--ground); border: 1px solid var(--edge); border-radius: 12px; flex: none; }
+.lswitch button { flex: 1 1 auto; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 34px; padding: 4px 8px;
+  border-radius: 9px; font-size: 14px; font-weight: 550; color: var(--ink-2); }
+.lswitch button:hover { color: var(--ink); background: var(--panel); }
+.lswitch button[aria-pressed="true"] { color: var(--ink); background: var(--cur); box-shadow: inset 0 0 0 1px var(--line); }
+.lswitch button.both { flex: 0 0 auto; padding: 4px 16px; }
+.lswitch .n { color: var(--ink-3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ev-scroll { padding: 4px 18px 20px; }
+.eh { margin: 16px 0 6px; font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
+.ebox { background: var(--ground); border: 1px solid var(--edge); border-radius: 11px; }
+.klist { list-style: none; margin: 0; padding: 0; }
+.kst { padding: 10px 14px; display: grid; gap: 3px; }
+.kst + .kst { border-top: 1px solid var(--edge); }
+.kt { font-size: 14.5px; line-height: 1.45; }
+.klens { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; margin-right: 8px; white-space: nowrap; vertical-align: 1px; }
+.kid { font: 600 12.5px var(--mono); color: var(--ink-2); margin-right: 6px; }
+.ksrc { font-size: 13px; color: var(--ink-3); display: flex; gap: 8px; flex-wrap: wrap; }
+.kstat { color: var(--ink); font-weight: 600; }
+.ks { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.ks svg { width: 14px; height: 14px; }
+.kst.lifted .ks { color: var(--red); font-weight: 600; }
+.kst.lifted .kt { color: var(--ink-2); }
+.tbox { overflow-x: auto; }
+.btable { width: 100%; border-collapse: collapse; }
+.btable th { text-align: left; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 9px 12px 7px; border-bottom: 1px solid var(--edge); }
+.btable th .klens { margin: 0; }
+.btable td { padding: 9px 12px; vertical-align: top; font-size: 14px; line-height: 1.45; }
+.btable tbody tr + tr td { border-top: 1px solid var(--edge); }
+.btable td.o { font-weight: 550; width: 38%; min-width: 11em; }
+.btable td.o kbd { margin-right: 7px; }
+.otags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.btable tr.chosen td.o { color: var(--green); }
+.lift { display: inline-flex; align-items: center; height: 20px; font-size: 12px; font-weight: 600; color: var(--red); background: var(--red-bg); padding: 0 7px; border-radius: 6px; white-space: nowrap; }
+.opt .lift { background: none; padding: 0; height: auto; }
+.mine { display: inline-flex; align-items: center; height: 20px; font-size: 12px; font-weight: 600; color: var(--green); background: var(--green-bg); padding: 0 7px; border-radius: 6px; }
+.metric { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 14px; align-items: baseline; }
+.metric + .metric { border-top: 1px solid var(--edge); }
+.metric .ml { font-size: 14.5px; display: inline-flex; align-items: baseline; gap: 7px; }
+.metric .ml .licon { align-self: center; }
+.metric .mv { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.metric .md { grid-column: 1 / -1; font-size: 13px; color: var(--ink-3); }
+.metric .md.better { color: var(--green); }
+.metric .md.worse { color: var(--red); }
+.code { overflow: hidden; }
+.code + .code { margin-top: 8px; }
+.code .cl { display: flex; justify-content: space-between; gap: 10px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--edge); }
+.code .cl span { font-weight: 400; color: var(--ink-3); }
+.code pre { margin: 0; padding: 8px 0; font: 13px/1.6 var(--mono); overflow-x: auto; }
+.code pre div { padding: 0 12px; white-space: pre; min-width: max-content; }
+.code pre .del { background: var(--del-bg); color: #f3c2b8; }
+.code pre .add { background: var(--add-bg); color: #cdeec8; }
+.code pre .ctx { color: var(--ink-2); }
+.loc { font: 13.5px var(--mono); color: var(--ink); padding: 9px 12px; overflow-wrap: anywhere; }
+.ev-empty { font-size: 14.5px; color: var(--ink-3); margin: 16px 0 0; }
+.ev-empty.lens-none { display: none; }
+.card[data-lens="business"] .ev-empty.lens-none.business, .card[data-lens="tech"] .ev-empty.lens-none.tech { display: block; }
+.accfoot { border-top: 1px solid var(--edge); padding: 14px 20px 16px; background: var(--foot); font-size: 15px; flex: none; }
+.accfoot b { display: block; font-size: 14px; font-weight: 650; color: var(--ink-2); margin-bottom: 2px; }
+
+/* Figures: SVG at reading size, screenshots in a grid that opens full size */
 .figure { margin: 12px 0 0; }
-/* Outcome: where the work lands, today beside the target */
-.outcome { margin-top: 20px; }
-.outcome .oview { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; margin-top: 10px; }
-.outcome .ohead { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.outcome .ohead b { font-size: 14px; }
-.outcome .opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(640px, 100%), 1fr)); gap: 12px; margin-top: 6px; }
-.outcome .opane { min-width: 0; }
-.outcome .opane .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
-.outcome .opane.after .lbl { color: var(--accent); font-weight: 700; }
-.outcome .opane .figure, .outcome .opane .shots { margin-top: 4px; }
-.outcome .opane .shots { grid-template-columns: 1fr; }
-.outcome .shots img { max-height: 420px; }
-.figure .ftitle { font-size: 13px; font-weight: 600; }
+.figure .ftitle { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
 .figure .svgwrap { overflow-x: auto; }
 /* unfilled marks take the text colour, not SVG's default black */
 .figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); fill: currentColor; }
-figcaption { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
-.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 12px; }
+figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
 .shots figure { margin: 0; }
-.shots img { width: 100%; height: auto; max-height: 360px; object-fit: contain; display: block; border: 1px solid var(--line);
-  border-radius: 8px; cursor: zoom-in; background: var(--surface-2); }
-.shots img:hover { border-color: var(--accent); }
-dialog.zoom { max-width: 96vw; max-height: 96vh; padding: 0; border: 0; border-radius: 10px; background: var(--surface); }
-dialog.zoom::backdrop { background: rgb(0 0 0 / .75); }
-dialog.zoom img { display: block; max-width: 96vw; max-height: calc(96vh - 40px); cursor: zoom-out; }
-dialog.zoom p { margin: 0; padding: 8px 12px; font-size: 13px; color: var(--ink-2); }
-.options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-.opt { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 7px 12px;
-  font: inherit; font-size: 14px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-.opt:hover { border-color: var(--accent); }
-.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.opt .rec { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
-.opt[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.opt[aria-pressed="true"] .rec { color: inherit; opacity: .8; }
-.note { width: 100%; margin-top: 10px; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; min-height: 38px; }
-/* Wide screens: the decision on the left, its evidence (metrics, code, figures) on the right */
-@media (min-width: 1400px) {
-  #head { max-width: 1640px; }
-  .summary > ul { columns: 2; column-gap: 40px; }
-  .summary > ul > li + li { margin-top: 0; }
-  .summary > ul > li { padding-bottom: 8px; }
-  #app { max-width: 1640px; }
-  .card-body.has-ev { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-rows: auto 1fr;
-    grid-template-areas: "text ev" "decide ev"; column-gap: 24px; }
-  .has-ev .c-text { grid-area: text; } .has-ev .c-decide { grid-area: decide; align-self: start; }
-  .has-ev .c-ev { grid-area: ev; min-width: 0; border-left: 1px solid var(--line); padding-left: 24px; }
-  .has-ev .c-ev > :first-child, .has-ev .c-ev > :first-child > :first-child { margin-top: 8px; }
-  .c-ev .diff { grid-template-columns: minmax(0, 1fr); }
-}
-@media (min-width: 1400px) and (max-width: 1699px) { .has-ev .args { grid-template-columns: minmax(0, 1fr); } }
-details.fold { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; }
-details.fold > summary { cursor: pointer; font-weight: 600; }
-details.fold .card { margin: 12px 0 0; background: var(--bg); }
+.shots img { width: 100%; height: auto; max-height: 360px; object-fit: contain; display: block; border: 1px solid var(--edge); border-radius: 10px; cursor: zoom-in; background: var(--raised); }
+.shots img:hover { border-color: var(--line); }
 
-/* Narrow screens: sidebar stacks under the header; its footer (progress + actions) pins to the bottom */
-@media (max-width: 960px) {
-  .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "side" "main"; }
-  #head { padding: 28px 16px 0; }
-  #app { padding: 0 16px 180px; }
-  #side { position: static; height: auto; border-right: 0; border: 1px solid var(--line); border-radius: var(--radius); margin: 20px 16px 0; }
-  .side-scroll { overflow: visible; }
-  .side-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; border-top: 1px solid var(--line);
-    background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); }
-  .actions { grid-template-columns: auto 1fr 1fr; }
-  .actions:has(#send:not([hidden])) { grid-template-columns: auto 1fr 1fr auto; }
-  .actions:has(#share:not([hidden])) { grid-template-columns: auto 1fr 1fr auto auto; }
-  .btn.primary, .btn.wide { grid-column: auto; }
-  #reset, #recAll { margin-bottom: 0; }
-  #recAll { margin-right: 14px; }
-  .progress .track { margin-bottom: 8px; }
+/* The summary item: the whole summary, the outcome and the gate's figures, across both right-hand columns */
+.sumgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px 36px; margin-top: 22px; }
+.sumcol h3 { margin: 0 0 4px; font-size: 15px; font-weight: 650; color: var(--ink-2); }
+.sumcol p, .sumcol ul { margin: 0; font-size: 15px; line-height: 1.55; max-width: 62ch; }
+.sumcol ul { padding-left: 1.1em; }
+.sumcol li + li { margin-top: 4px; }
+.oview { background: var(--ground); border: 1px solid var(--edge); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
+.ohead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ohead b { font-size: 15px; font-weight: 650; }
+.opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
+.opane { min-width: 0; }
+.opane .olbl { font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
+.opane .figure, .opane .shots { margin-top: 4px; }
+.opane .shots { grid-template-columns: 1fr; }
+.opane .shots img { max-height: 420px; }
+
+/* Bottom: the keys that work right now, and the last message */
+.foot { display: flex; align-items: center; gap: 24px; padding: 10px 20px 12px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--ink-3); min-width: 0; flex: 1; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend span.ctx { color: var(--ink-2); }
+.legend kbd { height: 19px; min-width: 19px; font-size: 11px; }
+.toast { font-size: 13.5px; color: var(--ink-2); flex: none; max-width: 46%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toast:empty { display: none; }
+#out { display: none; position: fixed; right: 20px; bottom: 54px; z-index: 8; width: min(560px, calc(100vw - 32px)); height: 220px; resize: none;
+  font: 12.5px/1.55 var(--mono); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--raised); color: var(--ink);
+  }
+.touchnav, .tabs { display: none; }
+
+/* Dialogs: keys, share, zoom */
+dialog { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 0; }
+dialog::backdrop { background: rgba(10, 9, 8, .72); }
+dialog.help { width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow: auto; padding: 22px 24px 18px; }
+dialog.help h3 { margin: 0 0 14px; font-size: 19px; font-weight: 650; }
+dialog.help table { border-collapse: collapse; font-size: 14.5px; width: 100%; }
+dialog.help td { padding: 5px 16px 5px 0; vertical-align: top; }
+dialog.help td:first-child { white-space: nowrap; width: 1%; }
+dialog.help h3.sub3 { margin: 18px 0 0; font-size: 14px; color: var(--ink-2); }
+dialog.help th { text-align: left; font-size: 14px; font-weight: 650; color: var(--ink-2); padding: 14px 0 4px; }
+dialog.help tr:first-child th { padding-top: 0; }
+dialog.help .buttons { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-top: 16px; }
+dialog.help .buttons .muted { flex: 1; font-size: 14px; }
+.share-picker { width: min(540px, calc(100vw - 32px)); }
+.share-q { border: 0; padding: 0; margin: 0 0 14px; }
+.share-q legend { font-size: 14px; font-weight: 650; color: var(--ink-2); margin-bottom: 4px; padding: 0; }
+.chan { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; cursor: pointer; }
+.chan input { accent-color: var(--green); margin-top: 4px; }
+.chan b { font-weight: 550; }
+.chan.off { color: var(--ink-3); cursor: default; }
+.chan small { display: block; color: var(--ink-3); font-size: 13px; margin-top: 2px; }
+.chan-to { display: flex; gap: 10px; align-items: center; margin: 4px 0 12px; color: var(--ink-2); font-size: 14px; }
+.chan-to input { flex: 1; font: inherit; font-size: 14px; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); }
+dialog.zoom { max-width: 96vw; max-height: 96vh; overflow: hidden; }
+dialog.zoom img { display: block; max-width: 96vw; max-height: calc(96vh - 40px); cursor: zoom-out; }
+dialog.zoom p { margin: 0; padding: 8px 14px; font-size: 13.5px; color: var(--ink-2); }
+dialog.zoom p:empty { display: none; }
+
+/* Narrower desktops: slimmer side panes, no keycaps on the top-bar buttons */
+@media (max-width: 1400px) {
+  .panes { grid-template-columns: 340px minmax(0, 1fr) 400px; }
+  .side-closed .panes { grid-template-columns: minmax(0, 1fr) 440px; }
+  .side-rail .panes { grid-template-columns: 116px minmax(0, 1fr) 440px; }
+  .actions .btn kbd { display: none; }
 }
-@media (max-width: 680px) {
-  .diff, .args { grid-template-columns: 1fr; }
-  h1 { font-size: 23px; }
-  .figure svg { min-width: 600px; }
-  .btn { padding: 8px 6px; font-size: 13px; }
+@media (max-width: 1180px) {
+  .top { flex-wrap: wrap; gap: 10px 16px; }
+  .gt { flex-basis: 100%; }
+  .progress { flex: 1; width: auto; min-width: 160px; }
 }
-@media print { #side { display: none; } .layout { display: block; } details.fold { display: block; } }
+/* Tablets: the list beside the card, the evidence under it */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .panes { grid-template-columns: 290px minmax(0, 1fr); grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); grid-template-areas: "list card" "list ev"; }
+  .side-closed .panes { grid-template-columns: minmax(0, 1fr); grid-template-areas: "card" "ev"; }
+  .side-rail .panes { grid-template-columns: 116px minmax(0, 1fr); }
+  .c-scroll { padding: 20px 22px; }
+  .c-decide { padding: 14px 22px 16px; }
+  .args { grid-template-columns: 1fr; }
+  .argcol, .argcol:first-child, .argcol:last-child { padding: 2px 0 4px; border-left: 0; }
+  .argcol:last-child { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
+}
+/* Phones: one pane at a time, picked by tab; the choice stays pinned under the card */
+@media (max-width: 760px) {
+  /* The top bar opens up: the title stays on top, progress and actions become a bar pinned at the bottom */
+  .layout { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto; grid-template-areas: "top" "sum" "tabs" "panes" "foot" "prog" "acts"; }
+  #head { display: contents; }
+  .gt { grid-area: top; padding: 10px 16px 6px; }
+  .progress { grid-area: prog; width: auto; padding: 10px 16px 0; background: var(--panel); border-top: 1px solid var(--edge); }
+  .actions { grid-area: acts; padding: 8px 16px 12px; background: var(--panel); }
+  .gt h1 { white-space: normal; font-size: 16.5px; }
+  .side-open, #keys { display: none !important; }
+  .actions { flex-wrap: wrap; gap: 6px; }
+  .actions .btn { flex: 1 1 auto; min-height: 36px; padding: 5px 10px; font-size: 13.5px; }
+  .sumwrap { padding: 0 16px; }
+  .sum { flex-direction: column; align-items: flex-start; padding: 8px 6px 2px 14px; gap: 0; min-height: 0; }
+  .sumbtn { min-height: 32px; margin-left: -8px; padding: 0 8px; }
+  .meta .srcm { display: none; }
+  .sumbtn kbd { display: none; }
+  .tabs { display: flex; margin: 8px 16px 0; padding: 3px; gap: 4px; background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; }
+  .tabs button { flex: 1; min-height: 34px; border-radius: 9px; color: var(--ink-2); font-weight: 550; }
+  .tabs button[aria-selected="true"] { color: var(--ink); background: var(--cur); }
+  .narrow-btn { display: none !important; }
+  .panes, .side-closed .panes, .side-rail .panes { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); grid-template-areas: "main"; padding: 10px 16px 0; }
+  #side, .side-closed #side, .c-main, .c-ev, .card.wide .c-main { grid-area: main; display: none; }
+  .layout[data-tab="list"] #side, .layout[data-tab="card"] .card.current .c-main, .layout[data-tab="ev"] .card.current .c-ev,
+  .layout[data-tab="ev"] .card.current.wide .c-main { display: flex !important; }
+  .c-scroll { padding: 18px 18px 16px; }
+  .ctitle { font-size: 22px; }
+  .lead { font-size: 16.5px; }
+  .args { grid-template-columns: 1fr; }
+  .argcol, .argcol:first-child, .argcol:last-child { padding: 2px 0 4px; border-left: 0; }
+  .argcol:last-child { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
+  /* The arguments come first: the card scrolls as one and "Your choice" follows them instead of covering them */
+  .c-main { overflow-y: auto; }
+  .c-main .c-scroll { overflow: visible; flex: none; }
+  .c-decide { padding: 12px 16px 32px; flex: none; }
+  /* A soft fade at the foot of the scrolling card says there is more below */
+  .c-main::after { content: ''; display: block; position: sticky; bottom: 0; flex: none; height: 30px; margin-top: -30px; pointer-events: none; background: linear-gradient(to bottom, transparent, var(--foot)); }
+  /* The summary strip stacks: verdict, then recommendation, each in full */
+  .sumline { flex-direction: column; gap: 4px; }
+  .sumline .sep { display: none; }
+  .sumline .sp.vd { max-width: none; display: block; overflow: visible; }
+  .sumline { width: 100%; }
+  .sumline .sp.rec { flex: none; }
+  .dh { display: none; }
+  .opt { flex: 1 1 auto; min-height: 44px; padding-right: 10px; }
+  .options { gap: 8px; margin-bottom: 10px; }
+  .relx { flex-wrap: wrap; gap: 6px 12px; }
+  .relx .rs { flex-basis: 100%; padding-left: 42px; }
+  .meta code { font-size: 11px; }
+  .notewrap label { display: none; }
+  .row { padding-top: 9px; padding-bottom: 9px; }
+  .foot { padding: 10px 16px 10px; flex-direction: column; align-items: stretch; gap: 8px; }
+  .legend { display: none; }
+  .touchnav { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 8px; }
+  .touchnav button { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); font-size: 14px; }
+  .toast { max-width: none; white-space: normal; }
+}
+@media (max-width: 640px) {
+  /* The trade-off table stacks: one block per option, each cost labelled by its lens */
+  .btable, .btable tbody, .btable tr, .btable td { display: block; }
+  .btable thead { display: none; }
+  .btable tbody tr + tr { border-top: 1px solid var(--edge); }
+  .btable tbody tr + tr td { border-top: 0; }
+  .btable td { padding: 4px 12px; }
+  .btable td.o { padding-top: 10px; }
+  .btable td:last-child { padding-bottom: 10px; }
+  .btable td[data-l]::before { content: attr(data-l); display: block; font-size: 12.5px; font-weight: 650; color: var(--ink-3); }
+  .figure svg { min-width: 560px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+@media print {
+  .layout { display: block; height: auto; overflow: visible; }
+  #side, .foot, .tabs, .sumwrap, .actions, .side-open, .lswitch, .c-decide .notewrap { display: none !important; }
+  .panes { display: block; padding: 0; }
+  .card, .card.current { display: block; break-inside: avoid; margin-bottom: 16px; }
+  .panel { display: block; box-shadow: none; overflow: visible; margin-bottom: 8px; }
+  .scroll { overflow: visible; }
+}
 </style>
 </head>
 <body>
-<div class="layout">
-  <aside id="side" aria-label="Overview and filters">
-    <div class="side-scroll" id="sideScroll"></div>
-    <div class="side-foot">
-      <div class="progress"><div class="txt" id="ptxt"></div><div class="track"><div class="fill" id="pfill"></div></div></div>
-      <div class="actions">
-        <button class="btn" id="reset" type="button">Reset</button>
-        <button class="btn" id="recAll" type="button">Accept recommended</button>
-        <button class="btn primary" id="send" type="button" hidden>Send to Claude</button>
-        <button class="btn primary" id="copy" type="button">Copy decisions</button>
-        <button class="btn wide" id="share" type="button" hidden>Share</button>
-      </div>
-      <div class="toast" id="toast" role="status"></div>
-      <textarea id="out" readonly aria-label="Decisions to paste back"></textarea>
+<div class="layout" data-tab="card">
+  <header id="head" class="top">
+    <div class="gt" id="gt"></div>
+    <div class="progress" aria-live="polite"><div class="txt" id="ptxt"></div><div class="track"><div class="fill" id="pfill"></div></div></div>
+    <div class="actions">
+      <button class="btn ghost" id="reset" type="button">Reset</button>
+      <button class="btn" id="recAll" type="button">Accept recommended <kbd>A</kbd></button>
+      <button class="btn wide" id="share" type="button" hidden>Share</button>
+      <button class="btn primary" id="copy" type="button"><span id="copyLabel">Copy decisions</span> <kbd>C</kbd></button>
+      <button class="btn primary" id="send" type="button" hidden>Send to Claude <kbd>S</kbd></button>
+      <button class="btn ghost" id="keys" type="button" aria-label="Keyboard keys"><kbd>?</kbd> Keys</button>
     </div>
-  </aside>
-  <header id="head"></header>
-  <main id="app"></main>
+  </header>
+  <div class="sumwrap" id="sumwrap"><div class="sum" id="sum"></div></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Panes"></div>
+  <div class="panes">
+    <aside id="side" class="panel" aria-label="Cards">
+      <div class="phead" id="sideHead"></div>
+      <div class="find" id="find"></div>
+      <div class="sidebody" id="sidebody"><div class="side-scroll scroll" id="sideScroll"></div></div>
+    </aside>
+    <main id="app"></main>
+  </div>
+  <footer class="foot">
+    <div class="legend" id="legend" aria-label="Keys that work now"></div>
+    <div class="touchnav" id="touchnav"></div>
+    <div class="toast" id="toast" role="status"></div>
+    <textarea id="out" readonly aria-label="Decisions to paste back"></textarea>
+  </footer>
 </div>
 <script type="application/json" id="ceo-data">{"kind":"refactor","title":"Refactoring backlog — src/invoice.js","date":"2026-09-26","source":".council/refactors/2026-09-26-invoice.md","summary":[{"label":"Verdict","text":"invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."},{"label":"Weak spots","points":["The 20% tax rule is written out in three places","exportCsv() has no callers","The name 'grand' hides that it is the total including tax"]},{"label":"For team-review","points":["Gold customers' discount rounds down while every other tier rounds to nearest","Currency symbol printed after a space ('12,00 €'), in the formatter; S0 pins it as-is","'Discount: -0.00' printed when there is no discount, in the totals block; S0 pins it as-is","Run team-review on src/invoice.js before executing: the rounding touches money."]},{"label":"Recommendation","points":["Approve S0–S4","Side with the Minimalist on T1"]}],"outcome":[{"view":"system","title":"invoice.js after the approved steps","caption":"The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.","before":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 196\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">140 lines · tax rule ×3\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">tier switch · format · email\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">exportCsv()\u003c/text>\n\u003c/svg>\n"},"after":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 268\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n  \u003cpath d=\"M494 128 H552\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M552 123 L560 128 L552 133 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">112 lines · one TAX_RATE\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">format · email\u003c/text>\n  \u003ctext x=\"494\" y=\"48\" text-anchor=\"end\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">CHANGED\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke-dasharray=\"5 4\" style=\"fill: var(--surface); stroke: var(--ink-2)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" style=\"fill: var(--ink-2); font-family: var(--mono)\">exportCsv()\u003c/text>\n  \u003ctext x=\"728\" y=\"80\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">REMOVED\u003c/text>\n\n  \u003crect x=\"560\" y=\"108\" width=\"160\" height=\"40\" rx=\"6\" stroke-width=\"1.5\" style=\"fill: var(--surface); stroke: var(--accent)\"/>\n  \u003ctext x=\"640\" y=\"132\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">computeDiscount()\u003c/text>\n  \u003ctext x=\"728\" y=\"132\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">NEW\u003c/text>\n\n  \u003ctext x=\"24\" y=\"214\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">NEW\u003c/tspan>\u003ctspan x=\"96\">computeDiscount(tier, total): the tier switch and its rounding leave invoice()\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"234\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">REMOVED\u003c/tspan>\u003ctspan x=\"96\">exportCsv(): no caller in the repo or its git history\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"254\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">CHANGED\u003c/tspan>\u003ctspan x=\"96\">invoice(): 140 → 112 lines, one TAX_RATE in place of three tax literals\u003c/tspan>\u003c/text>\n\u003c/svg>\n"}}],"figures":[],"items":[{"kind":"decision","id":"S0","group":"Backlog","title":"Characterize invoice totals (safety net)","detail":["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject","Proves they bite by flipping the rounding and the tax constant"],"for":[{"who":"Safety Net","point":"Today's two tests only cover the silver path."}],"metrics":[{"label":"Pinned branches","before":2,"after":11,"better":"higher"}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S1","group":"Backlog","title":"Extract Constant: TAX_RATE","detail":"The 20 % rate is written three times: once `0.2`, twice `1.2`.","for":[{"who":"Responsibilities","point":"A tax change today means three edits."},{"who":"Minimalist","point":"KEEP: removes a present, bug-prone duplication."}],"code":{"before":"const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2","after":"const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"},"after":["S0"],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S5","group":"Backlog","title":"Name the rate TAX_RATE_PCT?","on":{"id":"S1"},"detail":"S1 keeps the rate as `0.2`; this one stores `20` and divides at the call site.","why":"Changes the constant S1 introduces, not the invoice.","for":[{"who":"Responsibilities","point":"A percentage reads the way the business says it."}],"against":[{"who":"Minimalist","point":"One more conversion for no new behavior."}],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[],"block":"S1"},{"kind":"decision","id":"S2","group":"Backlog","title":"Rename Variable: grand → totalWithTax","for":[{"who":"Responsibilities","point":"'grand' is read 11 times and never says what it holds."}],"code":{"before":"const grand = net + tax\nsendInvoice(grand)","after":"const totalWithTax = net + tax\nsendInvoice(totalWithTax)"},"after":["S0"],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S3","group":"Backlog","title":"Remove Dead Code: exportCsv()","for":[{"who":"Minimalist","point":"No callers in the repo or in git history since it was added."}],"metrics":[{"label":"Lines","before":140,"after":112,"better":"lower"}],"after":["S0"],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S4","group":"Backlog","title":"Extract Function: computeDiscount(tier, total)","detail":"Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.","for":[{"who":"Sequencing","point":"Make the change easy, then make the easy change: platinum lands next sprint."}],"against":[{"who":"Depth","point":"Fine only if it takes the rounding with it; a shallow wrapper would leak it."}],"code":{"before":"if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …","after":"const discount = computeDiscount(tier, total)"},"after":["S0"],"options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"sides":[{"who":"Responsibilities","position":"Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh."},{"who":"Minimalist + Depth","position":"After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.","recommended":true}],"kind":"tension","id":"T1","title":"Split invoice.js into calculate / format / send modules?","group":"Tensions","options":[{"value":"Responsibilities","label":"Side with Responsibilities","recommended":false},{"value":"Minimalist + Depth","label":"Side with Minimalist + Depth","recommended":true},{"value":"defer","label":"Defer","negative":true}],"figures":[]},{"id":"RS-4","title":"DiscountStrategy interface with one class per tier","kind":"rejected","group":"Considered and rejected","why":"Rejected because: One use today; the switch is not repeated anywhere. Killed by the Minimalist gate.","options":[{"value":"keep-rejected","label":"Keep rejected","recommended":true},{"value":"revive","label":"Revive"}],"default":"keep-rejected","figures":[]},{"id":"A1","title":"Is the tier read per invoice?","answer":"Per invoice","source":"src/invoice.js:12","who":"Mechanics","kind":"settled","group":"Settled without you","options":[{"value":"ok","label":"OK","recommended":true},{"value":"reopen","label":"Reopen"}],"default":"ok","figures":[]}],"_rev":"47bc94ca26bd"}</script>
 <script>
 (function () {
   var data = JSON.parse(document.getElementById('ceo-data').textContent);
   var items = data.items || [];
-  var app = document.getElementById('app'), head = document.getElementById('head'), side = document.getElementById('sideScroll');
+  var app = document.getElementById('app'), head = document.getElementById('gt'), side = document.getElementById('sideScroll');
+  var layout = document.querySelector('.layout');
   var key = 'ceo-view:' + (data.source || data.title) + ':' + (data._rev || '');
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
   // Share mode: the sharer's choices and notes (render.js --preset), until the reader's own saved state replaces them.
   var state = saved || JSON.parse(JSON.stringify(data.preset || {}));
   function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {} }
-  var cur = null; // id of the keyboard-current card
+  var cur = null; // id of the current card: the one the centre and evidence panes show
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -376,10 +589,54 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     return n;
   }
   function choiceOf(id) { return state[id] && state[id].choice; }
+  function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function say(t) { document.getElementById('toast').textContent = t; }
 
   // Share mode: the page someone else decides on alone (render.js --share); its reader copies a prompt, nothing comes back.
   var shareMode = data.mode === 'share';
   document.title = shareMode ? data.title : data.title + ' · CEO Gate';
+  var served = !shareMode && /^https?:$/.test(location.protocol);
+  function query(q) { try { return matchMedia(q); } catch (e) { return { matches: false }; } }
+  var narrowQ = query('(max-width: 760px)'), reducedQ = query('(prefers-reduced-motion: reduce)');
+
+  // Drawn marks. Static SVG only; every text from the gate goes in as text nodes.
+  var ICON = {
+    plus: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    minus: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    split: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M3 5.5L1.5 8 3 10.5M13 5.5l1.5 2.5-1.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    check: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l3 3 6-6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    note: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h7l3 3v8H3z M10 2.5v3h3 M5.5 8.5h5 M5.5 11h3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+    lock: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 12L12 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    hold: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4" fill="currentColor"/></svg>',
+    lifted: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    filter: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11l-4.3 5.1v3.9l-2.4 1.1V8.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+    panel: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 3v10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    back: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    up: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.5M4 7.5l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    help: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.9 1.6c-.7.4-1.1.8-1.1 1.6M8 11.4v.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    next: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+  var tplBox = document.createElement('template');
+  function svgEl(markup) { tplBox.innerHTML = markup; return tplBox.content.firstChild; }
+  function icon(name) { return svgEl(ICON[name]); }
+  // Status: a drawn mark plus a word. Open ring = to decide, filled check = chosen, grey bar = declined, dot = a default, dashed = not needed.
+  function mark(kind) {
+    var s = '<svg viewBox="0 0 16 16" aria-hidden="true">', bg = 'fill:var(--rowbg, var(--panel));';
+    if (kind === 'todo') s += '<circle cx="8" cy="8" r="5.6" style="' + bg + 'stroke:var(--ink-2)" stroke-width="1.6"/>';
+    else if (kind === 'yes') s += '<circle cx="8" cy="8" r="7" style="fill:var(--green)"/><path d="M5 8.2l2 2 4-4.4" fill="none" style="stroke:var(--ground)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+    else if (kind === 'no') s += '<circle cx="8" cy="8" r="7" style="fill:var(--ink-3)"/><path d="M5 8h6" style="stroke:var(--ground)" stroke-width="1.8" stroke-linecap="round"/>';
+    else if (kind === 'preset') s += '<circle cx="8" cy="8" r="6.3" style="' + bg + 'stroke:var(--ink-3)" stroke-width="1.4"/><circle cx="8" cy="8" r="3" style="fill:var(--ink-3)"/>';
+    else if (kind === 'moot') s += '<circle cx="8" cy="8" r="5.6" style="' + bg + 'stroke:var(--ink-3)" stroke-width="1.4" stroke-dasharray="2.2 2.2"/>';
+    else s += '<rect x="3.2" y="3.2" width="9.6" height="9.6" rx="1.5" transform="rotate(45 8 8)" style="' + bg + 'stroke:var(--ink-2)" stroke-width="1.5"/>';
+    return s + '</svg>';
+  }
+  // A small drawn elbow: solid for "refines", dashed for "comes after".
+  function relIcon(kind) {
+    var dash = kind === 'after' ? ' stroke-dasharray="3.5 3"' : '';
+    return svgEl('<svg class="ri" viewBox="0 0 30 22" aria-hidden="true"><path d="M6 2v9a5 5 0 0 0 5 5h13" fill="none" style="stroke:var(--rail-lit)" stroke-width="2"' + dash + '/>' +
+      '<circle cx="6" cy="3" r="3" style="fill:var(--rail-lit)"/><circle cx="25" cy="16" r="3.4" fill="none" style="stroke:var(--rail-lit)" stroke-width="1.6"/></svg>');
+  }
 
   // Click any image to view it full size; click or Esc closes.
   var zoom = el('dialog', 'zoom'), zoomImg = el('img'), zoomCap = el('p');
@@ -413,6 +670,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return box;
   }
+  function plainTitle(id) { var it = byIdx[id]; return it ? String(it.title).replace(/`|\*\*/g, '') : ''; }
 
   // SVG figures render full width; raster figures share a thumbnail grid.
   function figures(list) {
@@ -427,7 +685,7 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
         var fg = el('figure', 'figure');
         if (f.title) fg.appendChild(el('div', 'ftitle', f.title));
         var holder = el('div', 'svgwrap'); holder.innerHTML = f.svg || ''; fg.appendChild(holder);
-        // One viewBox unit = one pixel, so font-size 12–13 renders at reading size; narrower screens scale down.
+        // One viewBox unit = one pixel, so font-size 12–13 renders at reading size; narrower panes scale down.
         var svg = holder.querySelector('svg'), vb = svg && svg.viewBox && svg.viewBox.baseVal;
         if (vb && vb.width) svg.style.width = vb.width + 'px';
         if (f.caption) fg.appendChild(el('figcaption', null, f.caption));
@@ -436,9 +694,29 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return box;
   }
+  // A side-by-side diff of before and after: lines both keep stay plain, the rest are marked.
+  function lcsDiff(a, b) {
+    var n = a.length, m = b.length, L = [], i, j;
+    for (i = 0; i <= n; i++) L.push(new Array(m + 1).fill(0));
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var keepA = {}, keepB = {}; i = 0; j = 0;
+    while (i < n && j < m) {
+      if (a[i] === b[j]) { keepA[i] = keepB[j] = true; i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+    }
+    return { a: keepA, b: keepB };
+  }
+  function codeBox(label, aside, lines, keep, cls) {
+    var box = el('div', 'ebox code'), cl = el('div', 'cl', label), pre = el('pre');
+    if (aside) cl.appendChild(el('span', null, aside));
+    box.appendChild(cl);
+    lines.forEach(function (l, i) { pre.appendChild(el('div', keep && keep[i] ? 'ctx' : cls, l || ' ')); });
+    box.appendChild(pre);
+    return box;
+  }
 
-  // Constraints (bridge.md): limits that remove options. A contested or assumed one says so.
-  // Lens marks: a drawn icon and its name, the same on chips, tabs, filters and constraints. A briefcase for business, brackets for tech.
+  // Lens marks: a drawn icon and its name, the same on the list, the card, the switch, the filter and the constraints.
+  // A briefcase for business, brackets for tech.
   var LENS_NAME = { business: 'Business', tech: 'Tech' };
   var LENS_PATHS = {
     business: ['M3.5 5.5h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z', 'M6 5.5v-2h4v2', 'M2.5 9.5h11'],
@@ -446,77 +724,26 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   };
   function lensIcon(l) {
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16'); svg.setAttribute('class', 'licon'); svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('viewBox', '0 0 16 16'); svg.setAttribute('class', 'licon l-' + l); svg.setAttribute('aria-hidden', 'true');
     LENS_PATHS[l].forEach(function (d) { var p = document.createElementNS(svg.namespaceURI, 'path'); p.setAttribute('d', d); svg.appendChild(p); });
     return svg;
   }
-  function lensMark(cls, l) { var s = el('span', cls); s.appendChild(lensIcon(l)); s.appendChild(document.createTextNode(LENS_NAME[l])); return s; }
-  function constraintList(list) {
-    var ul = el('ul', 'klist');
-    list.forEach(function (k) {
-      var li = el('li');
-      li.appendChild(lensMark('klens', k.lens));
-      inline(li, k.text);
-      li.appendChild(el('span', 'kid', k.id));
-      if (k.status !== 'confirmed') li.appendChild(el('span', 'kstat', k.status));
-      li.appendChild(el('span', 'ksrc', k.source));
-      ul.appendChild(li);
-    });
-    return ul;
-  }
-  // Header. The summary is a list of bullets: plain strings, or { label, text, points }.
-  head.appendChild(el('span', 'badge', data.kind || 'decision'));
+  function lensMark(cls, l) { var s = el('span', cls + ' l-' + l); s.appendChild(lensIcon(l)); s.appendChild(document.createTextNode(LENS_NAME[l])); return s; }
+  var LENSES = ['business', 'tech'];
+  var lensed = items.some(function (it) { return it.lenses; });
+
+  // Top bar: the gate's name, kind and date, its record, and what a share page arrived with.
   head.appendChild(el('h1', null, data.title));
   var meta = el('div', 'meta');
-  if (data.date) meta.appendChild(el('span', null, data.date));
-  if (data.source) { var s = el('span'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(el('code', null, data.source)); meta.appendChild(s); }
+  meta.appendChild(el('span', null, cap(data.kind || 'decision') + ' gate' + (data.date ? ' · ' + data.date : '')));
+  if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(el('code', null, data.source)); meta.appendChild(s); }
   if (data.preset) {
     var pc = 0, pn = 0;
     var defaultOf = function (id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i].default; };
     Object.keys(data.preset).forEach(function (id) { var p = data.preset[id]; if (!p || typeof p !== 'object') return; if (p.choice && p.choice !== defaultOf(id)) pc++; if (p.note) pn++; });
-    if (pc || pn) meta.appendChild(el('span', null, 'Pre-filled by the reviewer: ' + pc + ' choice' + (pc === 1 ? '' : 's') + ', ' + pn + ' note' + (pn === 1 ? '' : 's') + '. Change any.'));
+    if (pc || pn) meta.appendChild(el('span', 'preset', 'Pre-filled by the reviewer: ' + pc + ' choice' + (pc === 1 ? '' : 's') + ', ' + pn + ' note' + (pn === 1 ? '' : 's') + '. Change any.'));
   }
   head.appendChild(meta);
-  if (data.summary && data.summary.length) {
-    var sum = el('div', 'summary'), ul = el('ul');
-    data.summary.forEach(function (b) {
-      var li = el('li');
-      if (typeof b === 'string') { inline(li, b); }
-      else {
-        if (b.label) li.appendChild(el('span', 'slabel', b.label + (b.text ? ': ' : '')));
-        if (b.text) inline(li, b.text);
-        if (b.points && b.points.length) {
-          var sub = el('ul'); b.points.forEach(function (p) { sub.appendChild(inline(el('li'), p)); }); li.appendChild(sub);
-        }
-      }
-      ul.appendChild(li);
-    });
-    sum.appendChild(ul); head.appendChild(sum);
-  }
-  // Outcome, right under the summary: the human approves a destination, not a list of steps.
-  if (data.outcome && data.outcome.length) {
-    var oc = el('section', 'outcome');
-    oc.appendChild(el('h2', null, 'Outcome'));
-    data.outcome.forEach(function (o) {
-      var ov = el('div', 'oview'), oh = el('div', 'ohead');
-      oh.appendChild(el('span', 'tag kind', o.view === 'ui' ? 'mockup' : 'system'));
-      oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
-      ov.appendChild(oh);
-      ov.appendChild(el('figcaption', null, o.caption));
-      var panes = el('div', 'opanes');
-      [['before', 'Today'], ['after', o.before ? 'After' : 'Target']].forEach(function (p) {
-        if (!o[p[0]]) return;
-        var pane = el('div', 'opane ' + p[0]);
-        pane.appendChild(el('div', 'lbl', p[1]));
-        pane.appendChild(figures([o[p[0]]]));
-        panes.appendChild(pane);
-      });
-      ov.appendChild(panes);
-      oc.appendChild(ov);
-    });
-    head.appendChild(oc);
-  }
-  if (data.figures && data.figures.length) head.appendChild(figures(data.figures));
 
   // Sections, in page order: weighty decision groups, tensions, minor items, settled, rejected.
   var sections = [];
@@ -533,13 +760,130 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   items.filter(function (it) { return home(it).kind === 'settled'; }).forEach(function (it) { sectionFor('Settled without you', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
 
-  // Sidebar: search and filters
+  // Rails: inside a section a card hangs under the card it refines, else under the first card it comes after,
+  // so the list reads as the work order. Solid elbow = refines, dashed = needs it first.
+  var rowsMeta = {};
+  sections.forEach(function (sec) {
+    var inSec = {}, par = {}, kids = {}, out = [], seen = {};
+    sec.items.forEach(function (it) { inSec[it.id] = it; });
+    sec.items.forEach(function (it) {
+      var p = null, a = (it.after || []).filter(function (x) { return inSec[x] && x !== it.id; })[0];
+      if (it.on && inSec[it.on.id] && it.on.id !== it.id) p = { id: it.on.id, kind: 'on' };
+      else if (a) p = { id: a, kind: 'after' };
+      if (p) { par[it.id] = p; (kids[p.id] = kids[p.id] || []).push(it.id); }
+    });
+    function walk(id, depth, from) {
+      if (seen[id]) return; seen[id] = true;
+      out.push({ id: id, depth: depth, parent: from });
+      (kids[id] || []).forEach(function (k) { walk(k, depth + 1, id); });
+    }
+    sec.items.forEach(function (it) { if (!par[it.id]) walk(it.id, 0, null); });
+    sec.items.forEach(function (it) { walk(it.id, 0, null); });
+    sec.items = out.map(function (r) { return inSec[r.id]; });
+    sec.rows = out;
+    out.forEach(function (r, i) { rowsMeta[r.id] = { depth: r.depth, parent: r.parent, kind: r.parent ? par[r.id].kind : null, kids: [], i: i, sec: sec }; });
+    out.forEach(function (r) { if (r.parent) rowsMeta[r.parent].kids.push(r.id); });
+  });
+  var X0 = 18, LANE = 22, NY = 20;
+  function laneX(l) { return X0 + l * LANE; }
+  // The rails of the current card's chain are lit: its ancestors and the cards that hang under it.
+  function litSet() {
+    var lit = {}, rel = {}, x = cur;
+    if (!rowsMeta[cur]) return { lit: lit, rel: rel };
+    while (rowsMeta[x] && rowsMeta[x].parent) { lit[x] = true; rel[rowsMeta[x].parent] = true; x = rowsMeta[x].parent; }
+    (function down(id) { rowsMeta[id].kids.forEach(function (k) { lit[k] = true; rel[k] = true; down(k); }); })(cur);
+    return { lit: lit, rel: rel };
+  }
+  function railsFor(id, L) {
+    var m = rowsMeta[id], h = '';
+    function vert(x, top, bottom, kind, on) {
+      return '<span class="rv' + (kind === 'after' ? ' after' : '') + (on ? ' lit' : '') + '" style="left:' + x + 'px;top:' + top + ';' + (bottom === null ? 'bottom:0' : 'height:' + bottom) + '"></span>';
+    }
+    function laterKids(pid, fromI, incl) { return rowsMeta[pid].kids.filter(function (k) { return incl ? rowsMeta[k].i >= fromI : rowsMeta[k].i > fromI; }); }
+    function anyLit(arr) { return arr.some(function (k) { return L[k]; }); }
+    var chain = [], a = m.parent;
+    while (a) { chain.unshift(a); a = rowsMeta[a].parent; }
+    chain.forEach(function (aid, l) {
+      var later = laterKids(aid, m.i, false);
+      if (aid === m.parent) {
+        h += vert(laneX(l), '0', NY + 'px', m.kind, anyLit(laterKids(aid, m.i, true)));
+        h += '<span class="rh' + (m.kind === 'after' ? ' after' : '') + (L[id] ? ' lit' : '') + '" style="left:' + laneX(l) + 'px;top:' + NY + 'px;width:' + (LANE - 7) + 'px"></span>';
+        if (later.length) h += vert(laneX(l), NY + 'px', null, rowsMeta[later[0]].kind, anyLit(later));
+      } else if (later.length) {
+        h += vert(laneX(l), '0', null, rowsMeta[later[0]].kind, anyLit(later));
+      }
+    });
+    if (m.kids.length) h += vert(laneX(m.depth), (NY + 8) + 'px', null, rowsMeta[m.kids[0]].kind, anyLit(m.kids));
+    return h;
+  }
+
+  // The summary: one line under the top bar, and in full as the first item of the list.
+  var SUM = '_summary';
+  var hasSummary = !!((data.summary && data.summary.length) || (data.outcome && data.outcome.length) || (data.figures && data.figures.length));
+  var sumBtn = null, backTo = null;
+  if (hasSummary) {
+    var sm = data.summary || [];
+    var lead = sm.filter(function (b) { return b && /verdict/i.test(b.label || ''); })[0] || sm[0];
+    var recB = sm.filter(function (b) { return b && /recommend/i.test(b.label || ''); })[0];
+    var line = el('p', 'sumline'), parts = [lead, recB !== lead ? recB : null].filter(Boolean);
+    parts.forEach(function (b, i) {
+      if (i) line.appendChild(el('span', 'sep', '·'));
+      var part = el('span', 'sp ' + (parts.length === 1 ? 'only' : i === 0 ? 'vd' : 'rec'));
+      if (typeof b === 'string') inline(part, b);
+      else {
+        if (b.label) part.appendChild(el('b', null, b.label));
+        inline(part, b.text || (b.points || []).join('; '));
+      }
+      line.appendChild(part);
+    });
+    if (!line.childNodes.length && data.outcome && data.outcome.length) { line.appendChild(el('b', null, 'Outcome')); line.appendChild(document.createTextNode(data.outcome[0].title || data.outcome[0].caption || '')); }
+    line.title = line.textContent;
+    document.getElementById('sum').appendChild(line);
+    sumBtn = el('button', 'btn ghost sumbtn'); sumBtn.type = 'button';
+    sumBtn.addEventListener('click', toggleSummary);
+    document.getElementById('sum').appendChild(sumBtn);
+  } else document.getElementById('sumwrap').hidden = true;
+  function syncSumBtn() {
+    if (!sumBtn) return;
+    var on = cur === SUM;
+    sumBtn.textContent = on ? 'Back to the card ' : 'Full summary ';
+    sumBtn.appendChild(el('kbd', null, 'Z'));
+    sumBtn.setAttribute('aria-pressed', String(on));
+  }
+  function toggleSummary() {
+    if (!hasSummary) return;
+    if (cur === SUM) setCurrent(backTo && cards[backTo] ? backTo : firstOpen());
+    else { backTo = cur; setCurrent(SUM); }
+    if (narrowQ.matches) setTab('card');
+  }
+
+  // List pane: its head, search and the filter menu
+  var LIST_NAME = { review: 'Findings', council: 'Decisions', plan: 'Decisions' };
+  var listName = LIST_NAME[data.kind] || 'Cards';
+  var sideHead = document.getElementById('sideHead'), find = document.getElementById('find');
+  sideHead.appendChild(el('h2', null, listName));
+  var listCount = el('span', 'c'); sideHead.appendChild(listCount);
+  // Two controls: narrow the list to a rail of marks and ids (or widen it back), and hide it.
+  var narrowBtn = el('button', 'icon-btn narrow-btn'); narrowBtn.type = 'button';
+  var nIc = icon('back'), wIc = icon('next'); nIc.classList.add('narrow-ic'); wIc.classList.add('wide-ic');
+  narrowBtn.appendChild(nIc); narrowBtn.appendChild(wIc); sideHead.appendChild(narrowBtn);
+  var hideBtn = el('button', 'icon-btn'); hideBtn.type = 'button'; hideBtn.title = 'Hide the list'; hideBtn.setAttribute('aria-label', 'Hide the list');
+  hideBtn.appendChild(icon('panel')); sideHead.appendChild(hideBtn);
+  var helpBtn = el('button', 'icon-btn helpbtn'); helpBtn.type = 'button'; helpBtn.hidden = true;
+  helpBtn.title = 'What the lines between cards mean'; helpBtn.setAttribute('aria-label', 'What the lines between cards mean');
+  helpBtn.appendChild(icon('help')); sideHead.insertBefore(helpBtn, listCount);
   var filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
-  var sideTop = el('div', 'side-top'); sideTop.appendChild(el('div', 'side-title', 'Find'));
-  var hideBtn = el('button', 'icon-btn', '«'); hideBtn.type = 'button'; hideBtn.title = 'Hide sidebar  ( [ )'; hideBtn.setAttribute('aria-label', 'Hide sidebar');
-  sideTop.appendChild(hideBtn); side.appendChild(sideTop);
-  var search = el('input'); search.type = 'search'; search.placeholder = 'Search…  ( / )'; search.setAttribute('aria-label', 'Search items');
-  side.appendChild(search);
+  var search = el('input'); search.type = 'search'; search.placeholder = 'Search  ( / )'; search.setAttribute('aria-label', 'Search cards');
+  find.appendChild(search);
+  var filterBtn = el('button', 'fbtn'); filterBtn.type = 'button'; filterBtn.setAttribute('aria-expanded', 'false'); filterBtn.setAttribute('aria-controls', 'fmenu');
+  filterBtn.appendChild(icon('filter')); filterBtn.appendChild(document.createTextNode('Filter'));
+  var filterN = el('span', 'n'); filterN.hidden = true; filterBtn.appendChild(filterN);
+  var fmenu = el('div', 'fmenu'); fmenu.id = 'fmenu'; fmenu.hidden = true; fmenu.setAttribute('role', 'group'); fmenu.setAttribute('aria-label', 'Filters');
+  find.appendChild(filterBtn); find.appendChild(fmenu);
+  function menu(open) { fmenu.hidden = !open; filterBtn.setAttribute('aria-expanded', String(open)); }
+  filterBtn.addEventListener('click', function () { menu(fmenu.hidden); });
+  document.addEventListener('click', function (e) { if (!fmenu.hidden && !fmenu.contains(e.target) && !filterBtn.contains(e.target)) menu(false); });
+  function fgroup(label, node) { var g = el('div', 'fgroup'); g.appendChild(el('div', 'fl', label)); g.appendChild(node); fmenu.appendChild(g); }
   function pills(label, field, opts, then) {
     var g = el('div', 'pills'); g.setAttribute('role', 'group'); g.setAttribute('aria-label', label);
     opts.forEach(function (o) {
@@ -554,52 +898,114 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   if (items.some(function (it) { return it.kind === 'decision'; })) kinds.push(['decision', 'Decisions']);
   if (items.some(function (it) { return it.kind === 'tension'; })) kinds.push(['tension', 'Tensions']);
   if (items.some(function (it) { return it.kind === 'rejected'; })) kinds.push(['rejected', 'Rejected']);
-  var kindPills = pills('Type', 'kind', kinds); if (kinds.length > 2) side.appendChild(kindPills);
+  var kindPills = pills('Type', 'kind', kinds); if (kinds.length > 2) fgroup('Type', kindPills);
   var statusPills = pills('Status', 'status', [['all', 'Any status'], ['open', 'Undecided'], ['done', 'Decided'], ['note', 'With note']]);
-  side.appendChild(statusPills);
-  // Lens: hide the cards that don't concern it; the cards with both turn to its tab.
-  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Business'], ['tech', 'Tech']], function (l) {
-    if (l !== 'all') Object.keys(cards).forEach(function (id) { setCardLens(cards[id], l); });
-  });
+  fgroup('Status', statusPills);
+  // Lens: hide the cards that don't concern it, and turn both panes to it.
+  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Business'], ['tech', 'Tech']], function (l) { setLens(l === 'all' ? 'both' : l); });
   [].forEach.call(lensPills.children, function (b) { if (LENS_PATHS[b.dataset.v]) b.insertBefore(lensIcon(b.dataset.v), b.firstChild); });
-  if (items.some(function (it) { return it.lenses; })) side.appendChild(lensPills);
+  if (lensed) fgroup('Lens', lensPills);
   var tags = [];
   items.forEach(function (it) { (it.tags || []).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
   var tagSel = el('select'); tagSel.setAttribute('aria-label', 'Filter by tag');
   var t0 = el('option', null, 'All tags'); t0.value = ''; tagSel.appendChild(t0);
   tags.sort().forEach(function (t) { var o = el('option', null, t); o.value = t; tagSel.appendChild(o); });
   tagSel.addEventListener('change', function () { filters.tag = tagSel.value; applyFilters(); });
-  if (tags.length) side.appendChild(tagSel);
+  if (tags.length) fgroup('Tag', tagSel);
   var shownRow = el('div', 'shown-row'), shown = el('span'), clear = el('button', 'link', 'Clear filters'); clear.type = 'button';
-  shownRow.appendChild(shown); shownRow.appendChild(clear); side.appendChild(shownRow);
-  var hint = el('div', 'kbd-hint');
-  hint.innerHTML = '<kbd>←</kbd> <kbd>→</kbd> card · <kbd>Tab</kbd> option · <kbd>Enter</kbd> choose · <kbd>?</kbd> all keys';
-  side.appendChild(hint);
+  shownRow.appendChild(shown); shownRow.appendChild(clear); find.parentNode.insertBefore(shownRow, find.nextSibling);
 
-  // Sidebar: overview. A group name filters to that group; a chip jumps to its card.
-  side.appendChild(el('div', 'side-title', 'Overview'));
-  var chipsById = {};
+  // List pane: every card, by section, each row a drawn status mark plus a word
+  var list = el('div', 'list'); side.appendChild(list);
+  var empty = el('div', 'empty', 'No item matches these filters.'); empty.hidden = true; side.appendChild(empty);
+  var chipsById = {}, rowParts = {}, sumRow = null;
+  var PAST = { approve: 'Approved', decline: 'Declined', fix: 'Fix', leave: 'Leave as is', 'keep-rejected': 'Stays rejected', revive: 'Revived', ok: 'Settled', reopen: 'Reopened', defer: 'Deferred' };
+  function word(o) { return PAST[o.value] || o.label.replace(/^Side with /i, 'Sides with '); }
+  function sevOf(it) { return (it.tags || []).filter(function (t) { return /^(blocker|major|minor)$/.test(t); })[0]; }
+  function relWord(it) {
+    var m = rowsMeta[it.id], w = el('span', 'relw');
+    if (it.on) { w.appendChild(document.createTextNode('Refines ')); w.appendChild(el('b', null, it.on.id)); }
+    else if (it.after && it.after.length) { w.appendChild(document.createTextNode('Needs ')); w.appendChild(el('b', null, it.after.join(', '))); w.appendChild(document.createTextNode(' first')); }
+    else {
+      var ka = m ? m.kids.filter(function (k) { return rowsMeta[k].kind === 'after'; }).length : 0;
+      if (!ka) return null;
+      w.textContent = 'Base for ' + plural(ka, 'card');
+    }
+    return w;
+  }
+  function makeRow(it, m) {
+    var row = el('button', 'row chip'); row.type = 'button'; row.id = 'r-' + it.id;
+    row.style.setProperty('--pl', (laneX(m.depth) + 18) + 'px');
+    var rails = el('span', 'rails'); rails.setAttribute('aria-hidden', 'true'); row.appendChild(rails);
+    var l1 = el('span', 'l1'); l1.appendChild(el('span', 'rid', it.id)); l1.appendChild(inline(el('span', 'rti'), it.title));
+    var nmark = el('span', 'nmark'); nmark.title = 'Has a note'; nmark.appendChild(icon('note')); nmark.hidden = true; l1.appendChild(nmark);
+    row.appendChild(l1);
+    var l2 = el('span', 'l2'), stw = el('span', 'stw'), sev = sevOf(it), rw = relWord(it), gapw = el('span', 'gapw');
+    l2.appendChild(stw);
+    if (sev) l2.appendChild(el('span', 'sevw ' + sev, cap(sev)));
+    if (rw) l2.appendChild(rw);
+    l2.appendChild(gapw);
+    if (it.lenses) { var lm = el('span', 'lm'); it.lenses.forEach(function (l) { lm.appendChild(lensMark('lp', l)); }); l2.appendChild(lm); }
+    row.appendChild(l2);
+    row.addEventListener('click', function () { pick(it.id); });
+    chipsById[it.id] = row;
+    rowParts[it.id] = { rails: rails, stw: stw, nmark: nmark, rel: rw, gapw: gapw, m: 'todo' };
+    return row;
+  }
+  if (hasSummary) {
+    sumRow = el('button', 'row sumrow'); sumRow.type = 'button'; sumRow.id = 'r-' + SUM; sumRow.style.setProperty('--pl', (laneX(0) + 18) + 'px');
+    var sr = el('span', 'rails'); sr.setAttribute('aria-hidden', 'true');
+    sr.innerHTML = '<span class="node" style="left:' + laneX(0) + 'px;top:' + NY + 'px">' + mark('doc') + '</span>';
+    var s1 = el('span', 'l1'); s1.appendChild(el('span', 'rti', 'Summary'));
+    var s2 = el('span', 'l2'); s2.appendChild(el('span', 'stw todo', data.outcome && data.outcome.length ? 'The whole summary and the outcome' : 'The whole summary'));
+    s2.style.paddingLeft = '0';
+    sumRow.appendChild(sr); sumRow.appendChild(s1); sumRow.appendChild(s2);
+    sumRow.addEventListener('click', function () { if (cur !== SUM) backTo = cur; pick(SUM); });
+    list.appendChild(sumRow);
+  }
   sections.forEach(function (sec) {
-    var g = el('div', 'group');
-    var name = el('button', 'gname'); name.type = 'button'; name.title = 'Show only ' + sec.name;
-    name.appendChild(el('span', null, sec.name));
-    sec.count = el('span', 'count'); name.appendChild(sec.count);
+    var sh = el('div', 'sec'), name = el('button', 'gname', sec.name); name.type = 'button'; name.title = 'Show only ' + sec.name;
     name.addEventListener('click', function () { filters.group = filters.group === sec.name ? '' : sec.name; applyFilters(); });
-    sec.gname = name; g.appendChild(name);
-    var track = el('div', 'gtrack'); sec.fill = el('div', 'gfill'); track.appendChild(sec.fill); g.appendChild(track);
-    var chips = el('div', 'chips');
-    sec.items.forEach(function (it) {
-      var c = el('button', 'chip', it.id); c.type = 'button'; c.title = it.title;
-      c.addEventListener('click', function () { jump(it.id); });
-      chipsById[it.id] = c; chips.appendChild(c);
+    sec.gname = name; sec.count = el('span', 'count'); sh.appendChild(name); sh.appendChild(sec.count);
+    sec.heading = sh; list.appendChild(sh);
+    if (sec.folded && sec.items.some(function (it) { return it.default; })) { sec.hint = el('div', 'sec-hint', 'Defaults applied, open to change.'); list.appendChild(sec.hint); }
+    // A root with cards hanging under it sits in a .block with them.
+    var host = list;
+    sec.rows.forEach(function (r) {
+      var m = rowsMeta[r.id];
+      if (!m.parent) {
+        host = list;
+        if (m.kids.length) { var b = el('div', 'block'); list.appendChild(b); host = b; (sec.blocks = sec.blocks || []).push(b); }
+      }
+      host.appendChild(makeRow(byIdx[r.id], m));
     });
-    g.appendChild(chips); side.appendChild(g);
   });
-  var empty = el('div', 'empty', 'No item matches these filters.');
+  var hasOn = items.some(function (it) { return rowsMeta[it.id] && rowsMeta[it.id].kind === 'on'; });
+  var hasAfter = items.some(function (it) { return rowsMeta[it.id] && rowsMeta[it.id].kind === 'after'; });
+  // The key to the rails goes in the Keys dialog; a ? beside the list title opens it.
+  var rlegendHtml = '';
+  if (hasOn) rlegendHtml += '<div><i></i><span><b>Refines</b>: answer the card above it first</span></div>';
+  if (hasAfter) rlegendHtml += '<div><i class="after"></i><span><b>Needs … first</b>: the work order, built on its base</span></div>';
+  helpBtn.hidden = !rlegendHtml;
+  // A list longer than its pane fades at the foot while more rows wait below.
+  var sidebody = document.getElementById('sidebody');
+  function fade() { sidebody.classList.toggle('more', side.scrollHeight - side.scrollTop - side.clientHeight > 4); }
+  side.addEventListener('scroll', fade); window.addEventListener('resize', fade);
+  if (window.ResizeObserver) { var fro = new ResizeObserver(fade); fro.observe(side); fro.observe(list); }
+  function rowOf(id) { return id === SUM ? sumRow : chipsById[id]; }
+  function paintRails() {
+    var L = litSet();
+    Object.keys(rowParts).forEach(function (id) {
+      var p = rowParts[id];
+      p.rails.innerHTML = railsFor(id, L.lit) + '<span class="node" style="left:' + laneX(rowsMeta[id].depth) + 'px;top:' + NY + 'px">' + mark(p.m) + '</span>';
+      chipsById[id].classList.toggle('kin', !!L.rel[id]);
+    });
+  }
 
-  // Cards
+  // Cards: each one a centre half (the case and the choice) and an evidence half, shown while it is current
   var cards = {};
   var comesAfter = reverseAfter(items);
+  var refinedBy = {}; items.forEach(function (it) { if (it.on) (refinedBy[it.on.id] = refinedBy[it.on.id] || []).push(it.id); });
   function relLinks(ids) {
     var s = el('span');
     ids.forEach(function (id, i) {
@@ -610,211 +1016,340 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     });
     return s;
   }
-  // Lens tabs: only on a card the renderer marked lensTabs (arguments of both lenses). Each card switches on its own (b / t);
-  // the sidebar's lens filter turns them all at once.
-  var LENSES = ['business', 'tech'];
-  var tabbed = items.some(function (it) { return it.lensTabs; });
-  function setCardLens(c, l) {
-    if (!c || !c.tabs) return;
-    c.card.dataset.lens = l;
-    c.tabs.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === l)); });
+  // The lens is one view for both panes: Both, Business only, Tech only. Hidden arguments are counted, never silent.
+  var lensView = 'both';
+  function setLens(l) {
+    lensView = l;
+    Object.keys(cards).forEach(function (id) {
+      var c = cards[id];
+      if (l === 'both') c.card.removeAttribute('data-lens'); else c.card.dataset.lens = l;
+      (c.tabs || []).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === l)); });
+      (c.cols || []).forEach(function (k) { var n = l === 'both' ? k.all : k.shown[l]; k.n.textContent = n === k.all ? String(k.all) : n + ' of ' + k.all; });
+    });
+    legend();
   }
-  // Each tab counts what it holds, so the hidden lens is never a surprise.
-  function lensTabBar(it) {
-    var g = el('div', 'lens-tabs'), tabs = []; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Arguments by lens');
-    LENSES.forEach(function (l) {
-      var n = (it.for || []).concat(it.against || []).filter(function (e) { return e.lens === l; }).length;
-      var b = el('button', 'ltab'); b.appendChild(lensIcon(l)); b.appendChild(document.createTextNode(LENS_NAME[l]));
-      b.appendChild(el('span', 'n', String(n)));
-      b.type = 'button'; b.dataset.v = l; b.setAttribute('aria-pressed', 'false');
-      b.title = LENS_NAME[l] + ': ' + n + (n === 1 ? ' argument' : ' arguments') + '  ( ' + l[0] + ' )';
-      b.addEventListener('click', function () { setCardLens(cards[it.id], l); });
+  function setCardLens(c, l) { if (c && c.tabs) setLens(l); }
+  // Each card's switch counts what each lens holds on it, arguments and evidence together.
+  function lensTabBar(it, n) {
+    var g = el('div', 'lswitch'), tabs = []; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Lens for the card and its evidence');
+    ['both'].concat(LENSES).forEach(function (l) {
+      var b = el('button'); b.type = 'button'; b.dataset.v = l;
+      if (l === 'both') { b.className = 'both'; b.textContent = 'Both'; b.title = 'Both lenses  ( l )'; }
+      else {
+        b.appendChild(lensIcon(l)); b.appendChild(document.createTextNode(LENS_NAME[l]));
+        b.appendChild(el('span', 'n', n[l] ? '· ' + n[l] : '· none'));
+        b.title = LENS_NAME[l] + ' only: ' + plural(n[l], 'item') + ' on this card  ( ' + l[0] + ' )';
+      }
+      b.setAttribute('aria-pressed', String(l === lensView));
+      b.addEventListener('click', function () { setLens(l); });
       g.appendChild(b); tabs.push(b);
     });
     return { bar: g, tabs: tabs };
   }
-  // The bridge: the constraints that bind the card and what each option gains and costs per lens. Both tabs show it.
-  function bridge(it) {
-    var traded = it.options.some(function (o) { return o.tradeoff; });
-    if (!it.bridge && !traded && !it.accepts) return null;
-    var box = el('div', 'bridge');
-    if (it.bridge) { box.appendChild(el('div', 'lbl', 'Constraints')); box.appendChild(constraintList(it.bridge)); }
-    if (traded) {
-      // A lens no option trades on gets no column: a tech-only card shows only Tech.
-      var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
-      box.appendChild(el('div', 'lbl', 'Trade-offs'));
-      var tb = el('table', 'btable'), hr = el('tr');
-      ['Option'].concat(used.map(function (l) { return LENS_NAME[l]; })).forEach(function (h) { hr.appendChild(el('th', null, h)); });
-      tb.appendChild(hr);
-      it.options.forEach(function (o) {
-        if (!o.tradeoff && !(o.violates && o.violates.length)) return;
-        var tr = el('tr', o.recommended ? 'pick' : null), name = el('td', null, o.label);
-        if (o.recommended) name.appendChild(el('span', 'rec', 'recommended'));
-        if (o.violates && o.violates.length) name.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', ')));
-        tr.appendChild(name);
-        used.forEach(function (l) { var td = inline(el('td'), (o.tradeoff && o.tradeoff[l]) || '—'); td.setAttribute('data-l', LENS_NAME[l]); tr.appendChild(td); });
-        tb.appendChild(tr);
-      });
-      box.appendChild(tb);
-    }
-    if (it.accepts) { var a = el('div', 'accepts'); a.appendChild(el('b', null, 'Accepts: ')); inline(a, it.accepts); box.appendChild(a); }
-    return box;
-  }
+  function blk(parent, title) { var b = el('div', 'blk'); if (title) b.appendChild(el('h3', null, title)); parent.appendChild(b); return b; }
+  // For and against, each point tagged by its lens. The counts follow the lens.
   function argCols(pros, cons) {
-    var args = el('div', 'args');
-    [['pro', 'For', pros], ['con', 'Against', cons]].forEach(function (k) {
-      var col = el('div', k[0]); col.appendChild(el('div', 'lbl', k[1]));
-      if (!k[2].length) { col.appendChild(el('div', 'none', 'No argument raised.')); }
-      else {
-        var ul = el('ul');
-        k[2].forEach(function (a) {
-          var li = el('li');
-          if (a.who) { li.appendChild(el('span', 'who', a.who + ': ')); }
-          li.appendChild(document.createTextNode(a.point)); ul.appendChild(li);
-        });
-        col.appendChild(ul);
-      }
+    var args = el('div', 'args'), cols = [];
+    [['pro', 'For', pros, 'plus', 'Nobody argued for it.'], ['con', 'Against', cons, 'minus', 'Nobody argued against it.']].forEach(function (k) {
+      var col = el('div', 'argcol ' + k[0]), h4 = el('h4'), sg = el('span', 'sg'), n = el('span', 'n', String(k[2].length));
+      sg.appendChild(icon(k[3])); h4.appendChild(sg); h4.appendChild(document.createTextNode(k[1])); h4.appendChild(n); col.appendChild(h4);
+      if (!k[2].length) col.appendChild(el('p', 'none', k[4]));
+      k[2].forEach(function (a) {
+        var d = el('div', 'arg'), who = el('div', 'who');
+        if (a.lens && lensed) d.dataset.lens = a.lens;
+        if (a.who) who.appendChild(document.createTextNode(a.who));
+        if (a.lens && LENS_NAME[a.lens]) who.appendChild(lensMark('lp', a.lens));
+        if (who.childNodes.length) d.appendChild(who);
+        d.appendChild(inline(el('p'), a.point));
+        col.appendChild(d);
+      });
+      var shownBy = {};
+      LENSES.forEach(function (l) {
+        shownBy[l] = k[2].filter(function (a) { return !a.lens || a.lens === l; }).length;
+        if (lensed && k[2].length && !shownBy[l] && pros.concat(cons).some(function (a) { return a.lens === l; })) {
+          col.appendChild(el('p', 'lens-none ' + l, 'No ' + l + ' argument ' + (k[0] === 'pro' ? 'for' : 'against') + ' it.'));
+        }
+      });
+      cols.push({ n: n, all: k[2].length, shown: shownBy });
       args.appendChild(col);
     });
-    return args;
+    return { node: args, cols: cols };
   }
+  function metricRow(m) {
+    var r = el('div', 'metric'), lab = el('span', 'ml');
+    if (m.lens && LENS_NAME[m.lens] && lensed) lab.appendChild(lensIcon(m.lens));
+    lab.appendChild(document.createTextNode(m.label)); r.appendChild(lab);
+    var val, dl = '', dc = '';
+    if (m.before != null && m.after != null) {
+      val = m.before + ' → ' + m.after + (m.unit ? ' ' + m.unit : '');
+      var dd = Number(m.after) - Number(m.before);
+      if (!isNaN(dd) && dd !== 0) {
+        var good = m.better ? ((m.better === 'higher') === (dd > 0)) : null;
+        dl = (dd > 0 ? 'Up ' : 'Down ') + Math.round(Math.abs(dd) * 1000) / 1000 + (m.unit ? ' ' + m.unit : '') + (good === null ? '' : good ? ', better' : ', worse');
+        dc = good === null ? '' : good ? 'better' : 'worse';
+      }
+    } else val = (m.value != null ? m.value : '') + (m.unit ? ' ' + m.unit : '');
+    r.appendChild(el('span', 'mv', val));
+    if (dl) r.appendChild(el('span', 'md ' + dc, dl));
+    return r;
+  }
+  var KIND_NAME = { decision: data.kind === 'review' ? 'Finding' : 'Decision', tension: 'Tension', settled: 'Settled without you', rejected: 'Considered and rejected' };
   function card(it) {
     var c = el('article', 'card'); c.id = 'd-' + it.id;
-    var h = el('div', 'card-head');
-    h.appendChild(el('span', 'card-id', it.id));
-    h.appendChild(el('h3', null, it.title));
-    if (it.kind !== 'decision') h.appendChild(el('span', 'tag kind', it.kind));
-    if (it.on) h.appendChild(el('span', 'tag rel-kind refines', 'refines ' + it.on.id));
-    (it.tags || []).forEach(function (t) { h.appendChild(el('span', 'tag' + (/behavio|risk|money|breaking/i.test(t) ? ' warn' : ''), t)); });
+    var main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll'), ev = el('section', 'c-ev panel');
+    main.setAttribute('aria-label', it.id + ': ' + plainTitle(it.id)); ev.setAttribute('aria-label', 'Evidence for ' + it.id);
+    // Head: id and title, what kind of card it is, its tags and its lenses
+    var h = el('div', 'ch'); h.appendChild(el('span', 'cid', it.id)); h.appendChild(inline(el('h2', 'ctitle'), it.title)); body.appendChild(h);
+    var tg = el('div', 'tags');
+    tg.appendChild(el('span', 'tag', it.minor ? 'Minor item' : KIND_NAME[it.kind] || cap(it.kind)));
+    if (it.on) tg.appendChild(el('span', 'tag rel-kind refines', 'refines ' + it.on.id));
+    (it.tags || []).forEach(function (t) {
+      var cls = t === 'blocker' ? ' blocker' : /behavio|risk|money|breaking/i.test(t) ? ' warn' : '';
+      tg.appendChild(el('span', 'tag' + cls, /^\d+\s*[–-]\s*\d+$/.test(t) ? 'Vote ' + t : cap(t)));
+    });
     if (it.lenses) {
       var lc = el('span', 'lens-chips');
       it.lenses.forEach(function (l) { lc.appendChild(lensMark('tag lens', l)); });
-      h.appendChild(lc);
+      tg.appendChild(lc);
     }
-    c.appendChild(h);
-    // Body areas: text and decide on the left, evidence on the right when the screen is wide enough.
-    var text = el('div', 'c-text'), ev = el('div', 'c-ev'), decide = el('div', 'c-decide');
+    body.appendChild(tg);
+    // Relations in words: what this card rests on (live, filled by render()) and what rests on it.
+    var rels = el('div', 'rels'), rely = null;
+    if (relyLines(it, items, {}).length) { rely = el('div', 'rely'); rels.appendChild(rely); }
+    if (refinedBy[it.id]) {
+      var rb = el('div', 'relx'), rbt = el('span', 'rt'); rb.appendChild(relIcon('on'));
+      rbt.appendChild(relLinks(refinedBy[it.id]));
+      rbt.appendChild(document.createTextNode(refinedBy[it.id].length > 1 ? ' refine this card: your answer here decides whether they still apply.' : ' refines this card: your answer here decides whether it still applies.'));
+      rb.appendChild(rbt); rels.appendChild(rb);
+    }
+    if (comesAfter[it.id]) {
+      var ca = el('div', 'relx'), cat = el('span', 'rt'); ca.appendChild(relIcon('after'));
+      cat.appendChild(relLinks(comesAfter[it.id]));
+      cat.appendChild(document.createTextNode(comesAfter[it.id].length > 1 ? ' come after this' : ' comes after this'));
+      cat.appendChild(document.createTextNode(': this card is their base.'));
+      ca.appendChild(cat); rels.appendChild(ca);
+    }
+    if (rels.childNodes.length) body.appendChild(rels);
+    var gap = el('div', 'rel-gap'); body.appendChild(gap);
     // A settled item: the answer first, then who found it and where.
     if (it.kind === 'settled') {
-      text.appendChild(el('div', 'detail', it.answer));
-      text.appendChild(el('div', 'why', '— ' + it.who + ' · ' + it.source));
+      var sb = blk(body, 'The answer'); sb.appendChild(inline(el('p', 'answer'), it.answer || ''));
+      if (it.who || it.source) {
+        var fb = el('p', 'found muted'); fb.appendChild(document.createTextNode('Found by ' + (it.who || 'the team') + (it.source ? ' in ' : '')));
+        if (it.source) fb.appendChild(el('code', null, it.source));
+        sb.appendChild(fb);
+      }
     }
-    if (it.detail) text.appendChild(rich('detail', it.detail));
-    if (it.why) text.appendChild(rich('why', it.why));
-    var gap = el('span', 'rel-gap');
-    // The reliance line: live, filled by render() from what the cards it comes after currently have chosen.
-    var rely = null;
-    if (relyLines(it, items, {}).length) { rely = el('div', 'rely'); text.appendChild(rely); }
-    if (comesAfter[it.id]) {
-      var rel = el('div', 'rel');
-      var down = el('div'); down.appendChild(relLinks(comesAfter[it.id]));
-      down.appendChild(document.createTextNode(comesAfter[it.id].length > 1 ? ' come after this' : ' comes after this')); rel.appendChild(down);
-      text.appendChild(rel);
+    if (it.why) {
+      var why = it.kind === 'rejected' && typeof it.why === 'string' ? it.why.replace(/^Rejected because:\s*/, '') : it.why;
+      var wb = blk(body, it.kind === 'rejected' ? 'Why it was set aside' : 'What’s at stake');
+      wb.appendChild(typeof why === 'string' && why.indexOf('\n') < 0 ? inline(el('p', 'lead'), why) : rich('prose', why));
     }
-    text.appendChild(gap);
-    var tabs = !!it.lensTabs;
-    // On a tabbed card each argument, metric, figure and the code carries its lens; the page shows one lens at a time.
-    function lensed(node, lens) { if (tabs) node.dataset.lens = lens; return node; }
-    if (it.metrics && it.metrics.length) {
-      var mc = el('div', 'mchips');
-      it.metrics.forEach(function (m) {
-        var chip = lensed(el('span', 'mchip'), m.lens); chip.appendChild(document.createTextNode(m.label + ' '));
-        var b = el('b');
-        if (m.before != null && m.after != null) {
-          b.textContent = m.before + ' → ' + m.after + (m.unit ? ' ' + m.unit : '');
-          var d = Number(m.after) - Number(m.before);
-          if (!isNaN(d) && d !== 0 && m.better) chip.className += ((m.better === 'higher') === (d > 0) ? ' good' : ' bad');
-        } else { b.textContent = (m.value != null ? m.value : '') + (m.unit ? ' ' + m.unit : ''); }
-        chip.appendChild(b); mc.appendChild(chip);
-      });
-      ev.appendChild(mc);
-    }
+    if (it.detail) blk(body, 'Details').appendChild(rich('prose', it.detail));
     if (it.sides && it.sides.length) {
-      var tw = el('div', 'tension');
+      var sdb = blk(body, it.sides.length === 2 ? 'The two sides' : 'The sides'), tw = el('div', 'args');
       it.sides.forEach(function (sd) {
-        var box = el('div', 'side'); box.appendChild(el('div', 'who', sd.who)); box.appendChild(el('div', null, sd.position)); tw.appendChild(box);
+        var box = el('div', 'argcol ten'), h4 = el('h4'), sg = el('span', 'sg');
+        sg.appendChild(icon('split')); h4.appendChild(sg); h4.appendChild(document.createTextNode(sd.who));
+        if (sd.recommended) h4.appendChild(el('span', 'rectag', 'Recommended'));
+        box.appendChild(h4); box.appendChild(inline(el('p', 'pos'), sd.position)); tw.appendChild(box);
       });
-      text.appendChild(tw);
+      sdb.appendChild(tw);
     }
-    // The bridge heads the evidence column: on a wide screen it sits beside the arguments it weighs.
-    var br = bridge(it); if (br) ev.insertBefore(br, ev.firstChild);
-    var pros = it.for || [], cons = it.against || [];
-    var tb = null;
-    if (tabs) {
-      tb = lensTabBar(it); text.appendChild(tb.bar);
-      LENSES.forEach(function (l) {
-        var inLens = function (e) { return e.lens === l; };
-        // A lens with only metrics, figures or code: its evidence shows on the right; say no one argued it.
-        if (pros.some(inLens) || cons.some(inLens)) text.appendChild(lensed(argCols(pros.filter(inLens), cons.filter(inLens)), l));
-        else text.appendChild(lensed(el('div', 'lens-none', 'No ' + l + ' argument raised.'), l));
+    var pros = it.for || [], cons = it.against || [], all = pros.concat(cons), cols = [];
+    if (all.length) {
+      var ab = blk(body, 'For and against'), ac = argCols(pros, cons);
+      ab.appendChild(ac.node); cols = ac.cols;
+      if (lensed) LENSES.forEach(function (l) {
+        var other = l === 'business' ? 'tech' : 'business', hid = all.filter(function (e) { return e.lens === other; }).length;
+        if (!all.some(function (e) { return e.lens === l; })) ab.appendChild(el('p', 'lens-none ' + l, 'No ' + l + ' argument raised.'));
+        if (hid) {
+          // Shown while the lens is l: says how many arguments of the other lens it hides.
+          var off = el('div', 'lens-off ' + other), both = el('button', 'link', 'Show both');
+          off.appendChild(el('span', null, plural(hid, LENS_NAME[other] + ' argument') + ' hidden by the lens.'));
+          both.type = 'button'; both.addEventListener('click', function () { setLens('both'); });
+          off.appendChild(both); ab.appendChild(off);
+        }
       });
-    } else if (pros.length || cons.length) text.appendChild(argCols(pros, cons));
-    if (it.code && (it.code.before || it.code.after)) {
-      var diff = el('div', 'diff');
-      [['before', 'Before'], ['after', 'After']].forEach(function (p) {
-        if (it.code[p[0]] == null) return;
-        var col = el('div'); col.appendChild(el('div', 'lbl', p[1]));
-        col.appendChild(el('pre', p[0], it.code[p[0]])); diff.appendChild(col);
-      });
-      ev.appendChild(lensed(diff, 'tech'));
     }
-    if (it.figures && it.figures.length) {
-      if (tabs) LENSES.forEach(function (l) {
-        var fl = it.figures.filter(function (f) { return f.lens === l; });
-        if (fl.length) ev.appendChild(lensed(figures(fl), l));
-      });
-      else ev.appendChild(figures(it.figures));
-    }
+    // Your choice, pinned under the card: numbered options, the recommended one ringed in amber, then the note.
+    var decide = el('div', 'c-decide'), dh = el('div', 'dh'), n = it.options.length;
+    dh.appendChild(el('h3', null, 'Your choice'));
+    dh.appendChild(el('span', 'hint', n > 1 ? 'Press 1–' + Math.min(n, 9) + ' or click' : 'Press 1 or click'));
+    decide.appendChild(dh);
+    var mootMsg = el('div', 'mootmsg'); mootMsg.hidden = true; decide.appendChild(mootMsg);
     var row = el('div', 'options'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Decision for ' + it.id);
     var buttons = [];
     it.options.forEach(function (o, i) {
       var broken = o.violates && o.violates.length;
-      var b = el('button', 'opt' + (o.negative ? ' neg' : '')); b.type = 'button';
-      if (i < 9) b.appendChild(el('span', 'k', String(i + 1)));
-      b.appendChild(document.createTextNode(o.label));
+      var b = el('button', 'opt' + (o.negative ? ' neg' : '') + (o.recommended ? ' is-rec' : '')); b.type = 'button';
+      if (i < 9) b.appendChild(el('kbd', 'k', String(i + 1)));
+      var ck = el('span', 'ck'); ck.appendChild(icon('check')); b.appendChild(ck);
+      b.appendChild(inline(el('span', 'ol'), o.label));
+      if (o.recommended) b.appendChild(el('span', 'rectag', 'Recommended'));
       if (broken) { b.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', '))); b.title = 'Breaks ' + o.violates.join(', ') + ': choosing it lifts ' + (o.violates.length > 1 ? 'them' : 'it'); }
-      if (o.recommended) b.appendChild(el('span', 'rec', 'recommended'));
+      b.appendChild(el('span', 'yc', 'Your choice'));
       b.setAttribute('aria-pressed', 'false');
       b.addEventListener('click', function () { choose(it.id, o.value); });
       b.dataset.value = o.value; buttons.push(b); row.appendChild(b);
     });
     decide.appendChild(row);
-    var note = el('textarea', 'note'); note.placeholder = 'Note or edit (optional)'; note.rows = 1;
+    var nw = el('div', 'notewrap'), lab = el('label', null, shareMode ? 'Note ' : 'Note for Claude '), note = el('textarea', 'note');
+    lab.appendChild(el('kbd', null, 'N'));
+    note.id = 'note-' + it.id; lab.htmlFor = note.id; note.placeholder = 'Optional: a note, or an edit to this choice'; note.rows = 1;
     note.value = (state[it.id] && state[it.id].note) || '';
-    note.addEventListener('input', function () { state[it.id] = state[it.id] || {}; state[it.id].note = note.value; save(); applyFilters(true); });
-    decide.appendChild(note);
-    var body = el('div', 'card-body' + (ev.childNodes.length ? ' has-ev' : ''));
-    body.appendChild(text); if (ev.childNodes.length) body.appendChild(ev); body.appendChild(decide);
-    c.appendChild(body);
+    note.addEventListener('input', function () { state[it.id] = state[it.id] || {}; state[it.id].note = note.value; save(); rowParts[it.id].nmark.hidden = !note.value.trim(); applyFilters(true); });
+    nw.appendChild(lab); nw.appendChild(note); decide.appendChild(nw);
+    main.appendChild(body); main.appendChild(decide);
+
+    // Evidence: constraints once each with its lens, one trade-off table with a column per lens, numbers, the code, figures.
+    var evb = el('div', 'ev-scroll scroll'), evN = { business: 0, tech: 0 }, plain = 0;
+    function piece(node, l) { if (lensed && l && LENS_NAME[l]) node.dataset.lens = l; if (l && evN[l] != null) evN[l]++; else plain++; return node; }
+    function evGroup(title, ls) {
+      var g = el('div', 'evb'); g.appendChild(el('h3', 'eh', title));
+      if (lensed && ls.length && ls.every(function (l) { return l && LENS_NAME[l] && l === ls[0]; })) g.dataset.lens = ls[0];
+      evb.appendChild(g); return g;
+    }
+    var kstate = [];
+    if (it.bridge && it.bridge.length) {
+      var kg = evGroup('Constraints', it.bridge.map(function (k) { return k.lens; })), kl = el('ul', 'klist ebox');
+      it.bridge.forEach(function (k) {
+        var li = piece(el('li', 'kst'), k.lens), kt = el('div', 'kt');
+        if (LENS_NAME[k.lens]) kt.appendChild(lensMark('klens', k.lens));
+        kt.appendChild(el('b', 'kid', k.id)); inline(kt, k.text); li.appendChild(kt);
+        var contested = k.status && k.status !== 'confirmed';
+        if (contested || k.source) {
+          var ks = el('div', 'ksrc');
+          if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
+          if (k.source) ks.appendChild(el('span', null, 'From ' + k.source));
+          li.appendChild(ks);
+        }
+        var stn = el('div', 'ks'); li.appendChild(stn); kl.appendChild(li);
+        kstate.push({ k: k, li: li, node: stn });
+      });
+      kg.appendChild(kl);
+    }
+    var trows = [];
+    if (it.options.some(function (o) { return o.tradeoff; })) {
+      // A lens no option trades on gets no column: a tech-only card shows only Tech.
+      var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
+      var tgp = evGroup('Trade-offs', used.length === 1 ? used : []);
+      used.forEach(function (l) { evN[l]++; });
+      var table = el('table', 'btable'), thead = el('thead'), hr = el('tr'), tbody = el('tbody');
+      hr.appendChild(el('th', null, 'Option'));
+      used.forEach(function (l) { var th = el('th'); th.appendChild(lensMark('klens', l)); if (lensed) th.dataset.lens = l; hr.appendChild(th); });
+      thead.appendChild(hr); table.appendChild(thead);
+      it.options.forEach(function (o, i) {
+        if (!o.tradeoff && !(o.violates && o.violates.length)) return;
+        var tr = el('tr', o.recommended ? 'pick' : null), name = el('td', 'o'), ot = el('div', 'otags'), mine = el('span', 'mine', 'Your choice');
+        if (i < 9) name.appendChild(el('kbd', null, String(i + 1)));
+        inline(name, o.label);
+        if (o.recommended) ot.appendChild(el('span', 'rectag', 'Recommended'));
+        if (o.violates && o.violates.length) ot.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', ')));
+        mine.hidden = true; ot.appendChild(mine);
+        name.appendChild(ot); tr.appendChild(name);
+        used.forEach(function (l) { var td = inline(el('td'), (o.tradeoff && o.tradeoff[l]) || '—'); td.setAttribute('data-l', LENS_NAME[l]); if (lensed) td.dataset.lens = l; tr.appendChild(td); });
+        tbody.appendChild(tr); trows.push({ value: o.value, tr: tr, mine: mine });
+      });
+      table.appendChild(tbody);
+      var tbox = el('div', 'ebox tbox'); tbox.appendChild(table); tgp.appendChild(tbox);
+    }
+    if (it.metrics && it.metrics.length) {
+      var mg = evGroup('Numbers', it.metrics.map(function (m) { return m.lens; })), mb = el('div', 'ebox');
+      it.metrics.forEach(function (m) { mb.appendChild(piece(metricRow(m), m.lens)); });
+      mg.appendChild(mb);
+    }
+    var atText = it.at && it.at.path ? it.at.path + (it.at.line ? ', line ' + it.at.line : '') : '';
+    if (atText) evGroup('Where in the code', []).appendChild(piece(el('div', 'ebox loc', atText), null));
+    var sug = suggestionOf(it);
+    if (sug && sug.s && sug.s.text != null) {
+      var stext = String(sug.s.text).replace(/\n$/, ''), sl = sug.s.lines || stext.split('\n').length;
+      evGroup('Suggested change', []).appendChild(piece(codeBox('Replace ' + plural(sl, 'line') + (it.at && it.at.line ? ' from line ' + it.at.line : '') + ' with',
+        sug.opt ? 'if you choose ' + sug.opt.label : '', stext.split('\n'), null, 'add'), null));
+    }
+    if (it.code && (it.code.before || it.code.after)) {
+      var cl = it.lenses ? 'tech' : null, cg = evGroup('The code, before and after', cl ? [cl] : []), cw = piece(el('div'), cl);
+      var ba = String(it.code.before || '').split('\n'), aa = String(it.code.after || '').split('\n'), keep = lcsDiff(ba, aa);
+      if (it.code.before != null) cw.appendChild(codeBox('Before', 'changed lines in red', ba, keep.a, 'del'));
+      if (it.code.after != null) cw.appendChild(codeBox('After', 'new lines in green', aa, keep.b, 'add'));
+      cg.appendChild(cw);
+    }
+    if (it.figures && it.figures.length) {
+      var fgp = evGroup('Figures', it.figures.map(function (f) { return f.lens; }));
+      if (lensed) LENSES.concat(['']).forEach(function (l) {
+        var fl = it.figures.filter(function (f) { return (LENS_NAME[f.lens] ? f.lens : '') === l; });
+        if (fl.length) fgp.appendChild(piece(figures(fl), l || null));
+      });
+      else fgp.appendChild(piece(figures(it.figures), null));
+    }
+    if (!evN.business && !evN.tech && !plain) evb.appendChild(el('p', 'ev-empty', 'No evidence attached: the case is on the card.'));
+    else if (lensed && !plain) LENSES.forEach(function (l) { if (!evN[l]) evb.appendChild(el('p', 'ev-empty lens-none ' + l, 'No ' + l + ' evidence on this card.')); });
+    var tb = null;
+    if (lensed) {
+      var argN = function (l) { return all.filter(function (a) { return a.lens === l; }).length; };
+      tb = lensTabBar(it, { business: argN('business') + evN.business, tech: argN('tech') + evN.tech });
+      ev.appendChild(tb.bar);
+    } else { var eh = el('div', 'phead'); eh.appendChild(el('h2', null, 'Evidence')); ev.appendChild(eh); }
+    ev.appendChild(evb);
+    if (it.accepts) { var a = el('div', 'accfoot'); a.appendChild(el('b', null, 'Accepts: ')); inline(a, it.accepts); ev.appendChild(a); }
+    c.appendChild(main);
+    // Nothing but a location to show: the location goes by the heading and the card takes the evidence column too.
+    var thin = !lensed && !it.accepts && evN.business + evN.tech + plain - (atText ? 1 : 0) === 0;
+    if (thin) { c.classList.add('wide'); if (atText) h.appendChild(el('span', 'cloc', atText)); } else c.appendChild(ev);
     var hay = [it.id, it.title, it.detail, it.why, (it.tags || []).join(' '), it.group,
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();
-    c.addEventListener('mousedown', function () { setCurrent(it.id, false); });
-    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, rely: rely, tabs: tb && tb.tabs };
-    if (tb) setCardLens(cards[it.id], 'business');
+    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, rely: rely, tabs: tb && tb.tabs, cols: cols, mootMsg: mootMsg, kstate: kstate, trows: trows };
     return c;
   }
-
-  sections.forEach(function (sec) {
-    sec.heading = el('h2', null, sec.name); app.appendChild(sec.heading);
-    var host = app;
-    if (sec.folded) {
-      sec.fold = el('details', 'fold');
-      sec.summary = el('summary');
-      sec.fold.appendChild(sec.summary);
-      app.appendChild(sec.fold); host = sec.fold;
+  // The summary item: the whole summary, the outcome (today beside the target) and the gate's figures.
+  function summaryCard() {
+    var c = el('article', 'card wide'), main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll');
+    c.id = 'd-' + SUM; main.setAttribute('aria-label', 'Summary');
+    var h = el('div', 'ch'); h.appendChild(el('h2', 'ctitle', 'Summary')); body.appendChild(h);
+    body.appendChild(el('p', 'sub', data.title));
+    if (data.summary && data.summary.length) {
+      var grid = el('div', 'sumgrid');
+      data.summary.forEach(function (b) {
+        var col = el('div', 'sumcol');
+        if (typeof b === 'string') col.appendChild(inline(el('p'), b));
+        else {
+          if (b.label) col.appendChild(el('h3', null, b.label));
+          if (b.text) col.appendChild(inline(el('p'), b.text));
+          if (b.points && b.points.length) { var ul = el('ul'); b.points.forEach(function (p) { ul.appendChild(inline(el('li'), p)); }); col.appendChild(ul); }
+        }
+        grid.appendChild(col);
+      });
+      body.appendChild(grid);
     }
-    // A root with linked cards sits in a .block: the root, then its members behind the rail.
-    sec.items.forEach(function (it) {
-      if (it.block) return;
-      var members = sec.items.filter(function (m) { return m.block === it.id; });
-      if (!members.length) { host.appendChild(card(it)); return; }
-      var b = el('div', 'block'); b.appendChild(card(it));
-      members.forEach(function (m) { var mc = card(m); if (m.on) mc.className += ' linked'; b.appendChild(mc); });
-      host.appendChild(b); (sec.blocks = sec.blocks || []).push(b);
-    });
-  });
-  app.appendChild(empty);
+    // Outcome: the human approves a destination, not a list of steps.
+    if (data.outcome && data.outcome.length) {
+      var oc = blk(body, 'Outcome');
+      data.outcome.forEach(function (o) {
+        var ov = el('div', 'oview'), oh = el('div', 'ohead');
+        oh.appendChild(el('span', 'tag', o.view === 'ui' ? 'Mockup' : 'System'));
+        oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
+        ov.appendChild(oh);
+        if (o.caption) ov.appendChild(el('p', 'ocap', o.caption));
+        var panes = el('div', 'opanes');
+        [['before', 'Today'], ['after', o.before ? 'After' : 'Target']].forEach(function (p) {
+          if (!o[p[0]]) return;
+          var pane = el('div', 'opane ' + p[0]);
+          pane.appendChild(el('div', 'olbl', p[1]));
+          pane.appendChild(figures([o[p[0]]]));
+          panes.appendChild(pane);
+        });
+        ov.appendChild(panes);
+        oc.appendChild(ov);
+      });
+    }
+    if (data.figures && data.figures.length) blk(body, 'Figures').appendChild(figures(data.figures));
+    main.appendChild(body); c.appendChild(main);
+    cards[SUM] = { it: null, card: c, buttons: [], note: null };
+    return c;
+  }
+  if (hasSummary) app.appendChild(summaryCard());
+  sections.forEach(function (sec) { sec.items.forEach(function (it) { app.appendChild(card(it)); }); });
 
   function applyDefaults() {
     items.forEach(function (it) {
@@ -823,8 +1358,8 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   }
   applyDefaults();
 
-  // Filtering. keepFolds: note typing and choosing re-filter without toggling folds under the cursor.
-  function applyFilters(keepFolds) {
+  // Filtering hides rows in the list; the current card stays in view.
+  function applyFilters() {
     var q = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
     var active = q.length || filters.kind !== 'all' || filters.status !== 'all' || filters.group || filters.tag || filters.lens !== 'all';
     var total = 0;
@@ -838,103 +1373,120 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
           && (filters.tag === '' || (it.tags || []).indexOf(filters.tag) >= 0)
           && (filters.lens === 'all' || !it.lenses || it.lenses.indexOf(filters.lens) >= 0)
           && (filters.status === 'all' || (filters.status === 'open' ? !st.choice : filters.status === 'done' ? !!st.choice : !!(st.note && st.note.trim())));
-        c.card.hidden = !ok; chipsById[it.id].classList.toggle('dim', !!active && !ok);
+        chipsById[it.id].hidden = !ok;
         if (ok) visible++;
       });
-      // A .block is hidden only when every card in it is hidden.
-      (sec.blocks || []).forEach(function (b) { b.hidden = !visible || !Array.prototype.some.call(b.children, function (k) { return !k.hidden; }); });
+      // A .block is hidden only when every row in it is hidden.
+      (sec.blocks || []).forEach(function (b) { b.hidden = !Array.prototype.some.call(b.children, function (k) { return !k.hidden; }); });
       sec.heading.hidden = !visible;
+      if (sec.hint) sec.hint.hidden = !visible;
       sec.gname.setAttribute('aria-pressed', String(filters.group === sec.name));
-      if (sec.fold) {
-        sec.fold.hidden = !visible;
-        if (!keepFolds) sec.fold.open = !!(active && visible);
-      }
       total += visible;
     });
-    shown.textContent = active ? total + ' of ' + items.length + ' shown' : items.length + ' items';
+    var nf = (filters.kind !== 'all') + (filters.status !== 'all') + !!filters.group + !!filters.tag + (filters.lens !== 'all');
+    filterN.textContent = String(nf); filterN.hidden = !nf;
+    list.classList.toggle('filtering', !!active);
+    if (sumRow) sumRow.hidden = !!active;
+    shown.textContent = total + ' of ' + items.length + ' shown';
+    shownRow.hidden = !active;
     clear.hidden = !active;
-    empty.style.display = total ? 'none' : 'block';
+    empty.hidden = !!total;
   }
   search.addEventListener('input', function () { applyFilters(); });
   clear.addEventListener('click', function () {
     search.value = ''; filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
     kindPills.sync(); statusPills.sync(); lensPills.sync(); tagSel.value = ''; applyFilters();
   });
-  // Keyboard navigation
+
+  // Keyboard navigation: one cursor through the list, summary first
   var order = [];
+  if (hasSummary) order.push(SUM);
   sections.forEach(function (sec) { sec.items.forEach(function (it) { order.push(it.id); }); });
-  // Cards in a collapsed fold count: reaching one opens its fold (see setCurrent).
-  function visibleIds() {
-    return order.filter(function (id) {
-      var c = cards[id].card, fold = c.closest('details');
-      return !c.hidden && !(fold && fold.hidden);
-    });
-  }
-  var navFold = null; // a fold the keyboard opened, closed again when the keyboard leaves it
-  function setCurrent(id, scroll) {
-    if (cur && cards[cur]) { cards[cur].card.classList.remove('current'); chipsById[cur].classList.remove('cur'); }
+  function visibleIds() { return order.filter(function (id) { return !rowOf(id).hidden; }); }
+  function setCurrent(id) {
+    if (!cards[id]) return;
+    if (cur && cards[cur]) { cards[cur].card.classList.remove('current'); rowOf(cur).classList.remove('cur'); rowOf(cur).removeAttribute('aria-current'); }
     // Leaving a card drops focus from its options, so Enter can't choose on the card left behind.
     if (id !== cur && document.activeElement && document.activeElement.closest && document.activeElement.closest('.card')) document.activeElement.blur();
     cur = id;
-    var fold = id ? cards[id].card.closest('details') : null;
-    if (navFold && navFold !== fold) { navFold.open = false; navFold = null; }
-    if (fold && !fold.open) { fold.open = true; navFold = fold; }
-    if (!id) return;
-    cards[id].card.classList.add('current'); chipsById[id].classList.add('cur');
-    if (scroll) cards[id].card.scrollIntoView({ block: 'start' });
-    // Keep the chip visible in the sidebar, only while the sidebar is sticky (on narrow screens it scrolls with the page).
-    if (getComputedStyle(document.getElementById('side')).position === 'sticky') chipsById[id].scrollIntoView({ block: 'nearest' });
+    cards[id].card.classList.add('current');
+    var row = rowOf(id); row.classList.add('cur'); row.setAttribute('aria-current', 'true');
+    if (row.offsetParent) row.scrollIntoView({ block: 'nearest' });
+    paintRails(); syncSumBtn(); legend();
+    try { history.replaceState(null, '', '#d-' + id); } catch (e) {}
   }
-  function onScreen(id) { var r = cards[id].card.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }
-  // Moves from the current card, or from the first card on screen if the current one was scrolled away.
-  function step(d, pick) {
-    var v = visibleIds(); if (!v.length) return;
-    var i = cur ? v.indexOf(cur) : -1;
-    if (i < 0 || !onScreen(cur)) {
-      var first = v.filter(function (id) { return cards[id].card.getBoundingClientRect().bottom > 40; })[0];
-      if (first) { setCurrent(first, true); return; }
+  function pick(id) { setCurrent(id); if (narrowQ.matches) setTab('card'); }
+  function step(d, test) {
+    var v = visibleIds(); if (!v.length) return false;
+    var i = v.indexOf(cur);
+    if (test) {
+      for (var n = 1; n <= v.length; n++) { var id = v[(i + n * d + v.length * n) % v.length]; if (test(id)) { setCurrent(id); return true; } }
+      return false;
     }
-    if (pick) {
-      for (var n = 1; n <= v.length; n++) { var id = v[(i + n * d + v.length * n) % v.length]; if (pick(id)) { setCurrent(id, true); return; } }
-      return;
-    }
-    setCurrent(v[Math.min(v.length - 1, Math.max(0, i + d))], true);
+    setCurrent(v[i < 0 ? 0 : Math.min(v.length - 1, Math.max(0, i + d))]);
+    return true;
   }
-  function undecided(id) { return !choiceOf(id); }
+  function undecided(id) { var c = cards[id]; return !!(c && c.it) && !choiceOf(id) && !mootBy(c.it, items, state); }
+  function firstOpen() { return order.filter(undecided)[0] || order.filter(function (id) { return id !== SUM; })[0] || order[0]; }
+  function nextOpen() { if (!step(1, undecided)) say('Every card is decided.' + (served ? ' Press S to send.' : ' Press C to copy.')); }
   var picker = null; // the Share dialog, built when the page is served
   var help = el('dialog', 'help');
-  help.innerHTML = '<h3>Keyboard</h3><table>' + [
-    ['<kbd>→</kbd> / <kbd>←</kbd>', 'Next / previous card, folded ones included (also <kbd>j</kbd> / <kbd>k</kbd>)'],
-    ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', 'Cycle through the current card\'s options'],
-    ['<kbd>Enter</kbd>', 'Choose the highlighted option (again to clear)'],
-    ['<kbd>u</kbd>', 'Next undecided card'],
-    ['<kbd>1</kbd> – <kbd>9</kbd>', 'Choose option 1–9 on the current card directly'],
+  help.innerHTML = '<h3>Keyboard keys</h3><table>' + [
+    ['', 'Move around'],
+    ['<kbd>↓</kbd> <kbd>↑</kbd> &nbsp;<kbd>→</kbd> <kbd>←</kbd>', 'Next / previous card (also <kbd>j</kbd> / <kbd>k</kbd>)'],
+    ['<kbd>u</kbd>', 'Next card still to decide'],
+    ['<kbd>z</kbd>', 'The full summary, and back to the card'],
+    ['<kbd>l</kbd>', 'Lens for both panes: both, business only, tech only'],
+    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Business / tech lens (again for both)'],
+    ['<kbd>/</kbd>', 'Search; <kbd>Enter</kbd> goes to the first result'],
+    ['<kbd>[</kbd>', 'The list: narrow to a rail, hide, show again'],
+    ['', 'Decide'],
+    ['<kbd>1</kbd> – <kbd>9</kbd>', 'Choose that option; the same key again clears it'],
+    ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', 'Step through the current card\'s options'],
+    ['<kbd>Enter</kbd>', 'Choose the focused option (again to clear)'],
     ['<kbd>r</kbd>', 'Choose the recommended option'],
     ['<kbd>n</kbd>', 'Write a note on the current card'],
-    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Business / tech tab on the current card'],
-    ['<kbd>/</kbd>', 'Search; <kbd>Enter</kbd> goes to the first result'],
-    ['<kbd>Esc</kbd>', 'Leave the search box or note'],
-    ['<kbd>[</kbd>', 'Hide / show the sidebar'],
+    ['<kbd>a</kbd>', 'Accept the recommendation on every card still to decide'],
+    ['', 'Finish'],
+    ['<kbd>s</kbd>', 'Send the decisions to Claude'],
+    ['<kbd>c</kbd>', shareMode ? 'Copy the prompt for your coding agent' : 'Copy the decisions'],
+    ['<kbd>Esc</kbd>', 'Leave the search box, the note or the filter menu'],
     ['<kbd>?</kbd>', 'This help']
-  ].filter(function (r) { return tabbed || r[0].indexOf('<kbd>b</kbd>') < 0; }).map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>';
+  ].filter(function (r) {
+    if (r[0].indexOf('<kbd>b</kbd>') >= 0 || r[0] === '<kbd>l</kbd>') return lensed;
+    if (r[0] === '<kbd>z</kbd>') return hasSummary;
+    if (r[0] === '<kbd>s</kbd>') return served;
+    return true;
+  }).map(function (r) { return r[0] ? '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>' : '<tr><th colspan="2">' + r[1] + '</th></tr>'; }).join('') + '</table>' +
+    (rlegendHtml ? '<h3 class="sub3">The lines between cards</h3><div class="rlegend">' + rlegendHtml + '</div>' : '') +
+    '<div class="buttons"><span class="muted">The mouse works everywhere: click a card, click an option.</span><button class="btn" type="button" data-close>Close <kbd>Esc</kbd></button></div>';
   document.body.appendChild(help);
-  help.addEventListener('click', function (e) { if (e.target === help) help.close(); });
+  help.addEventListener('click', function (e) { if (e.target === help || (e.target.closest && e.target.closest('[data-close]'))) help.close(); });
+  document.getElementById('keys').addEventListener('click', function () { help.showModal(); });
+  helpBtn.addEventListener('click', function () { help.showModal(); });
   search.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); search.blur(); var v = visibleIds(); if (v.length) setCurrent(v[0], true); }
+    if (e.key === 'Enter') { e.preventDefault(); search.blur(); var v = visibleIds().filter(function (id) { return id !== SUM; }); if (v.length) pick(v[0]); }
   });
   document.addEventListener('keydown', function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey || help.open || zoom.open || (picker && picker.open)) return;
-    var typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
-    var onOpt = document.activeElement && document.activeElement.classList.contains('opt');
-    if (e.key === 'Escape') { if (typing || onOpt) { document.activeElement.blur(); e.preventDefault(); } return; }
+    var ae = document.activeElement || document.body;
+    var typing = /INPUT|TEXTAREA|SELECT/.test(ae.tagName);
+    var onOpt = ae.classList && ae.classList.contains('opt');
+    if (e.key === 'Escape') {
+      if (!fmenu.hidden) { menu(false); filterBtn.focus(); e.preventDefault(); return; }
+      if (typing || onOpt) { ae.blur(); e.preventDefault(); }
+      return;
+    }
     if (typing) return;
-    var c = cur && cards[cur];
-    if (e.key === 'ArrowRight' || e.key === 'j') step(1);
-    else if (e.key === 'ArrowLeft' || e.key === 'k') step(-1);
-    else if (e.key === 'Tab' && visibleIds().length) {
+    var c = cur && cards[cur] && cards[cur].it ? cards[cur] : null;
+    var moot = c && mootBy(c.it, items, state);
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'j') step(1);
+    else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'k') step(-1);
+    else if (k === 'Tab' && c && !moot && (onOpt || ae === document.body)) {
       // Cycle the current card's options. The first Tab lands on the chosen option, else the recommended one.
-      if (!c || !onScreen(cur)) { step(1); c = cards[cur]; }
-      var bs = c.buttons, i = bs.indexOf(document.activeElement), n = bs.length;
+      var bs = c.buttons, i = bs.indexOf(ae), n = bs.length;
+      if (!n) return;
       if (i < 0) {
         var v = choiceOf(cur), start = c.it.options.map(function (o) { return o.value; }).indexOf(v);
         if (start < 0) start = c.it.options.map(function (o) { return !!o.recommended; }).indexOf(true);
@@ -942,45 +1494,80 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       } else { i = (i + (e.shiftKey ? n - 1 : 1)) % n; }
       bs[i].focus();
     }
-    else if (e.key === 'Enter' && onOpt) return; // the focused option button handles Enter natively
-    else if (e.key === 'u') step(1, undecided);
-    else if (e.key === '/') search.focus();
-    else if (e.key === '[') setSide(!document.body.classList.contains('side-closed'));
-    else if (e.key === '?') help.showModal();
-    else if (/^[1-9]$/.test(e.key) && c) { var o = c.it.options[Number(e.key) - 1]; if (o) choose(cur, o.value); else return; }
-    else if (e.key === 'r' && c) { var rec = c.it.options.filter(function (o) { return o.recommended; })[0]; if (rec) choose(cur, rec.value); else return; }
-    else if (e.key === 'n' && c) c.note.focus();
-    else if ((e.key === 'b' || e.key === 't') && c && c.tabs) setCardLens(c, e.key === 'b' ? 'business' : 'tech');
+    else if (k === 'Enter' && onOpt) return; // the focused option button handles Enter natively
+    else if (k === 'u') nextOpen();
+    else if (k === '/') { if (narrowQ.matches) setTab('list'); search.focus(); }
+    else if (k === '[') cycleSide();
+    else if (k === '?') help.showModal();
+    else if (k === 'z' && hasSummary) toggleSummary();
+    else if (/^[1-9]$/.test(k) && c) { var o = c.it.options[Number(k) - 1]; if (o && !moot) choose(cur, o.value); else return; }
+    else if (k === 'r' && c) { var rec = c.it.options.filter(function (x) { return x.recommended; })[0]; if (rec && !moot && choiceOf(cur) !== rec.value) choose(cur, rec.value); else return; }
+    else if (k === 'n' && c) { if (narrowQ.matches) setTab('card'); c.note.focus(); }
+    else if ((e.key === 'b' || e.key === 't') && c && c.tabs) { var bt = e.key === 'b' ? 'business' : 'tech'; setCardLens(c, lensView === bt ? 'both' : bt); }
+    else if (k === 'l' && lensed) setLens({ both: 'business', business: 'tech', tech: 'both' }[lensView]);
+    else if (k === 'a') { var ra = document.getElementById('recAll'); if (!ra.disabled) ra.click(); }
+    else if (k === 's' && served) document.getElementById('send').click();
+    else if (k === 'c') document.getElementById('copy').click();
     else return;
     e.preventDefault();
   });
+  document.addEventListener('focusin', function () { legend(); });
+  document.addEventListener('focusout', function () { setTimeout(legend, 0); });
 
-  // Sidebar open/closed, remembered per browser
-  var openBtn = el('button', 'icon-btn side-open', '»'); openBtn.type = 'button'; openBtn.title = 'Show sidebar  ( [ )'; openBtn.setAttribute('aria-label', 'Show sidebar');
-  document.body.appendChild(openBtn);
-  function setSide(closed) {
-    document.body.classList.toggle('side-closed', closed); openBtn.hidden = !closed;
-    try { localStorage.setItem('ceo-view:sidebar', closed ? 'closed' : 'open'); } catch (e) {}
+  // The list: open, a slim rail of marks and ids, or hidden. [ steps through them; remembered per gate.
+  var openBtn = el('button', 'btn ghost side-open'); openBtn.type = 'button'; openBtn.title = 'Show the list  ( [ )';
+  openBtn.appendChild(icon('panel')); openBtn.appendChild(document.createTextNode(listName));
+  var topBar = document.getElementById('head'); topBar.insertBefore(openBtn, topBar.firstChild);
+  var sideKey = 'ceo-view:sidebar:' + (data.source || data.title), sideMode = 'open';
+  function setSide(mode) {
+    if (mode === true) mode = 'closed'; else if (mode === false) mode = 'open';
+    sideMode = mode;
+    document.body.classList.toggle('side-closed', mode === 'closed');
+    document.body.classList.toggle('side-rail', mode === 'rail');
+    openBtn.hidden = mode !== 'closed';
+    narrowBtn.title = mode === 'rail' ? 'Widen the list  ( [ )' : 'Narrow the list to a rail  ( [ )';
+    narrowBtn.setAttribute('aria-label', mode === 'rail' ? 'Widen the list' : 'Narrow the list');
+    try { localStorage.setItem(sideKey, mode); } catch (e) {}
+    if (cur && rowOf(cur) && rowOf(cur).offsetParent) rowOf(cur).scrollIntoView({ block: 'nearest' });
   }
-  hideBtn.addEventListener('click', function () { setSide(true); });
-  openBtn.addEventListener('click', function () { setSide(false); });
-  var sideState = null; try { sideState = localStorage.getItem('ceo-view:sidebar'); } catch (e) {}
-  setSide(sideState === 'closed');
+  function cycleSide() { setSide({ open: 'rail', rail: 'closed', closed: 'open' }[sideMode]); }
+  narrowBtn.addEventListener('click', function () { setSide(sideMode === 'rail' ? 'open' : 'rail'); });
+  hideBtn.addEventListener('click', function () { setSide('closed'); });
+  openBtn.addEventListener('click', function () { setSide('open'); });
+  var sideState = null; try { sideState = localStorage.getItem(sideKey); } catch (e) {}
+  setSide(sideState === 'closed' || sideState === 'rail' ? sideState : 'open');
+
+  // Phones: one pane at a time, and touch buttons to move
+  var tabsEl = document.getElementById('tabs');
+  [['list', listName], ['card', 'Card'], ['ev', 'Evidence']].forEach(function (t) {
+    var b = el('button', null, t[1]); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.tab = t[0];
+    b.addEventListener('click', function () { setTab(t[0]); }); tabsEl.appendChild(b);
+  });
+  function setTab(t) { layout.dataset.tab = t; [].forEach.call(tabsEl.children, function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === t)); }); }
+  var touch = document.getElementById('touchnav');
+  [['Previous', function () { step(-1); }], ['Next to decide', nextOpen], ['Next', function () { step(1); }]].forEach(function (t) {
+    var b = el('button', null, t[0]); b.type = 'button'; b.addEventListener('click', function () { t[1](); setTab('card'); }); touch.appendChild(b);
+  });
 
   function jump(id) {
     var c = cards[id]; if (!c) return;
-    if (c.card.hidden) clear.click();
-    var fold = c.card.closest('details'); if (fold) fold.open = true;
-    navFold = null; // opened on purpose: it stays open
-    setCurrent(id, false);
-    c.card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    c.card.classList.add('flash'); setTimeout(function () { c.card.classList.remove('flash'); }, 1200);
+    if (rowOf(id).hidden) clear.click();
+    pick(id);
+    flash(id);
+  }
+  function flash(id) {
+    if (reducedQ.matches) return;
+    var r = rowOf(id); if (!r) return;
+    r.classList.add('flash'); setTimeout(function () { r.classList.remove('flash'); }, 450);
   }
 
   function choose(id, value) {
     state[id] = state[id] || {};
     state[id].choice = state[id].choice === value ? undefined : value;
     save(); render(); applyFilters(true);
+    var it = byIdx[id], o = it && it.options.filter(function (x) { return x.value === value; })[0], open = items.filter(function (x) { return undecided(x.id); }).length;
+    if (o) say((state[id].choice ? id + ': ' + o.label + (o.violates && o.violates.length ? ', lifts ' + o.violates.join(', ') : '') + '. ' : id + ' cleared. ') + (open ? plural(open, 'card') + ' still to decide.' : 'Every card decided.'));
+    if (state[id].choice) flash(id);
   }
   function render() {
     var done = 0;
@@ -990,43 +1577,96 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
       var moot = mootBy(it, items, state);
       c.card.dataset.state = moot ? 'moot' : v ? 'decided' : '';
       var opt = it.options.filter(function (o) { return o.value === v; })[0];
-      var chip = chipsById[it.id], dim = chip.classList.contains('dim');
+      var chip = chipsById[it.id], p = rowParts[it.id];
       c.card.classList.toggle('moot', !!moot);
       c.buttons.forEach(function (b) { b.disabled = !!moot; });
       var miss = opt && !opt.negative && !moot ? missingAfter(it, items, state) : [];
       c.gap.textContent = miss.length ? miss.join(', ') + " not chosen: you'll be asked before " + it.id + ' runs without ' + (miss.length > 1 ? 'them' : 'it') + '.' : '';
-      chip.className = 'chip' + (moot ? ' dim' : v ? (opt && opt.negative ? ' neg' : ' done') : '') + (miss.length ? ' gap' : '') + (dim ? ' dim' : '') + (it.id === cur ? ' cur' : '');
+      // The row: a drawn mark plus a word; a default stays marked as one.
+      var preset = !!opt && v === it.default;
+      p.m = moot ? 'moot' : !opt ? 'todo' : opt.negative ? 'no' : preset ? 'preset' : 'yes';
+      p.stw.className = 'stw ' + p.m;
+      p.stw.textContent = moot ? 'Not needed' : !opt ? 'To decide' : word(opt) + (preset && it.kind === 'decision' ? ' (default)' : '');
+      if (p.rel) p.rel.hidden = !!moot;
+      p.gapw.textContent = miss.length ? miss.join(', ') + ' not chosen' : '';
+      p.nmark.hidden = !(state[it.id] && state[it.id].note && state[it.id].note.trim());
+      chip.classList.toggle('moot', !!moot);
+      chip.classList.toggle('gap', miss.length > 0);
       chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided') + (miss.length ? ' — comes after ' + miss.join(', ') + ', not chosen' : '');
       if (c.rely) {
         c.rely.textContent = '';
         if (moot) {
-          var ml = el('div', 'neg'); ml.appendChild(document.createTextNode('↳ not needed: ')); ml.appendChild(relLinks([moot.id]));
-          ml.appendChild(document.createTextNode(' = ' + moot.label)); c.rely.appendChild(ml);
+          var ml = el('div', 'relx neg'), mt = el('span', 'rt'); ml.appendChild(relIcon(it.on && it.on.id === moot.id ? 'on' : 'after'));
+          mt.appendChild(document.createTextNode('Not needed: ')); mt.appendChild(relLinks([moot.id]));
+          mt.appendChild(document.createTextNode(' = ' + moot.label)); ml.appendChild(mt); c.rely.appendChild(ml);
         }
         else relyLines(it, items, state).forEach(function (r) {
-          var ln = el('div', r.label === null ? 'wait' : r.negative ? 'neg' : 'ok');
-          ln.appendChild(document.createTextNode('↳ ' + relyType(it, r.id) + ' '));
-          ln.appendChild(relLinks([r.id]));
-          ln.appendChild(document.createTextNode(r.label === null ? ' — ' : ' — chosen: ' + r.label + ' ✓'));
-          if (r.label === null) ln.appendChild(document.createTextNode('answer it first ↑'));
+          var type = relyType(it, r.id), ln = el('div', 'relx ' + (r.label === null ? 'wait' : r.negative ? 'neg' : 'ok'));
+          var rt = el('span', 'rt'), rs = el('span', 'rs');
+          ln.appendChild(relIcon(type === 'refines' ? 'on' : 'after'));
+          rt.appendChild(document.createTextNode(type === 'refines' ? 'Refines ' : 'Comes after '));
+          rt.appendChild(relLinks([r.id]));
+          if (byIdx[r.id]) rt.appendChild(document.createTextNode(' · ' + plainTitle(r.id)));
+          ln.appendChild(rt);
+          rs.appendChild(svgEl(mark(r.label === null ? 'todo' : r.negative ? 'no' : 'yes')));
+          rs.appendChild(document.createTextNode(r.label === null ? '' : 'chosen: ' + r.label));
+          if (r.label === null) { rs.title = 'answer it first ↑'; rs.appendChild(document.createTextNode('Answer it first')); rs.appendChild(icon('up')); }
+          ln.appendChild(rs);
           c.rely.appendChild(ln);
         });
       }
+      c.mootMsg.hidden = !moot;
+      if (moot) { c.mootMsg.textContent = ''; c.mootMsg.appendChild(icon('lock')); c.mootMsg.appendChild(el('span', null, 'Not needed: ' + moot.id + ' is set to “' + moot.label + '”, so this card no longer applies.')); }
+      c.trows.forEach(function (r) { r.tr.classList.toggle('chosen', r.value === v); r.mine.hidden = r.value !== v; });
+      // A constraint holds until the current choice lifts it.
+      c.kstate.forEach(function (s) {
+        var lifted = !!(opt && opt.violates && opt.violates.indexOf(s.k.id) >= 0);
+        var by = it.options.filter(function (o) { return o.violates && o.violates.indexOf(s.k.id) >= 0; }).map(function (o) { return o.label; });
+        s.li.classList.toggle('lifted', lifted);
+        s.node.textContent = '';
+        s.node.appendChild(icon(lifted ? 'lifted' : 'hold'));
+        s.node.appendChild(document.createTextNode(lifted ? 'Lifted by your choice: ' + opt.label : 'Holds' + (by.length ? ' · lifted if you choose ' + by.join(' or ') : '')));
+      });
       if (v || moot) done++;
     });
     sections.forEach(function (sec) {
       var n = sec.items.filter(function (it) { return choiceOf(it.id) || mootBy(it, items, state); }).length;
-      sec.count.textContent = n + '/' + sec.items.length;
-      sec.fill.style.width = (sec.items.length ? 100 * n / sec.items.length : 0) + '%';
-      // "1 minor item", not "1 minor items"
-      var secName = sec.name.toLowerCase(); if (sec.items.length === 1) secName = secName.replace(/ items$/, ' item');
-      if (sec.summary) sec.summary.textContent = sec.items.length + ' ' + secName + ' — ' + n + ' decided (defaults applied), open to change';
+      sec.count.textContent = n + ' of ' + sec.items.length;
     });
-    document.getElementById('ptxt').textContent = done + ' of ' + items.length + ' decided';
+    var ptxt = document.getElementById('ptxt');
+    ptxt.textContent = 'Decided ';
+    ptxt.appendChild(el('b', null, done + ' of ' + items.length));
     document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
+    listCount.textContent = items.length - done ? (items.length - done) + ' to decide' : 'All decided';
     var allDecided = items.length === done;
     document.getElementById('recAll').disabled = allDecided;
     document.getElementById('recAll').title = allDecided ? 'Every card already has a choice' : '';
+    paintRails(); legend();
+  }
+  // The key legend: what works right now, the current card's options first.
+  var legendEl = document.getElementById('legend');
+  function legend() {
+    var ae = document.activeElement, L = [];
+    var c = cur && cards[cur] && cards[cur].it ? cards[cur] : null;
+    if (ae && ae.classList && ae.classList.contains('note')) L = [['Esc', 'Leave the note'], ['', 'Saved as you type']];
+    else {
+      L.push(['↑↓', 'Move']);
+      if (c && !mootBy(c.it, items, state)) c.it.options.forEach(function (o, i) { if (i < 9) L.push([String(i + 1), o.label, 'ctx']); });
+      if (ae && ae.classList && ae.classList.contains('opt')) L.push(['Enter', 'Choose focused', 'ctx']);
+      L.push(['U', 'Next to decide']);
+      if (c) L.push(['N', 'Note']);
+      if (lensed) L.push(['L', 'Lens: ' + (lensView === 'both' ? 'both' : LENS_NAME[lensView])]);
+      L.push(['A', 'Accept recommended']);
+      L.push(served ? ['S', 'Send'] : ['C', shareMode ? 'Copy prompt' : 'Copy decisions']);
+      L.push(['?', 'All keys']);
+    }
+    legendEl.textContent = '';
+    L.forEach(function (k) {
+      var s = el('span', k[2] || null);
+      if (k[0]) s.appendChild(el('kbd', null, k[0]));
+      s.appendChild(document.createTextNode(k[1].replace(/`|\*\*/g, '')));
+      legendEl.appendChild(s);
+    });
   }
 /*PROMPT-START*/
   // Share mode: the prompt the reader pastes into their coding agent on their checkout. Self-contained, so tests load it with node:vm.
@@ -1305,9 +1945,11 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
     document.getElementById('toast').textContent = n > 0 ? n + ' card' + (n === 1 ? '' : 's') + ' set to the recommended option.' : 'No undecided card has a recommended option.';
   });
   if (shareMode) {
-    document.getElementById('copy').textContent = 'Copy prompt';
+    document.getElementById('copyLabel').textContent = 'Copy prompt';
     document.getElementById('out').setAttribute('aria-label', 'Prompt to paste into your coding agent');
   }
+  // The copy fallback box closes once the reader leaves it.
+  document.getElementById('out').addEventListener('blur', function () { this.style.display = 'none'; });
   document.getElementById('copy').addEventListener('click', function () {
     var text = shareMode ? buildPrompt(data, items, state) : output();
     var out = document.getElementById('out'), toast = document.getElementById('toast');
@@ -1410,6 +2052,12 @@ details.fold .card { margin: 12px 0 0; background: var(--bg); }
   }
   render();
   applyFilters();
+  // Land on the card named in the address (#d-ID), else the first card still to decide.
+  var start = '';
+  try { start = decodeURIComponent(location.hash.replace(/^#d-/, '')); } catch (e) { start = ''; }
+  setCurrent(cards[start] ? start : firstOpen());
+  setTab('card');
+  fade();
 })();
 </script>
 </body>
