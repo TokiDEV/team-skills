@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.13.1 — 2026-10-21
+
+- Agents read run-folder files with the Read tool, several in one message, instead of `cat`-ing them through Bash. A batch over Bash's output limit got copied to `$TMPDIR`, and reading it back there asked for permission.
+
 ## 0.13.0 — 2026-10-21
 
 The gate page is redesigned as a decision console: one screen to move through the cards, weigh them and answer.

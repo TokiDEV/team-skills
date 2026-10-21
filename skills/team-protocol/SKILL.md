@@ -44,6 +44,7 @@ Append this block to every dispatch prompt, with the budget, run folder and agen
 ```markdown
 ## How to work
 - Budget: about <N> tool calls. Put several searches in one Bash call; Read a file once, whole.
+- Read run-folder files with the Read tool, several in one message; never `cat` them through Bash or copy them to `$TMPDIR`.
 - Tool rules: <the user's standing tool rules from CLAUDE.md, e.g. "absolute paths, never `cd`">
 - Only a command's output counts, never IDE diagnostics (they can come from stale buffers). Run each gate command exactly as your brief writes it, with no pipe, redirect or prefix added.
 - Write your full output to <run folder>/<agent id>.md.
