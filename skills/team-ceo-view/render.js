@@ -16,7 +16,7 @@
 // --review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head> (with --share, not --artifact):
 // instead of the page, write a ready-to-post review: <gate>.review.github.json, or the folder <gate>.review.gitlab/.
 // Cards with "at" inside the diff become comments; --diff=<unified diff file> says which lines are in it (default: all).
-// Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server), accept.js (--accept-recommended).
+// Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server), accept.js (--accept-recommended), files.js (project files the page names: IDE and remote links).
 const fs = require('fs');
 const path = require('path');
 const { loadGate } = require('./lib/gate');
@@ -25,6 +25,7 @@ const { acceptedBlock } = require('./lib/accept');
 const { parseChannels } = require('./lib/share');
 const { parseDiff, loadReviewBuilder, buildReviewPayloads, writeReviewFiles } = require('./lib/review');
 const { serve } = require('./lib/serve');
+const { repoOf, projectFiles, trackedFiles } = require('./lib/files');
 
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
@@ -68,6 +69,13 @@ const { data, items, outcome, errors, preset } = loadGate(src, { share: SHARE, p
 if (errors.length) { console.error('invalid gate JSON:\n- ' + errors.join('\n- ')); process.exit(1); }
 
 const page = buildPage({ data, items, outcome, preset, channels, share: SHARE });
+// After _rev, like channels: pushing the branch must not reset saved choices.
+const repo = repoOf(path.dirname(path.resolve(src)));
+const files = repo ? projectFiles(page, repo.root) : [];
+if (files.length) {
+  page.files = files;
+  if (repo.blob) page.repo = { blob: repo.blob, forge: repo.forge, files: trackedFiles(repo.root, files) };
+}
 const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
 if (REVIEW) {
   let diff = null;
@@ -95,5 +103,5 @@ if (ACCEPT) {
 }
 if (flags.has('--serve')) {
   const base = out.replace(/\.html$/, '');
-  serve(html, base + '.decisions.txt', base + '.share.txt', { open: !flags.has('--no-open') });
+  serve(html, base + '.decisions.txt', base + '.share.txt', { open: !flags.has('--no-open'), files: files.length ? { root: repo.root, list: files } : null });
 }

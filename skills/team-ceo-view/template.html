@@ -356,6 +356,10 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .code pre .add { background: var(--add-bg); color: #cdeec8; }
 .code pre .ctx { color: var(--ink-2); }
 .loc { font: 13.5px var(--mono); color: var(--ink); padding: 9px 12px; overflow-wrap: anywhere; }
+.loc .fref code, .cloc .fref code { font: inherit; background: none; border: 0; padding: 0; }
+.fref .forge { width: 1em; height: 1em; margin-left: 5px; vertical-align: -.15em; color: var(--ink-3); }
+.fref .ext { text-decoration: none; }
+a.fref:hover .forge, .fref .ext:hover .forge { color: var(--ink); }
 .ev-empty { font-size: 14.5px; color: var(--ink-3); margin: 16px 0 0; }
 .ev-empty.lens-none { display: none; }
 .card[data-lens="business"] .ev-empty.lens-none.business, .card[data-lens="tech"] .ev-empty.lens-none.tech { display: block; }
@@ -649,12 +653,70 @@ dialog.zoom p:empty { display: none; }
     img.addEventListener('keydown', function (e) { if (e.key === 'Enter') open(); });
     return img;
   }
+  // A project file the page names (data.files, checked by render.js). Served, a click opens it in the editor and
+  // the forge's logo opens it on the remote repo; elsewhere the name and logo link to the remote repo. Only files
+  // git tracks (data.repo.files) have a remote page.
+  var files = data.files || [];
+  // Simple Icons marks (CC0), drawn in currentColor.
+  var FORGES = {
+    github: { name: 'GitHub', d: 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12' },
+    gitlab: { name: 'GitLab', d: 'm23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.8748.8748 0 0 0-.9997.0539.8748.8748 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0325.0862a6.0657 6.0657 0 0 0 2.0119 7.0105l.0113.0087.03.0213 4.976 3.7264 2.462 1.8633 1.4995 1.1321a1.0085 1.0085 0 0 0 1.2197 0l1.4995-1.1321 2.4619-1.8633 5.006-3.7489.0125-.01a6.0682 6.0682 0 0 0 2.0094-7.003z' }
+  };
+  var forge = data.repo ? FORGES[data.repo.forge] || FORGES.gitlab : null;
+  function forgeIcon() {
+    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), d = document.createElementNS(NS, 'path');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'forge'); svg.setAttribute('aria-hidden', 'true');
+    d.setAttribute('d', forge.d); d.setAttribute('fill', 'currentColor'); svg.appendChild(d);
+    return svg;
+  }
+  function remoteOf(p, line) {
+    if (!(data.repo && data.repo.files.indexOf(p) >= 0)) return null;
+    return data.repo.blob + p.split('/').map(encodeURIComponent).join('/') + (line ? '#L' + line : '');
+  }
+  function remoteLink(href, cls) {
+    var a = el('a', cls); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Open on ' + forge.name;
+    return a;
+  }
+  function fileRef(p, line, label) {
+    var code = el('code', null, label), remote = remoteOf(p, line);
+    if (!served) {
+      if (!remote) return code;
+      var a = remoteLink(remote, 'fref'); a.appendChild(code); a.appendChild(forgeIcon());
+      return a;
+    }
+    var box = el('span', 'fref'), b = el('button', 'link');
+    b.type = 'button'; b.title = 'Open in your editor'; b.appendChild(code);
+    b.addEventListener('click', function () {
+      fetch('open', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: p, line: line }) })
+        .then(function (r) { return r.ok ? say('Opened ' + p + ' in your editor.') : r.text().then(say); })
+        .catch(function () { say('The page is no longer served: open ' + p + ' yourself.'); });
+    });
+    box.appendChild(b);
+    if (remote) {
+      var ext = remoteLink(remote, 'ext');
+      ext.setAttribute('aria-label', 'Open ' + p + ' on ' + forge.name); ext.appendChild(forgeIcon());
+      box.appendChild(ext);
+    }
+    return box;
+  }
+  // A card's "at" as "path, line n" into box, the path linked when the page knows the file.
+  function atNode(box, at) {
+    box.appendChild(files.indexOf(at.path) >= 0 ? fileRef(at.path, at.line, at.path) : document.createTextNode(at.path));
+    if (at.line) box.appendChild(document.createTextNode(', line ' + at.line));
+    return box;
+  }
+  // `path`, `path:line` or `path:line-line`, as lib/files.js reads them.
+  function codeOrFile(s) {
+    var m = /^(.+?)(?::(\d+)(?:-\d+)?)?$/.exec(s);
+    return files.indexOf(m[1]) >= 0 ? fileRef(m[1], m[2] ? Number(m[2]) : null, s) : el('code', null, s);
+  }
+
   // detail and why: an array of bullets, or a string whose "- " lines are bullets.
-  // Inline `code` and **bold** are built as nodes, never as HTML.
-  function inline(parent, text) {
+  // Inline `code` and **bold** are built as nodes, never as HTML. plain: no file links (inside a button).
+  function inline(parent, text, plain) {
     String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach(function (part) {
       if (!part) return;
-      if (/^`[^`]+`$/.test(part)) parent.appendChild(el('code', null, part.slice(1, -1)));
+      if (/^`[^`]+`$/.test(part)) parent.appendChild(plain ? el('code', null, part.slice(1, -1)) : codeOrFile(part.slice(1, -1)));
       else if (/^\*\*[^*]+\*\*$/.test(part)) parent.appendChild(el('strong', null, part.slice(2, -2)));
       else parent.appendChild(document.createTextNode(part));
     });
@@ -736,7 +798,7 @@ dialog.zoom p:empty { display: none; }
   head.appendChild(el('h1', null, data.title));
   var meta = el('div', 'meta');
   meta.appendChild(el('span', null, cap(data.kind || 'decision') + ' gate' + (data.date ? ' · ' + data.date : '')));
-  if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(el('code', null, data.source)); meta.appendChild(s); }
+  if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(codeOrFile(data.source)); meta.appendChild(s); }
   if (data.preset) {
     var pc = 0, pn = 0;
     var defaultOf = function (id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i].default; };
@@ -937,7 +999,7 @@ dialog.zoom p:empty { display: none; }
     var row = el('button', 'row chip'); row.type = 'button'; row.id = 'r-' + it.id;
     row.style.setProperty('--pl', (laneX(m.depth) + 18) + 'px');
     var rails = el('span', 'rails'); rails.setAttribute('aria-hidden', 'true'); row.appendChild(rails);
-    var l1 = el('span', 'l1'); l1.appendChild(el('span', 'rid', it.id)); l1.appendChild(inline(el('span', 'rti'), it.title));
+    var l1 = el('span', 'l1'); l1.appendChild(el('span', 'rid', it.id)); l1.appendChild(inline(el('span', 'rti'), it.title, true));
     var nmark = el('span', 'nmark'); nmark.title = 'Has a note'; nmark.appendChild(icon('note')); nmark.hidden = true; l1.appendChild(nmark);
     row.appendChild(l1);
     var l2 = el('span', 'l2'), stw = el('span', 'stw'), sev = sevOf(it), rw = relWord(it), gapw = el('span', 'gapw');
@@ -1260,7 +1322,7 @@ dialog.zoom p:empty { display: none; }
       mg.appendChild(mb);
     }
     var atText = it.at && it.at.path ? it.at.path + (it.at.line ? ', line ' + it.at.line : '') : '';
-    if (atText) evGroup('Where in the code', []).appendChild(piece(el('div', 'ebox loc', atText), null));
+    if (atText) evGroup('Where in the code', []).appendChild(piece(atNode(el('div', 'ebox loc'), it.at), null));
     var sug = suggestionOf(it);
     if (sug && sug.s && sug.s.text != null) {
       var stext = String(sug.s.text).replace(/\n$/, ''), sl = sug.s.lines || stext.split('\n').length;
@@ -1295,7 +1357,7 @@ dialog.zoom p:empty { display: none; }
     c.appendChild(main);
     // Nothing but a location to show: the location goes by the heading and the card takes the evidence column too.
     var thin = !lensed && !it.accepts && evN.business + evN.tech + plain - (atText ? 1 : 0) === 0;
-    if (thin) { c.classList.add('wide'); if (atText) h.appendChild(el('span', 'cloc', atText)); } else c.appendChild(ev);
+    if (thin) { c.classList.add('wide'); if (atText) h.appendChild(atNode(el('span', 'cloc'), it.at)); } else c.appendChild(ev);
     var hay = [it.id, it.title, it.detail, it.why, (it.tags || []).join(' '), it.group,
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();

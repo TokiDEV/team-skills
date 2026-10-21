@@ -19,7 +19,7 @@
 
 ## Which skill?
 
-![A review gate of the refund route in the console, the security blocker SE-1 current, with the list of findings beside it](docs/review-gate.png)
+![A review gate of the refund route in the console, the security blocker SE-1 current, its file linked to GitHub, with the list of findings beside it](docs/review-gate.png)
 
 | Skill | Question | When |
 |-------|----------|------|

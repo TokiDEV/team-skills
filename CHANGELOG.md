@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.14.0 — 2026-10-21
+
+- **File links on gate pages.** A repo file the page names (in backticks, `` `path` `` or `` `path:line` ``, a card's `at`, the record) becomes a link. On the served page a click opens it in your editor at that line, through the local server: `CEO_VIEW_EDITOR` if set, else the IDE Claude runs in (VS Code or JetBrains), else `code` or `idea` on the `PATH`. The GitHub or GitLab logo beside it opens it on the remote repo (any host other than github.com is taken as a GitLab) at the pushed commit, else the pushed branch. The shared page links the remote only, never a local path. Files git doesn't track (`.council/`, uncommitted ones) get no remote link. The server opens only files the page names.
+
 ## 0.13.1 — 2026-10-21
 
 - Agents read run-folder files with the Read tool, several in one message, instead of `cat`-ing them through Bash. A batch over Bash's output limit got copied to `$TMPDIR`, and reading it back there asked for permission.
