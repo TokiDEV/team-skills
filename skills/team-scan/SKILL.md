@@ -5,7 +5,7 @@ description: Use before the first team-council, team-council-plan, team-kickoff,
 
 # team-scan
 
-Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes` and `## Environment limits`, which it keeps (see *Procedure*); git tracks history.
+Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes`, `## Environment limits` and a user-corrected `## Expected load`, which it keeps (see *Procedure*); git tracks history.
 
 ## What to detect
 
@@ -23,12 +23,13 @@ Produces the project profile that every council skill reads. Run it once per pro
 6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
 7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
 8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
+9. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
 
 ## Procedure
 
 1. Confirm the target directory (default: cwd).
 2. Gather the signals above with read-only tools. Prefer batched, non-interactive commands; do not modify project files other than the profile.
-3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes` and `## Environment limits` lines as they are too.
+3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes` and `## Environment limits` lines as they are too, and its `## Expected load` line when its source is `the user`.
 4. Report a one-line summary and the profile path.
 
 ## Output: `.council/project-profile.md`
@@ -58,6 +59,10 @@ One line each: `<name> — what it is for` (e.g. "writes plans", "executes plans
 ## Project Phase
 - Maturity, git depth, existing plans/decisions
 
+## Expected load
+One line; reviewers judge races and scale against it:
+- <who runs it, how many at once, data sizes> — <source: file:line | assumed | the user>
+
 ## Decision Records
 - The project's own: location, format, numbering (e.g. "docs/adr/, MADR, NNNN-title.md"), or "none"
 - Council decisions: count and latest under .council/decisions/
@@ -84,3 +89,4 @@ What this machine or sandbox cannot run (sandbox limits, missing tools), one lin
 - If a domain has no specialist, write "none"; the council still runs.
 - `## Constraints` also grows at plan approval (`team-council-plan` appends the new `tech` constraints), and is read by every council framing, the plan reviewers and the gate writers. A constraint lifted at a gate is marked `lifted by <record path>`, never deleted.
 - `## Known flakes` grows at each team-review or team-refactor gate: the record writer appends the flakes its Recon saw. Remove a line only when its test is fixed.
+- `## Expected load` is corrected at a team-review gate when the human's note corrects it: the record writer replaces the line, source `the user`.

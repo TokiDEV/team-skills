@@ -28,7 +28,7 @@ A panel of seats (Security among them where the change crosses a trust boundary)
 
 1. **A finding names a scenario, or it is not a finding.** The concrete input, state or call where it breaks, and what happens then.
 2. **Only the verifier confirms.** A card its author alone believes is `med` at most, and only a `CONFIRMED` card reaches the gate.
-3. **Diff scope flags only what the diff introduces or worsens.** A defect in untouched code is one line in *Not raised*, never a card.
+3. **Diff scope flags only what the diff introduces or worsens.** A break the diff causes in a file it leaves untouched (a caller of a changed signature, a reader of a renamed field) is the diff's: a card, `In diff: reach`. A defect that was already there is one line in *Not raised*, never a card.
 4. **Structure is refactor's.** No card for duplication, dead code, cycles or design: one line under *For team-refactor*.
 5. **Fix test-first, one finding per commit.** A test that reproduces the defect fails, the fix makes it pass, one commit carries both (exceptions: `templates.md` § *Fix card*).
 6. **The human submits a review; Claude never posts one.** A shared review stays pending until the human submits it.
@@ -133,6 +133,8 @@ The shared ones are in `team-protocol`. These are the review's own.
 |--------|---------|
 | "The seat is sure, skip the verifier" | The author's certainty is the bias the verifier exists for. |
 | "It's pre-existing but bad, flag it" | Diff scope: once in *Not raised*, never a card. |
+| "The broken caller is in a file the diff doesn't touch: *Not raised*" | The diff broke it. A card, `In diff: reach`, anchored on the changed line. |
+| "Two requests at once would race here" (a one-user CLI) | Judge against the brief's *Expected load*. A race that load never reaches is *Not raised*. |
 | "This function does too much, it's a finding" | Structure is refactor's: *For team-refactor*. |
 | "Post the review, the human will read it anyway" | The human submits; Claude never posts a review. |
 | "Fix it while we're there" (someone else's branch) | Their branch, their call: share, don't push. |
@@ -149,6 +151,8 @@ The shared ones are in `team-protocol`. These are the review's own.
 - A card without a scenario
 - A card marked `high` that the verifier never saw
 - A thread on a line outside the diff
+- A caller the brief's *Reach* marks broken, filed under *Not raised*
+- A race or scale card whose scenario names no load
 - A review posted (not pending)
 - A fix commit carrying two findings, or a refactoring its finding did not ask for
 - A behavior fix whose test passed before the fix

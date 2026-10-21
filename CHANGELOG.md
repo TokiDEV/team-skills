@@ -2,6 +2,14 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.12.0 — 2026-10-21
+
+Two review gaps: breakage outside the diff, and scale judged without a load.
+
+- **team-review: breakage outside the diff.** Recon's brief gains a *Reach* section: every caller or reader of a signature, return value, field, error or unit the diff changes, with `ok` or `broken`. The Correctness seat checks each against the new contract. A caller the diff breaks in a file it leaves untouched is now a card (`In diff: reach`), anchored on the changed line so its thread lands in the diff. Only defects the diff did not cause go to *Not raised*.
+- **team-review: an expected load.** The brief carries the project's *Expected load* (one user running a script, one process, several instances sharing a store). Races and cost are judged against it: a race that load never reaches is *Not raised*, a race or cost card names the load it assumes, and *blocker* means it breaks a main path at that load. A load the human corrects at the gate goes back into the profile.
+- **team-scan:** the profile gains `## Expected load`, from the README and the deploy config, or marked `assumed`. A load the user corrected survives a re-scan.
+
 ## 0.11.0 — 2026-10-20
 
 Gate clarity and lean runs (from a post-mortem of six runs on 0.10.x: you answered through free-text notes, gates were bloated, and each run spent 11–47M input tokens).

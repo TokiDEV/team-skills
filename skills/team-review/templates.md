@@ -13,6 +13,8 @@ The *only* shared context for the seats, so the seats don't each re-read the sam
 - Quality-gate commands, each with its result (`team-protocol` § *Code scope*). Red is a result to report, not a reason to stop.
 - *Settled*, *Ungated*, *Unformatted*, *Known flakes* and the *Diff guard*, by `team-protocol` § *Code scope*. The Intent seat cards each *Ungated* path in scope.
 - **Coverage of the changed lines**: which are exercised by a test, which are not.
+- **Expected load**, with its source: the profile's `## Expected load`, or with no profile, your own read of the README and deploy config (one person running a script, one server process, several instances or workers sharing a store), marked `assumed` when nothing states it. Seats judge races, concurrency and cost against it.
+- **Reach**, diff scopes only: for each signature, return value, exported name, field, error or unit the diff changes, every caller or reader outside the changed lines (tests, fixtures, config and string references included), one line each with `file:line`, and `ok` or `broken: <why>` against the new contract. More than ~20 lines: group them by changed symbol, broken ones in full, the `ok` ones counted. `none` when the diff changes no contract.
 - Leads from the profile's tools (type checker, `npm audit`, `osv-scanner`, `semgrep`, `gitleaks`, dead-code tools), run on the scope. A lead is not a finding: a seat verifies each by hand before citing it.
 - **Trust boundaries**, for every scope: where the code in scope takes input it does not control or acts with privilege (an entry point, authn/authz, input parsing, an outbound call, a stored secret, untrusted content rendered), each with `file:line`, or `none`. `none` means the Security seat does not sit: list a boundary when in doubt. Put this line in your reply, or the count of boundaries, written `none` for 0: the orchestrator seats Security from it.
 - **Excerpts**: the changed code itself, with `file:line` headers.
@@ -24,8 +26,8 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 ```markdown
 ### <PREFIX>-<n>: <defect> in <file:line>
 - Lens: <correctness | error-handling | security | intent | tests | types | performance | conventions> (<the source from your Sources it comes from>)
-- In diff: <yes | no (audit)>
-- Scenario: <the concrete input, state or call where it breaks, and what happens>
+- In diff: <yes | reach (<the changed file:line that breaks it>) | no (audit)>
+- Scenario: <the concrete input, state or call where it breaks, and what happens. A race, concurrency or cost card names the load it assumes>
 - Evidence: <cited lines, opened in source, not only quoted from the Review Brief>
 - Refutation: <what you checked that could have proved this wrong — the guard, the caller, the test — and what you found>
 - Fix: <the fix. When two fixes are defensible, both, as `(a) …` and `(b) …`, each saying what behavior or data it keeps and what it loses>
@@ -35,8 +37,8 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 ```
 
 - **Prefix.** Your seat's two letters: `CR`, `SE`, `IN` or `CF` (`HO` for an intake card), never the seat's name: `### CF-2`, not `### CRAFT-2`.
-- **Severity.** `blocker`: merging it loses money or data, opens a hole, or breaks a main path. `major`: wrong behavior on a real path, a swallowed error, new logic with no test. `minor`: names, conventions, a cost with no hot path.
-- **Diff scope.** A defect in untouched code is one line under *Not raised*, after *For team-refactor*, never a card.
+- **Severity.** `blocker`: merging it loses money or data, opens a hole, or breaks a main path at the brief's *Expected load*. `major`: wrong behavior on a real path, a swallowed error, new logic with no test. `minor`: names, conventions, a cost with no hot path at that load.
+- **Diff scope.** A caller the diff breaks is a card, `In diff: reach`, with the broken caller in its heading. A defect the diff did not cause is one line under *Not raised*, after *For team-refactor*, never a card.
 
 ## Intake cards (Recon, intake)
 
@@ -72,6 +74,7 @@ Owner: <own branch | someone else's (<author>) | audit>. Reviewed commit: <full 
 Intent: <source> — <one line>
 Quality gates: <commands verbatim, each with its result>
 Known flakes: <the brief's, or none>
+Expected load: <the brief's, with its source>
 Diff guard: <the brief's commands, verbatim>
 Security: <seated | not seated (no trust boundary) | intake: no seats>
 
@@ -89,7 +92,7 @@ verifier's verdict with its Checked, Found and Scenario lines, and its
 
 ### Not raised
 [One line each: UNSURE cards (now med), low cards, findings over the cap,
-the seats' *Not raised* lines (defects outside the diff)]
+the seats' *Not raised* lines (defects the diff did not cause)]
 
 ### For team-refactor
 [The seats' lines merged, at most ~5, by `team-protocol` § *Lane hand-offs*]
@@ -109,7 +112,7 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "r
 - `summary`: labelled bullets *Verdict*, *Blockers*, *Not raised*, *For team-refactor*, *Recommendation*; no card counts (the renderer adds them). `source` is the review record, `.council/reviews/YYYY-MM-DD-<topic>.md`.
 - **Each finding is a decision**, `id` its card id, `tags` its lens and severity, `detail` its evidence and scenario, `why` its stakes. Its options are its *Options* line: **fix** (`recommended: true`, with its `brief`), or **fix-a** and **fix-b**, each with its own `brief` and `recommended: true` only on the one the line recommends; and **leave** (`negative: true`, no brief: the human's note gives the reason). A `corrects <premise>` tag goes in `tags`.
 - Blocker and major: major decisions. Minor: `minor: true`. `default` is the *Options* line's default or recommended fix, and absent when it recommends none.
-- `at` on each finding: its file and line at the reviewed commit, as in its card.
+- `at` on each finding: its file and line at the reviewed commit, as in its card. A `reach` finding is anchored on the changed line its *In diff* names, so its thread lands in the diff, and its `detail` names the broken caller.
 - `after` from the finding's `Needs:` line.
 - `suggestion`: the card's `Replacement:` line, copied.
 - Threads: every finding whose line is in the diff gets its own.
@@ -121,11 +124,12 @@ Write the share fields by `contract.md` § *Share fields* on every review gate, 
 ## Record and exec brief (record writer)
 
 From the synthesis, the gate JSON's fix briefs, and the decisions block or the share block. On an auto-accept run with no page there is no gate JSON: take the human's chat answer where one was given, else each finding's default, else its recommended option, from its *Options* line, and write each Fix card from the finding's *Fix*.
-- **The record**, `.council/reviews/YYYY-MM-DD-<topic>.md`, for humans and future reviews: scope, owner, intent source, status, the synthesis's *Quality gates*, *Known flakes* and *Security* lines, every finding with its verifier verdict and the human's decision and note, the refuted cards with what refuted them, *Not raised*, *For team-refactor*. For an audit, each finding left is known debt with its reason, so the next audit does not reopen it.
+- **The record**, `.council/reviews/YYYY-MM-DD-<topic>.md`, for humans and future reviews: scope, owner, intent source, status, the synthesis's *Quality gates*, *Known flakes*, *Expected load* and *Security* lines, every finding with its verifier verdict and the human's decision and note, the refuted cards with what refuted them, *Not raised*, *For team-refactor*. For an audit, each finding left is known debt with its reason, so the next audit does not reopen it.
   - Someone else's branch, or any shared gate: from the synthesis and the share block, the human's curation (declined findings with their notes) and the share line from `team-ceo-view`'s *Share*. `Status: shared`. No exec brief.
   - Own branch, audit: `Status: approved, not executed`. An auto-accept run adds *"Auto-accepted: every recommendation taken without opening the page"*.
 - **The exec brief**, `.council/reviews/YYYY-MM-DD-<topic>.exec.md`, by `team-protocol` § *Writers*: its header holds the synthesis's *Quality gates*, *Known flakes* and *Diff guard*; then one Fix card per approved finding, in order: blockers first, and a finding after any finding it `needs`. Each card comes from the finding's brief and the human's note.
 - **New known flakes**: append each test the synthesis lists under *Known flakes* that the profile's `## Known flakes` lacks, one line each in that section's format.
+- **Corrected load**: when a human note or chat answer corrects the *Expected load*, replace the profile's `## Expected load` line with the corrected one, source `the user`.
 
 After execution, the record is completed by `team-protocol` § *Writers*; its *Notes* count as *Not raised* lines for the next review.
 

@@ -17,7 +17,7 @@ Literal and fair. You read the request before the code, and hold the diff to wha
 ## Anti-patterns
 - Do NOT demand coverage on trivial glue: a getter, a re-export, a pass-through.
 - Do NOT invent a requirement the Review Brief does not state: when the intent is thin, say so in one line under *Not raised*.
-- Do NOT flag code the diff leaves untouched: one line in *Not raised* at most.
+- Do NOT flag a defect the diff did not cause: one line in *Not raised* at most. A caller the diff breaks, even in a file it leaves untouched, is a card (`In diff: reach`).
 - Do NOT write a card for duplication, dead code, cycles or a function doing too much: one line under *For team-refactor*.
 
 ## Your Focus
@@ -46,4 +46,4 @@ Start from the Review Brief; open code read-only to confirm evidence and to try 
 [≤ 3 lines, by `team-protocol` § *Lane hand-offs*]
 
 ### Not raised
-[one line each: a defect in code the diff leaves untouched, or a hunch below med]
+[one line each: a defect the diff did not cause, or a hunch below med]

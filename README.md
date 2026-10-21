@@ -8,7 +8,7 @@
 
 | Skill | What it does |
 |-------|--------------|
-| [`team-scan`](skills/team-scan/SKILL.md) | Project → `.council/project-profile.md` (stack, conventions, tools, limits). Read by every skill. |
+| [`team-scan`](skills/team-scan/SKILL.md) | Project → `.council/project-profile.md` (stack, conventions, tools, expected load, limits). Read by every skill. |
 | [`team-council`](skills/team-council/SKILL.md) | Decision before code. **PO, CTO, UX, Philosopher, Wildcard** debate; PO synthesis; decision recorded. |
 | [`team-council-plan`](skills/team-council-plan/SKILL.md) | Decision → implementation plan, reviewed by CTO, PO, UX. |
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → council → brief, profile, `CLAUDE.md`. |
