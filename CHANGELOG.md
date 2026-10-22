@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.16.1 — 2026-10-23
+
+- **List marks on the first line.** A row's status mark, and the rail elbow that meets it, sat 5px under the title, level with neither line. It is now centred on the lowercase of the first line, where the eye reads it, in whatever font the reader's `system-ui` resolves to: the page measures it (baseline plus half the x-height) when the list lays out, and again when it is shown, narrowed to a rail (where the id is the line) or widened.
+
 ## 0.16.0 — 2026-10-22
 
 - **The author's note (team-review).** The session that wrote a change has no voice in its review: no seat, no answers to the seats, no running the review itself. Its last step is a note in `.council/author-notes/<branch>.md`, ~20 lines: intent, deliberate choices with what they trade away, known gaps, what was checked by hand. Recon copies it into the Review Brief as `author claim` lines; the verifier never sees it. A claim refutes nothing: a choice whose scenario still breaks stays a card naming the claim; a scenario the choice already accepts goes under *Not raised* as `author choice:`, and onto the gate's *Settled without you* list, where the CEO can reopen it. Invoking team-review in the conversation that wrote the code writes the note and hands off to a fresh session. The note is deleted with the run folder.

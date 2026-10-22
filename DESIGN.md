@@ -312,7 +312,7 @@ Depth is tonal first. Hierarchy comes from the neutral ladder (ground, panel, fo
 
 Soft, consistent corners that scale with the object: 5px keycaps and inline code, 6px badges, 8px small controls, 10px buttons, inputs and rows, 12px popovers and segmented controls, 14px panes, 16px dialogs, full-round (20px) only for lens marks and counts. Borders are 1px; keycaps carry a 2px bottom edge to read as physical keys.
 
-Rails are the system's own geometry: 2px strokes, solid with an elbow for "refines", dashed for "needs … first", with 16px drawn nodes. Status marks are small drawn SVG glyphs (open ring for to decide, filled for decided), never emoji or font icons.
+Rails are the system's own geometry: 2px strokes, solid with an elbow for "refines", dashed for "needs … first", with 16px drawn nodes centred on the lowercase of the row's first line, measured in the reader's font. Status marks are small drawn SVG glyphs (open ring for to decide, filled for decided), never emoji or font icons.
 
 ## Components
 

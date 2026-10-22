@@ -179,6 +179,9 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .rh.after { border-top-style: dashed; }
 .rv.lit, .rh.lit { border-color: var(--rail-lit); }
 .filtering .rv, .filtering .rh { display: none; }
+/* A row's mark, and the rails that meet it, sit --ny down the row: the middle of its first line's lowercase, measured with .nyprobe */
+#sideScroll { --ny: 15px; }
+.nyprobe { display: inline-block; width: 0; height: 0; vertical-align: middle; }
 .node { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
 .node svg { width: 16px; height: 16px; display: block; }
 /* The rails key lives in the Keys dialog, and behind the ? beside the list title */
@@ -855,7 +858,8 @@ dialog.zoom p:empty { display: none; }
     out.forEach(function (r, i) { rowsMeta[r.id] = { depth: r.depth, parent: r.parent, kind: r.parent ? par[r.id].kind : null, kids: [], i: i, sec: sec }; });
     out.forEach(function (r) { if (r.parent) rowsMeta[r.parent].kids.push(r.id); });
   });
-  var X0 = 18, LANE = 22, NY = 20;
+  // NY: how far down its row a mark sits, where the rails meet it (measureNY).
+  var X0 = 18, LANE = 22, NY = 'var(--ny)';
   function laneX(l) { return X0 + l * LANE; }
   // The rails of the current card's chain are lit: its ancestors and the cards that hang under it.
   function litSet() {
@@ -877,14 +881,14 @@ dialog.zoom p:empty { display: none; }
     chain.forEach(function (aid, l) {
       var later = laterKids(aid, m.i, false);
       if (aid === m.parent) {
-        h += vert(laneX(l), '0', NY + 'px', m.kind, anyLit(laterKids(aid, m.i, true)));
-        h += '<span class="rh' + (m.kind === 'after' ? ' after' : '') + (L[id] ? ' lit' : '') + '" style="left:' + laneX(l) + 'px;top:' + NY + 'px;width:' + (LANE - 7) + 'px"></span>';
-        if (later.length) h += vert(laneX(l), NY + 'px', null, rowsMeta[later[0]].kind, anyLit(later));
+        h += vert(laneX(l), '0', NY, m.kind, anyLit(laterKids(aid, m.i, true)));
+        h += '<span class="rh' + (m.kind === 'after' ? ' after' : '') + (L[id] ? ' lit' : '') + '" style="left:' + laneX(l) + 'px;top:' + NY + ';width:' + (LANE - 7) + 'px"></span>';
+        if (later.length) h += vert(laneX(l), NY, null, rowsMeta[later[0]].kind, anyLit(later));
       } else if (later.length) {
         h += vert(laneX(l), '0', null, rowsMeta[later[0]].kind, anyLit(later));
       }
     });
-    if (m.kids.length) h += vert(laneX(m.depth), (NY + 8) + 'px', null, rowsMeta[m.kids[0]].kind, anyLit(m.kids));
+    if (m.kids.length) h += vert(laneX(m.depth), 'calc(' + NY + ' + 8px)', null, rowsMeta[m.kids[0]].kind, anyLit(m.kids));
     return h;
   }
 
@@ -997,7 +1001,7 @@ dialog.zoom p:empty { display: none; }
   if (hasSummary) {
     sumRow = el('button', 'row sumrow'); sumRow.type = 'button'; sumRow.id = 'r-' + SUM; sumRow.style.setProperty('--pl', (laneX(0) + 18) + 'px');
     var sr = el('span', 'rails'); sr.setAttribute('aria-hidden', 'true');
-    sr.innerHTML = '<span class="node" style="left:' + laneX(0) + 'px;top:' + NY + 'px">' + mark('doc') + '</span>';
+    sr.innerHTML = '<span class="node" style="left:' + laneX(0) + 'px;top:' + NY + '">' + mark('doc') + '</span>';
     var s1 = el('span', 'l1'); s1.appendChild(el('span', 'rti', 'Summary'));
     var s2 = el('span', 'l2'); s2.appendChild(el('span', 'stw todo', data.outcome && data.outcome.length ? 'The whole summary and the outcome' : 'The whole summary'));
     s2.style.paddingLeft = '0';
@@ -1033,13 +1037,28 @@ dialog.zoom p:empty { display: none; }
   var sidebody = document.getElementById('sidebody');
   function fade() { sidebody.classList.toggle('more', side.scrollHeight - side.scrollTop - side.clientHeight > 4); }
   side.addEventListener('scroll', fade); window.addEventListener('resize', fade);
-  if (window.ResizeObserver) { var fro = new ResizeObserver(fade); fro.observe(side); fro.observe(list); }
+  // The font is the reader's system-ui, so where its lowercase sits is measured, not assumed: a probe set
+  // vertical-align: middle sits at the baseline plus half the x-height. The first row showing a title (an id on the
+  // narrow rail) is measured whenever the list changes size: laid out, shown, narrowed, widened.
+  function measureNY() {
+    var rows = list.querySelectorAll('.row'), row, host = null;
+    for (var i = 0; i < rows.length && !host; i++) {
+      row = rows[i];
+      host = [row.querySelector('.rti'), row.querySelector('.rid')].filter(function (e) { return e && e.getClientRects().length; })[0] || null;
+    }
+    if (!host) return;
+    var probe = el('span', 'nyprobe'); host.insertBefore(probe, host.firstChild);
+    side.style.setProperty('--ny', (probe.getBoundingClientRect().top - row.getBoundingClientRect().top).toFixed(2) + 'px');
+    host.removeChild(probe);
+  }
+  function refit() { fade(); measureNY(); }
+  if (window.ResizeObserver) { var fro = new ResizeObserver(refit); fro.observe(side); fro.observe(list); } else measureNY();
   function rowOf(id) { return id === SUM ? sumRow : chipsById[id]; }
   function paintRails() {
     var L = litSet();
     Object.keys(rowParts).forEach(function (id) {
       var p = rowParts[id];
-      p.rails.innerHTML = railsFor(id, L.lit) + '<span class="node" style="left:' + laneX(rowsMeta[id].depth) + 'px;top:' + NY + 'px">' + mark(p.m) + '</span>';
+      p.rails.innerHTML = railsFor(id, L.lit) + '<span class="node" style="left:' + laneX(rowsMeta[id].depth) + 'px;top:' + NY + '">' + mark(p.m) + '</span>';
       chipsById[id].classList.toggle('kin', !!L.rel[id]);
     });
   }
