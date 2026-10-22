@@ -236,7 +236,7 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 
 ### Neutral
 - **Ground** (ground): the page, and recessed wells inside panels (inputs, the lens switch, evidence boxes, keycaps).
-- **Panel** (panel): the three panes, the summary strip, dialogs, resting buttons and options.
+- **Panel** (panel): the three panes, dialogs, resting buttons and options.
 - **Raised** (raised): hover fill, inline code, tags, relation rows, popover menus.
 - **Cursor** (cur): the current row, a pressed pill or lens, the selected tab. One step above raised.
 - **Foot** (foot): the pinned "Your choice" bar and the accepted-by footer, a half step above panel.
@@ -281,7 +281,7 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 
 ## Layout
 
-A fixed 100dvh grid: top bar, a one-line summary strip, the three panes, and a quiet key legend at the foot. Only panes scroll. The page edge is 20px, panes sit 14px apart.
+A fixed 100dvh grid: top bar, the three panes, and a quiet key legend at the foot. The page opens on the Summary item, the first row of the list; a card named in the address (`#d-ID`) opens instead. Only panes scroll. The page edge is 20px, panes sit 14px apart.
 
 - **Wide (above 1400px):** list 400px, card fluid, evidence 460px. A card marked wide spans card and evidence columns.
 - **1400px and below:** list 340px, evidence 400px; top-bar keycaps drop.

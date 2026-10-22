@@ -42,10 +42,10 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .l-tech { color: var(--tech); }
 .muted { color: var(--ink-3); }
 
-/* Frame: top bar, summary strip, (tabs on a phone), the three panes, the key legend */
+/* Frame: top bar, (tabs on a phone), the three panes, the key legend */
 .layout { height: 100vh; height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto; grid-template-areas: "top" "sum" "tabs" "panes" "foot"; overflow: hidden; }
-#head { grid-area: top; } .sumwrap { grid-area: sum; } .tabs { grid-area: tabs; } .panes { grid-area: panes; } .foot { grid-area: foot; }
+  grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "top" "tabs" "panes" "foot"; overflow: hidden; }
+#head { grid-area: top; } .tabs { grid-area: tabs; } .panes { grid-area: panes; } .foot { grid-area: foot; }
 
 /* Top bar */
 .top { display: flex; align-items: center; gap: 20px; padding: 14px 20px 12px; min-width: 0; }
@@ -71,21 +71,6 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-2); padding: 6px 10px; }
 .btn.ghost:hover { color: var(--ink); background: var(--panel); }
 .side-open { flex: none; }
-
-/* Summary strip: one line, never a cropped box. The full summary is its own item in the centre pane. */
-.sumwrap { padding: 0 20px; }
-.sum { display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 5px 8px 5px 18px; background: var(--panel); border: 1px solid var(--edge); border-radius: var(--r); }
-.sumline { flex: 1; min-width: 0; margin: 0; font-size: 14.5px; /* the body size: both parts read at one size */ line-height: 1.45; display: flex; align-items: baseline; gap: 0 .7em; }
-.sumline b { color: var(--ink-2); font-weight: 600; margin-right: .4em; }
-.sumline .sp.rec { font-weight: 550; }
-.sumline .sp.rec b { color: var(--ink); font-weight: 700; }
-.sumline .sep { color: var(--ink-3); flex: none; }
-/* The verdict gives way first (two lines, then a cut); the recommendation always shows in full and wraps. */
-.sumline .sp.vd { flex: 0 1 auto; max-width: 62%; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.sumline .sp.rec { flex: 1 1 0; min-width: 0; }
-.sumline .sp.only { flex: 1 1 0; max-width: none; }
-.sumbtn { flex: none; }
-.sumbtn[aria-pressed="true"] { color: var(--ink); background: var(--cur); }
 
 /* Three panes. #app and the current card are transparent to the grid: the card's two halves land in the centre and evidence columns. */
 .panes { display: grid; grid-template-columns: 400px minmax(0, 1fr) 460px; grid-template-rows: minmax(0, 1fr); grid-template-areas: "list card ev";
@@ -470,11 +455,7 @@ dialog.zoom p:empty { display: none; }
   .side-open, #keys { display: none !important; }
   .actions { flex-wrap: wrap; gap: 6px; }
   .actions .btn { flex: 1 1 auto; min-height: 36px; padding: 5px 10px; font-size: 13.5px; }
-  .sumwrap { padding: 0 16px; }
-  .sum { flex-direction: column; align-items: flex-start; padding: 8px 6px 2px 14px; gap: 0; min-height: 0; }
-  .sumbtn { min-height: 32px; margin-left: -8px; padding: 0 8px; }
   .meta .srcm { display: none; }
-  .sumbtn kbd { display: none; }
   .tabs { display: flex; margin: 8px 16px 0; padding: 3px; gap: 4px; background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; }
   .tabs button { flex: 1; min-height: 34px; border-radius: 9px; color: var(--ink-2); font-weight: 550; }
   .tabs button[aria-selected="true"] { color: var(--ink); background: var(--cur); }
@@ -495,12 +476,6 @@ dialog.zoom p:empty { display: none; }
   .c-decide { padding: 12px 16px 32px; flex: none; }
   /* A soft fade at the foot of the scrolling card says there is more below */
   .c-main::after { content: ''; display: block; position: sticky; bottom: 0; flex: none; height: 30px; margin-top: -30px; pointer-events: none; background: linear-gradient(to bottom, transparent, var(--foot)); }
-  /* The summary strip stacks: verdict, then recommendation, each in full */
-  .sumline { flex-direction: column; gap: 4px; }
-  .sumline .sep { display: none; }
-  .sumline .sp.vd { max-width: none; display: block; overflow: visible; }
-  .sumline { width: 100%; }
-  .sumline .sp.rec { flex: none; }
   .dh { display: none; }
   .opt { flex: 1 1 auto; min-height: 44px; padding-right: 10px; }
   .options { gap: 8px; margin-bottom: 10px; }
@@ -532,7 +507,7 @@ dialog.zoom p:empty { display: none; }
 }
 @media print {
   .layout { display: block; height: auto; overflow: visible; }
-  #side, .foot, .tabs, .sumwrap, .actions, .side-open, .lswitch, .c-decide .notewrap { display: none !important; }
+  #side, .foot, .tabs, .actions, .side-open, .lswitch, .c-decide .notewrap { display: none !important; }
   .panes { display: block; padding: 0; }
   .card, .card.current { display: block; break-inside: avoid; margin-bottom: 16px; }
   .panel { display: block; box-shadow: none; overflow: visible; margin-bottom: 8px; }
@@ -554,7 +529,6 @@ dialog.zoom p:empty { display: none; }
       <button class="btn ghost" id="keys" type="button" aria-label="Keyboard keys"><kbd>?</kbd> Keys</button>
     </div>
   </header>
-  <div class="sumwrap" id="sumwrap"><div class="sum" id="sum"></div></div>
   <div class="tabs" id="tabs" role="tablist" aria-label="Panes"></div>
   <div class="panes">
     <aside id="side" class="panel" aria-label="Cards">
@@ -879,39 +853,10 @@ dialog.zoom p:empty { display: none; }
     return h;
   }
 
-  // The summary: one line under the top bar, and in full as the first item of the list.
+  // The summary: the first item of the list, where the page lands.
   var SUM = '_summary';
   var hasSummary = !!((data.summary && data.summary.length) || (data.outcome && data.outcome.length) || (data.figures && data.figures.length));
-  var sumBtn = null, backTo = null;
-  if (hasSummary) {
-    var sm = data.summary || [];
-    var lead = sm.filter(function (b) { return b && /verdict/i.test(b.label || ''); })[0] || sm[0];
-    var recB = sm.filter(function (b) { return b && /recommend/i.test(b.label || ''); })[0];
-    var line = el('p', 'sumline'), parts = [lead, recB !== lead ? recB : null].filter(Boolean);
-    parts.forEach(function (b, i) {
-      if (i) line.appendChild(el('span', 'sep', '·'));
-      var part = el('span', 'sp ' + (parts.length === 1 ? 'only' : i === 0 ? 'vd' : 'rec'));
-      if (typeof b === 'string') inline(part, b);
-      else {
-        if (b.label) part.appendChild(el('b', null, b.label));
-        inline(part, b.text || (b.points || []).join('; '));
-      }
-      line.appendChild(part);
-    });
-    if (!line.childNodes.length && data.outcome && data.outcome.length) { line.appendChild(el('b', null, 'Outcome')); line.appendChild(document.createTextNode(data.outcome[0].title || data.outcome[0].caption || '')); }
-    line.title = line.textContent;
-    document.getElementById('sum').appendChild(line);
-    sumBtn = el('button', 'btn ghost sumbtn'); sumBtn.type = 'button';
-    sumBtn.addEventListener('click', toggleSummary);
-    document.getElementById('sum').appendChild(sumBtn);
-  } else document.getElementById('sumwrap').hidden = true;
-  function syncSumBtn() {
-    if (!sumBtn) return;
-    var on = cur === SUM;
-    sumBtn.textContent = on ? 'Back to the card ' : 'Full summary ';
-    sumBtn.appendChild(el('kbd', null, 'Z'));
-    sumBtn.setAttribute('aria-pressed', String(on));
-  }
+  var backTo = null;
   function toggleSummary() {
     if (!hasSummary) return;
     if (cur === SUM) setCurrent(backTo && cards[backTo] ? backTo : firstOpen());
@@ -1474,7 +1419,7 @@ dialog.zoom p:empty { display: none; }
     cards[id].card.classList.add('current');
     var row = rowOf(id); row.classList.add('cur'); row.setAttribute('aria-current', 'true');
     if (row.offsetParent) row.scrollIntoView({ block: 'nearest' });
-    paintRails(); syncSumBtn(); legend();
+    paintRails(); legend();
     try { history.replaceState(null, '', '#d-' + id); } catch (e) {}
   }
   function pick(id) { setCurrent(id); if (narrowQ.matches) setTab('card'); }
@@ -2114,10 +2059,10 @@ dialog.zoom p:empty { display: none; }
   }
   render();
   applyFilters();
-  // Land on the card named in the address (#d-ID), else the first card still to decide.
+  // Land on the card named in the address (#d-ID), else the summary, else the first card still to decide.
   var start = '';
   try { start = decodeURIComponent(location.hash.replace(/^#d-/, '')); } catch (e) { start = ''; }
-  setCurrent(cards[start] ? start : firstOpen());
+  setCurrent(cards[start] ? start : hasSummary ? SUM : firstOpen());
   setTab('card');
   fade();
 })();
