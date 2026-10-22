@@ -2,6 +2,14 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.15.0 — 2026-10-22
+
+- **Evidence per option.** An option, or a tension side, can carry its own `code: { "after" }` (plus `"before"` where it differs; the item keeps the shared `before`), `metrics`, `figures` and `accepts`. The evidence pane shows the chosen option's, else the recommended one's, beside the item's own; an *Evidence for* picker atop the pane shows another option's without choosing it, and a new choice brings the pane back to it. An option with no code of its own (Defer, Decline) shows *Before* alone. The renderer rejects an option `code` with no `after`, a `code.after` on the item beside options that carry their own, and an option `accepts` over 160 characters; a recommended option's own `accepts` stands in for the item's.
+- **Accepts is never wrong.** It used to show the recommended option's cost whatever was chosen. It now shows the chosen (or picked) option's; an option without one shows the recommended one's under "The recommended option accepts".
+- **An outcome can follow a card.** `outcome[].on: { "id", "when" }` shows an entry only while that card's answer, chosen else recommended, is in `when`, headed "If D1 = …".
+- **First click on an option no longer lost.** Focusing an option by mouse added *Enter · Choose focused* to the key legend; at some widths the legend wrapped to a second line between mousedown and mouseup, the option moved from under the pointer, and the click was dropped. That key now shows for keyboard focus only.
+- **Three sides stack.** A tension with three sides or more lists them one under the other, divided by a rule, instead of leaving the third alone and offset on a second row. On narrow screens every column after the first now gets its rule, not only the last.
+
 ## 0.14.2 — 2026-10-22
 
 - **Figures readable again.** The 0.13.0 redesign dropped `--surface`, `--surface-2` and `--accent`, the colours `figures.md` gives figure authors: box fills fell back to the text colour and swallowed their labels. They are back, scoped to figures: fills and label masks take the ground the figure sits on, and the focus is told by brightness alone (text in ink-2, sublabels a step below, the focus in full ink), so no hue takes a second meaning. A test now checks that every colour `figures.md` names is defined.

@@ -28,6 +28,7 @@ The page is for decisions, not an inventory. Before writing the JSON:
 | `system` | components, APIs, data flow, jobs or a workflow change | the target architecture (boxes = components, arrows = calls or data), or the target workflow as a sequence | the same diagram, today |
 
 - `after` is required. `before` goes in whenever something exists today; a kickoff has none.
+- `on`: `{ "id", "when": [option values] }` when the destination depends on one card's answer: one entry per destination, each shown while that card's answer (chosen, else recommended) is in its `when`, headed "If D1 = …". The card is a decision or a tension; a tension's option values are its sides' `who`.
 - `caption` (required): one line naming what changed, e.g. "Discount line moves under the subtotal; nothing else moves".
 - Both views when both change. A figure is `{ "svg" }` or `{ "src" }` (rules below). A `.svg` file given as `src` is inlined, so an agent can write the sketch to the gate folder and point to it.
 
@@ -124,7 +125,8 @@ The renderer rejects a `detail` or `why` over its limit, a `detail` that opens w
 - **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with `<who>`" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
 - `metrics` show as before→after figures in the evidence pane. `better` (`higher` or `lower`) colors the change green or red. Page-level `metrics` are rejected by the renderer.
-- `code` shows as before/after panes: include it for every step that moves code, ≤ 15 lines each.
+- `code` shows as before/after panes: include it for every step that moves code, ≤ 15 lines each. When the options change the code differently, give each one its own: `code: { "after" }` on the option (or the tension side), with `"before"` only where it differs, and keep only `before` on the item. An option without `code` shows *Before* alone.
+- **An option's own evidence.** Evidence that differs by answer goes on the option (or the tension side), never on the item labelled "for B": `code` (above), `metrics`, `figures` and `accepts` (*Bridge fields*). The evidence pane shows the chosen option's, else the recommended one's, beside the item's own, and an *Evidence for* picker shows another option's without choosing it.
 - `figures` entries take either `svg` or `src`:
   - `src` points to an image such as a screenshot. It must be **relative to the JSON file**; absolute, `/tmp` and URL paths are rejected. The renderer embeds the image, so the `.html` stays one file. The caption says what to look at.
   - `svg` is trusted inline SVG. Palette and size rules: `figures.md` (a narrower `viewBox` gets scaled up).
@@ -150,7 +152,7 @@ On council, plan and kickoff gates; the calling skill's mapping says what fills 
 - `constraints`: on items only; a page-level `constraints` is rejected. Copy each constraint onto every card it binds — decision, tension or settled; one that binds no card is not a constraint. Each is `{ "id", "lens", "text", "source", "status" }`, status `confirmed`, `assumed` or `contested`. One id is one constraint: its copies on other cards are identical.
 - `options[].tradeoff`: `{ "business"?, "tech"? }`, one line each, ≤ 80 characters. A cost with no evidence ends with `(estimate)`. A tension side takes `tradeoff` and `violates` too.
 - `options[].violates`: the ids of the constraints the option breaks, on its item. The option stays choosable, with a *lifts K2* badge; choosing it lifts them, and the decisions block says so: `D1 = buy (lifts K2)`.
-- `accepts`: one line, ≤ 160 characters: what the recommended option costs. Required on an item whose options carry `tradeoff` and one is recommended.
+- `accepts`: one line, ≤ 160 characters: what the recommended option costs. Required on an item whose options carry `tradeoff` and one is recommended, unless that option carries its own. `options[].accepts` (or a side's): what that option costs, shown while it is chosen or picked; an option without one shows the recommended option's, labelled as such.
 - `title`, `why`, `detail` and `options` stay shared, above the bridge.
 
 **On the page**, a card shows its bridge (its constraints, the options' trade-offs side by side, and *Accepts*) in the evidence pane (right), as one trade-off table with Business and Tech columns. Each argument in the centre pane is tagged Business or Tech. A *Both | Business | Tech* switch narrows the evidence pane, and `l` cycles it (`b` / `t` pick a lens). The list pane's lens marks show which lens each card concerns, and its Filter menu hides the cards that concern only the other lens (a card with no lens stays).

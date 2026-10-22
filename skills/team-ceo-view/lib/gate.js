@@ -16,6 +16,8 @@ const MAX = { detail: 240, why: 160, bullet: 120, bullets: 4 };
 const LENSES = ['business', 'tech'];
 const STATUSES = ['confirmed', 'assumed', 'contested'];
 const MAX_BRIDGE = { tradeoff: 80, accepts: 160 };
+// What a tension side passes on to the option that sides with it.
+const SIDE_KEYS = ['brief', 'suggestion', 'tradeoff', 'violates', 'code', 'metrics', 'figures', 'accepts'];
 // --share: the reader has neither this machine nor the .council/ folder.
 const LANGS = ['en', 'fr'];
 const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.council\//;
@@ -108,19 +110,48 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     item.figures = (item.figures || []).concat(item.images || []);
     delete item.images;
     item.figures.forEach((f, j) => embed(f, `${where}.figures[${j}]`));
+    checkOwnEvidence(item, where);
     checkArguments(item, where);
     checkOptions(item.options, where);
     checkText(item, 'detail', where);
     checkText(item, 'why', where);
     checkEcho(item, where);
     const text = [item.title, textOf(item.detail), textOf(item.why)].join(' ');
-    if (MENTIONS_VISUAL.test(text) && !item.figures.length) {
+    if (MENTIONS_VISUAL.test(text) && !item.figures.length && !item.options.some(o => o.figures && o.figures.length)) {
       errors.push(`${where} ("${item.id}") mentions "${text.match(MENTIONS_VISUAL)[0]}" but has no "figures" — attach it or drop the reference`);
     }
+    checkCode(item, where);
     checkLens(item, where);
     checkBridge(item, where);
     concerns(item);
     return item;
+  }
+
+  // code: { before, after } on the item; when the options change the code differently, each option carries its own
+  // "after" (and "before" only where it differs) and the item keeps the shared "before".
+  const hasCode = item => !!(item.code && (item.code.before || item.code.after)) || item.options.some(o => o.code);
+  function checkCode(item, where) {
+    const bad = c => !c || typeof c !== 'object' || Array.isArray(c) || ['before', 'after'].some(k => c[k] != null && typeof c[k] !== 'string');
+    if (item.code != null && bad(item.code)) errors.push(`${where} ("${item.id}").code must be { "before", "after" } strings`);
+    const own = item.options.filter(o => o.code != null);
+    own.forEach(o => {
+      if (bad(o.code) || !o.code.after) errors.push(`${where} ("${item.id}") option "${o.value}".code must be { "after" }, plus "before" only where it differs from the item's`);
+    });
+    if (own.length && item.code && item.code.after != null) {
+      errors.push(`${where} ("${item.id}") has "code.after" and options with their own code — put each option's "after" on that option and keep only "before" on the item`);
+    }
+  }
+
+  // An option's own evidence, shown while it is chosen (else recommended) or picked: metrics, figures, and what it accepts.
+  function checkOwnEvidence(item, where) {
+    item.options.forEach(o => {
+      const at = `${where} ("${item.id}") option "${o.value}"`;
+      ['metrics', 'figures'].forEach(k => { if (o[k] != null && !Array.isArray(o[k])) errors.push(`${at}.${k} must be an array`); });
+      if (Array.isArray(o.figures)) o.figures.forEach((f, j) => embed(f, `${at}.figures[${j}]`));
+      if (o.accepts == null) return;
+      if (typeof o.accepts !== 'string' || !o.accepts) errors.push(`${at}.accepts must be a one-line string`);
+      else if (o.accepts.length > MAX_BRIDGE.accepts) errors.push(`${at}.accepts is ${o.accepts.length} characters (max ${MAX_BRIDGE.accepts})`);
+    });
   }
 
   // constraints: on the item they bind. Ids name one constraint across the page; a copy on another card must be identical.
@@ -148,14 +179,16 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const oneOf = `must be one of ${LENSES.join(', ')}`;
     if (item.lens != null && !LENSES.includes(item.lens)) errors.push(`${where} ("${item.id}").lens ${oneOf}`);
     const entries = [];
-    ['for', 'against', 'metrics', 'figures'].forEach(k => {
-      if (!Array.isArray(item[k])) return;
-      item[k].forEach((e, j) => {
+    const collect = (holder, k, base) => {
+      if (!Array.isArray(holder[k])) return;
+      holder[k].forEach((e, j) => {
         if (!e || typeof e !== 'object') return;
-        if (e.lens != null && !LENSES.includes(e.lens)) errors.push(`${where}.${k}[${j}].lens ${oneOf}`);
-        entries.push({ e, at: `${where}.${k}[${j}]` });
+        if (e.lens != null && !LENSES.includes(e.lens)) errors.push(`${base}.${k}[${j}].lens ${oneOf}`);
+        entries.push({ e, at: `${base}.${k}[${j}]` });
       });
-    });
+    };
+    ['for', 'against', 'metrics', 'figures'].forEach(k => collect(item, k, where));
+    item.options.forEach(o => ['metrics', 'figures'].forEach(k => collect(o, k, `${where} option "${o.value}"`)));
     if (item.lens == null && !entries.some(x => x.e.lens != null)) return;
     // Every entry lands in one tab: its own lens, else the item's.
     entries.forEach(({ e, at }) => {
@@ -163,7 +196,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       if (e.lens == null) errors.push(`${at} has no lens and its item none to give — set "lens" on the entry or on the item`);
     });
     const lenses = new Set(entries.map(x => x.e.lens));
-    if (item.code && (item.code.before || item.code.after)) lenses.add('tech'); // code is always tech
+    if (hasCode(item)) lenses.add('tech'); // code is always tech
     // Tabs only where there is something to switch: entries of both lenses. A one-lens card says its lens in the header.
     if (lenses.has('business') && lenses.has('tech')) item.lensTabs = true;
   }
@@ -172,15 +205,15 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   function concerns(item) {
     const found = new Set();
     if (LENSES.includes(item.lens)) found.add(item.lens);
-    ['for', 'against', 'metrics', 'figures'].forEach(k => {
-      if (Array.isArray(item[k])) item[k].forEach(e => { if (e && LENSES.includes(e.lens)) found.add(e.lens); });
-    });
+    [item].concat(item.options).forEach(h => ['for', 'against', 'metrics', 'figures'].forEach(k => {
+      if (Array.isArray(h[k])) h[k].forEach(e => { if (e && LENSES.includes(e.lens)) found.add(e.lens); });
+    }));
     item.options.forEach(o => {
       if (o.tradeoff && typeof o.tradeoff === 'object') LENSES.forEach(l => { if (o.tradeoff[l]) found.add(l); });
     });
     (item.bridge || []).forEach(k => { if (LENSES.includes(k.lens)) found.add(k.lens); }); // breaking a tech rule concerns tech
     // Code is tech, but a lens-free item with code stays lens-free.
-    if (found.size && item.code && (item.code.before || item.code.after)) found.add('tech');
+    if (found.size && hasCode(item)) found.add('tech');
     if (found.size) item.lenses = LENSES.filter(l => found.has(l));
   }
 
@@ -215,7 +248,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (item.accepts != null) {
       if (typeof item.accepts !== 'string' || !item.accepts) errors.push(`${where} ("${item.id}").accepts must be a one-line string`);
       else if (item.accepts.length > MAX_BRIDGE.accepts) errors.push(`${where} ("${item.id}").accepts is ${item.accepts.length} characters (max ${MAX_BRIDGE.accepts})`);
-    } else if (traded && item.options.some(o => o.recommended)) {
+    } else if (traded && item.options.some(o => o.recommended && !o.accepts)) {
       errors.push(`${where} ("${item.id}") recommends an option with a "tradeoff" but has no "accepts" — say in one line what the pick costs`);
     }
     if (own.length) item.bridge = own;
@@ -252,8 +285,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
         value: String(s.who || `side ${j + 1}`).replace(/\|/g, '/'),
         label: 'Side with ' + (s.who || `side ${j + 1}`),
         recommended: !!s.recommended
-      }, s.negative ? { negative: true } : {}, s.brief != null ? { brief: s.brief } : {}, s.suggestion != null ? { suggestion: s.suggestion } : {},
-        s.tradeoff != null ? { tradeoff: s.tradeoff } : {}, s.violates != null ? { violates: s.violates } : {}))
+      }, s.negative ? { negative: true } : {},
+        ...SIDE_KEYS.filter(k => s[k] != null).map(k => ({ [k]: s[k] }))))
         .concat([{ value: 'defer', label: 'Defer', negative: true }]);
     }
     items.push(finish(item, where));
@@ -370,6 +403,16 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (!o.caption) errors.push(`${where} needs "caption": one line saying what to look at`);
     if (!o.after) errors.push(`${where} needs "after": the target state`);
     ['before', 'after'].forEach(k => { if (o[k]) embed(o[k], `${where}.${k}`); });
+    // on: { id, when }: a destination that holds only for some answers of one card, shown while that answer is chosen or recommended.
+    if (o.on == null) return;
+    const target = o.on && items.find(it => it.id === o.on.id);
+    if (!target || !Array.isArray(o.on.when) || !o.on.when.length) {
+      errors.push(`${where}.on must be { "id", "when": [option values] } naming a decision or tension`);
+    } else if (target.kind !== 'decision' && target.kind !== 'tension') {
+      errors.push(`${where}.on names "${target.id}", a ${target.kind} item — an outcome follows a decision or a tension`);
+    } else {
+      o.on.when.forEach(v => { if (!target.options.some(x => x.value === v)) errors.push(`${where}.on.when names "${v}", not an option of "${target.id}"`); });
+    }
   });
   return { data, items: ordered, outcome, errors, preset };
 }

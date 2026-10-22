@@ -125,6 +125,69 @@ test('a tension side carries its trade-off and the constraints it breaks', () =>
   rejects(g, /tensions\[0\] \("T1"\) recommends an option with a "tradeoff" but has no "accepts"/);
 });
 
+test('code per option: each option its own after, a tension side its code, and code counts as tech', () => {
+  const it = page(plain('council', { for: [{ who: 'PO', point: 'Faster.', lens: 'business' }], code: { before: 'a' },
+    options: [{ value: 'a', label: 'A', recommended: true, code: { after: 'b' } }, { value: 'b', label: 'B', code: { before: 'z', after: 'c' } }, { value: 'no', label: 'No', negative: true }] })).items[0];
+  assert.deepStrictEqual(it.options.map(o => o.code), [{ after: 'b' }, { before: 'z', after: 'c' }, undefined]);
+  assert.strictEqual(it.lensTabs, true);
+  const g = bridgeGate({ tensions: [{ topic: 'Rename?', code: { before: 'REQUIRED' }, sides: [
+    { who: 'CTO', position: 'Keep.', recommended: true, code: { after: 'ENFORCED' } },
+    { who: 'UX', position: 'Describe.', code: { after: 'JOIN_OR_CREATE' } },
+    { who: 'PO', position: 'Both.' }] }] });
+  assert.deepStrictEqual(item(page(g), 'T1').options.map(o => o.code && o.code.after), ['ENFORCED', 'JOIN_OR_CREATE', undefined, undefined]);
+});
+
+test('code per option needs an after, and the item keeps only the shared before', () => {
+  rejects(plain('council', { code: { before: 'a', after: 'b' }, options: [{ value: 'a', label: 'A', code: { after: 'c' } }, { value: 'b', label: 'B' }] }),
+    /has "code.after" and options with their own code/);
+  rejects(plain('council', { options: [{ value: 'a', label: 'A', code: { before: 'c' } }, { value: 'b', label: 'B' }] }),
+    /option "a"\.code must be \{ "after" \}/);
+  rejects(plain('council', { code: 'a → b' }), /\.code must be \{ "before", "after" \} strings/);
+});
+
+test('an option carries its own numbers, figures and accepts; a side passes them on', () => {
+  const g = bridgeGate({ tensions: [{ topic: 'Rename?', lens: 'tech', accepts: 'One glossary break', sides: [
+    { who: 'CTO', position: 'Keep.', recommended: true, tradeoff: { tech: 'Two lines' },
+      metrics: [{ label: 'Files touched', before: 0, after: 2 }], figures: [{ svg: '<svg/>', caption: 'Figure 1 — names' }] },
+    { who: 'UX', position: 'Describe.', tradeoff: { tech: '63 files' }, accepts: 'Longer names everywhere', metrics: [{ label: 'Files touched', before: 0, after: 63, lens: 'business' }] }] }] });
+  const t1 = item(page(g), 'T1');
+  assert.strictEqual(t1.options[0].metrics[0].lens, 'tech'); // the item's lens
+  assert.strictEqual(t1.options[0].figures[0].caption, 'Figure 1 — names');
+  assert.strictEqual(t1.options[1].accepts, 'Longer names everywhere');
+  assert.strictEqual(t1.lensTabs, true); // the UX side's business metric
+  // The recommended option's own accepts stands in for the item's.
+  delete g.tensions[0].accepts; g.tensions[0].sides[0].accepts = 'Two lines of churn';
+  assert.strictEqual(item(page(g), 'T1').options[0].accepts, 'Two lines of churn');
+  g.tensions[0].sides[1].accepts = 'x'.repeat(161);
+  rejects(g, /option "UX"\.accepts is 161 characters \(max 160\)/);
+});
+
+test('an item that mentions a figure an option carries passes', () => {
+  assert.strictEqual(page(plain('council', { detail: 'See figure 1', options: [
+    { value: 'a', label: 'A', recommended: true, figures: [{ svg: '<svg/>' }] }, { value: 'b', label: 'B' }] })).items[0].options[0].figures.length, 1);
+});
+
+test('an outcome can follow one card\'s answer', () => {
+  const g = bridgeGate({ outcome: [
+    { view: 'system', caption: 'In-house', after: { svg: '<svg/>' }, on: { id: 'D1', when: ['build'] } },
+    { view: 'system', caption: 'Vendor', after: { svg: '<svg/>' }, on: { id: 'D1', when: ['buy'] } }] });
+  assert.deepStrictEqual(page(g).outcome.map(o => o.on.when[0]), ['build', 'buy']);
+  g.outcome[1].on = { id: 'D1', when: ['lease'] };
+  rejects(g, /outcome\[1\]\.on\.when names "lease", not an option of "D1"/);
+  g.outcome[1].on = { id: 'D9', when: ['buy'] };
+  rejects(g, /outcome\[1\]\.on must be \{ "id", "when": \[option values\] \}/);
+});
+
+test('the template follows one option across the evidence pane and stacks three sides', () => {
+  const html = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+  assert.ok(html.includes("var pick = el('div', 'optpick')"));
+  assert.ok(html.includes('if (c.view.choice !== v) { c.view.choice = v; c.view.shown = null; }'));
+  assert.ok(html.includes("'The recommended option accepts: '"));
+  assert.ok(html.includes('drawOutcomes();'));
+  assert.ok(html.includes("el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''))"));
+  assert.match(html, /\.args\.stack \.argcol \+ \.argcol \{ border-top/);
+});
+
 test('lens values are business or tech, on items and entries', () => {
   const a = bridgeGate(); a.decisions[0].lens = 'ux';
   rejects(a, /decisions\[0\] \("D1"\)\.lens must be one of business, tech/);
@@ -239,7 +302,7 @@ test('the template draws the bridge, lens chips, per-card tabs and the lens filt
   assert.ok(html.includes("pills('Lens', 'lens'"));
   assert.ok(html.includes("(filters.lens === 'all' || !it.lenses || it.lenses.indexOf(filters.lens) >= 0)"));
   assert.ok(html.includes("'No ' + l + ' argument raised.'"));
-  assert.ok(html.includes("el('b', null, 'Accepts: ')"));
+  assert.ok(html.includes("? 'The recommended option accepts: ' : 'Accepts: '"));
   // A breaking option stays choosable: no strike-through, a badge naming what choosing it lifts.
   assert.ok(html.includes("el('span', 'lift', 'lifts ' + o.violates.join(', '))"));
   assert.doesNotMatch(html, /line-through/);

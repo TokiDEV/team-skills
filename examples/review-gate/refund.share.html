@@ -248,6 +248,10 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .con .sg { background: var(--con-bg); color: var(--con); }
 .ten .sg { background: var(--raised); color: var(--ink-2); }
 .argcol .pos { margin: 0 0 12px; font-size: 15px; }
+/* Three sides or more stack, one under the other: two columns would leave the third alone on a second row */
+.args.stack { grid-template-columns: minmax(0, 1fr); }
+.args.stack .argcol { padding: 2px 0 4px; border-left: 0; }
+.args.stack .argcol + .argcol { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
 .arg { margin: 0 0 12px; }
 .arg .who { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
 .arg p { margin: 2px 0 0; font-size: 15px; line-height: 1.5; }
@@ -342,6 +346,15 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .code pre .del { background: var(--del-bg); color: #f3c2b8; }
 .code pre .add { background: var(--add-bg); color: #cdeec8; }
 .code pre .ctx { color: var(--ink-2); }
+/* Which option's own evidence the pane shows: the current choice, until another is picked */
+.optpick { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+.optpick .pl { flex-basis: 100%; font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
+.optpick button { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 3px 10px; font-size: 13px; color: var(--ink-2);
+  background: none; border: 1px solid var(--edge); border-radius: 8px; text-align: left; }
+.optpick button:hover { color: var(--ink); background: var(--panel); }
+.optpick button[aria-pressed="true"] { color: var(--ink); background: var(--cur); border-color: var(--ink-3); font-weight: 600; }
+.optpick button.mine { border-color: var(--green); }
+.nocode { margin: 8px 0 0; font-size: 14px; }
 .loc { font: 13.5px var(--mono); color: var(--ink); padding: 9px 12px; overflow-wrap: anywhere; }
 .loc .fref code, .cloc .fref code { font: inherit; background: none; border: 0; padding: 0; }
 .fref .forge { width: 1em; height: 1em; margin-left: 5px; vertical-align: -.15em; color: var(--ink-3); }
@@ -378,6 +391,7 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .oview { background: var(--ground); border: 1px solid var(--edge); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
 .ohead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .ohead b { font-size: 15px; font-weight: 650; }
+.ohead .oif { font-size: 13px; color: var(--ink-3); }
 .opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
 .opane { min-width: 0; }
 .opane .olbl { font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
@@ -447,7 +461,7 @@ dialog.zoom p:empty { display: none; }
   .c-decide { padding: 14px 22px 16px; }
   .args { grid-template-columns: 1fr; }
   .argcol, .argcol:first-child, .argcol:last-child { padding: 2px 0 4px; border-left: 0; }
-  .argcol:last-child { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
+  .argcol + .argcol { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
 }
 /* Phones: one pane at a time, picked by tab; the choice stays pinned under the card */
 @media (max-width: 760px) {
@@ -475,7 +489,7 @@ dialog.zoom p:empty { display: none; }
   .lead { font-size: 16.5px; }
   .args { grid-template-columns: 1fr; }
   .argcol, .argcol:first-child, .argcol:last-child { padding: 2px 0 4px; border-left: 0; }
-  .argcol:last-child { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
+  .argcol + .argcol { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
   /* The arguments come first: the card scrolls as one and "Your choice" follows them instead of covering them */
   .c-main { overflow-y: auto; }
   .c-main .c-scroll { overflow: visible; flex: none; }
@@ -1175,7 +1189,7 @@ dialog.zoom p:empty { display: none; }
     }
     if (it.detail) blk(body, 'Details').appendChild(rich('prose', it.detail));
     if (it.sides && it.sides.length) {
-      var sdb = blk(body, it.sides.length === 2 ? 'The two sides' : 'The sides'), tw = el('div', 'args');
+      var sdb = blk(body, it.sides.length === 2 ? 'The two sides' : 'The sides'), tw = el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''));
       it.sides.forEach(function (sd) {
         var box = el('div', 'argcol ten'), h4 = el('h4'), sg = el('span', 'sg');
         sg.appendChild(icon('split')); h4.appendChild(sg); h4.appendChild(document.createTextNode(sd.who));
@@ -1232,11 +1246,38 @@ dialog.zoom p:empty { display: none; }
 
     // Evidence: constraints once each with its lens, one trade-off table with a column per lens, numbers, the code, figures.
     var evb = el('div', 'ev-scroll scroll'), evN = { business: 0, tech: 0 }, plain = 0;
-    function piece(node, l) { if (lensed && l && LENS_NAME[l]) node.dataset.lens = l; if (l && evN[l] != null) evN[l]++; else plain++; return node; }
+    // quiet: an option's evidence other than the one shown first; the lens counts take one option's worth.
+    function piece(node, l, quiet) { if (lensed && l && LENS_NAME[l]) node.dataset.lens = l; if (quiet) return node; if (l && evN[l] != null) evN[l]++; else plain++; return node; }
     function evGroup(title, ls) {
       var g = el('div', 'evb'); g.appendChild(el('h3', 'eh', title));
       if (lensed && ls.length && ls.every(function (l) { return l && LENS_NAME[l] && l === ls[0]; })) g.dataset.lens = ls[0];
       evb.appendChild(g); return g;
+    }
+    // An option's own evidence (code, numbers, figures, what it accepts) follows one option: the current choice, else the
+    // recommended one. The picker atop the pane shows another without choosing it; a new choice brings the pane back to it.
+    var own = it.options.filter(function (o) { return o.code || (o.metrics && o.metrics.length) || (o.figures && o.figures.length) || o.accepts; });
+    var first = (own.filter(function (o) { return o.recommended; })[0] || own[0] || {}).value;
+    var view = { shown: null, choice: undefined, picks: [], parts: [], groups: [], draws: [] };
+    function optOf(v) { return it.options.filter(function (o) { return o.value === v; })[0]; }
+    function variant(g, value, node) { view.parts.push({ g: g, value: value, node: node }); return node; }
+    view.draw = function () {
+      var v = view.shown || choiceOf(it.id) || first;
+      view.picks.forEach(function (p) { p.b.setAttribute('aria-pressed', String(p.value === v)); p.b.classList.toggle('mine', p.value === choiceOf(it.id)); });
+      view.parts.forEach(function (p) { p.node.hidden = p.value !== v; });
+      view.groups.forEach(function (gr) { gr.g.hidden = !gr.always && !view.parts.some(function (p) { return p.g === gr.g && p.value === v; }); });
+      view.draws.forEach(function (f) { f(v); });
+    };
+    if (own.length) {
+      var pick = el('div', 'optpick'); pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', 'Show the evidence for');
+      pick.appendChild(el('span', 'pl', 'Evidence for'));
+      own.forEach(function (o) {
+        var b = el('button'); b.type = 'button';
+        inline(b, it.kind === 'tension' ? o.label.replace(/^Side with /, '') : o.label);
+        if (o.recommended) b.appendChild(el('span', 'rectag', 'Recommended'));
+        b.addEventListener('click', function () { view.shown = o.value; view.draw(); });
+        view.picks.push({ value: o.value, b: b }); pick.appendChild(b);
+      });
+      evb.appendChild(pick);
     }
     var kstate = [];
     if (it.bridge && it.bridge.length) {
@@ -1282,10 +1323,13 @@ dialog.zoom p:empty { display: none; }
       table.appendChild(tbody);
       var tbox = el('div', 'ebox tbox'); tbox.appendChild(table); tgp.appendChild(tbox);
     }
-    if (it.metrics && it.metrics.length) {
-      var mg = evGroup('Numbers', it.metrics.map(function (m) { return m.lens; })), mb = el('div', 'ebox');
-      it.metrics.forEach(function (m) { mb.appendChild(piece(metricRow(m), m.lens)); });
-      mg.appendChild(mb);
+    var mets = it.metrics || [], metOpts = it.options.filter(function (o) { return o.metrics && o.metrics.length; });
+    if (mets.length || metOpts.length) {
+      var mls = metOpts.reduce(function (a, o) { return a.concat(o.metrics); }, mets.slice()).map(function (m) { return m.lens; });
+      var mg = evGroup('Numbers', mls), mb = el('div', 'ebox');
+      mets.forEach(function (m) { mb.appendChild(piece(metricRow(m), m.lens)); });
+      metOpts.forEach(function (o) { o.metrics.forEach(function (m) { mb.appendChild(variant(mg, o.value, piece(metricRow(m), m.lens, o.value !== first))); }); });
+      mg.appendChild(mb); view.groups.push({ g: mg, always: mets.length });
     }
     var atText = it.at && it.at.path ? it.at.path + (it.at.line ? ', line ' + it.at.line : '') : '';
     if (atText) evGroup('Where in the code', []).appendChild(piece(atNode(el('div', 'ebox loc'), it.at), null));
@@ -1295,20 +1339,36 @@ dialog.zoom p:empty { display: none; }
       evGroup('Suggested change', []).appendChild(piece(codeBox('Replace ' + plural(sl, 'line') + (it.at && it.at.line ? ' from line ' + it.at.line : '') + ' with',
         sug.opt ? 'if you choose ' + sug.opt.label : '', stext.split('\n'), null, 'add'), null));
     }
-    if (it.code && (it.code.before || it.code.after)) {
-      var cl = it.lenses ? 'tech' : null, cg = evGroup('The code, before and after', cl ? [cl] : []), cw = piece(el('div'), cl);
-      var ba = String(it.code.before || '').split('\n'), aa = String(it.code.after || '').split('\n'), keep = lcsDiff(ba, aa);
-      if (it.code.before != null) cw.appendChild(codeBox('Before', 'changed lines in red', ba, keep.a, 'del'));
-      if (it.code.after != null) cw.appendChild(codeBox('After', 'new lines in green', aa, keep.b, 'add'));
-      cg.appendChild(cw);
-    }
-    if (it.figures && it.figures.length) {
-      var fgp = evGroup('Figures', it.figures.map(function (f) { return f.lens; }));
-      if (lensed) LENSES.concat(['']).forEach(function (l) {
-        var fl = it.figures.filter(function (f) { return (LENS_NAME[f.lens] ? f.lens : '') === l; });
-        if (fl.length) fgp.appendChild(piece(figures(fl), l || null));
+    var coded = it.options.filter(function (o) { return o.code; });
+    if (coded.length || (it.code && (it.code.before || it.code.after))) {
+      var cl = it.lenses ? 'tech' : null, cg = evGroup('The code, before and after', cl ? [cl] : []), panes = piece(el('div'), cl);
+      cg.appendChild(panes);
+      // An option with code of its own shows its diff against the item's "before"; one without shows "before" alone.
+      view.draws.push(function (v) {
+        var o = optOf(v), base = it.code || {};
+        var code = o && o.code ? { before: o.code.before != null ? o.code.before : base.before, after: o.code.after } : coded.length ? { before: base.before } : base;
+        panes.textContent = '';
+        var ba = String(code.before || '').split('\n'), aa = String(code.after || '').split('\n'), keep = lcsDiff(ba, aa);
+        if (code.before != null) panes.appendChild(codeBox('Before', code.after != null ? 'changed lines in red' : '', ba, code.after != null ? keep.a : ba.map(function () { return true; }), 'del'));
+        if (code.after != null) panes.appendChild(codeBox('After', 'new lines in green', aa, keep.b, 'add'));
+        else if (o) panes.appendChild(inline(el('p', 'nocode muted'), o.label + ': no code change.'));
       });
-      else fgp.appendChild(piece(figures(it.figures), null));
+    }
+    var figOpts = it.options.filter(function (o) { return o.figures && o.figures.length; });
+    if (it.figures.length || figOpts.length) {
+      var fls = figOpts.reduce(function (a, o) { return a.concat(o.figures); }, it.figures.slice()).map(function (f) { return f.lens; });
+      var fgp = evGroup('Figures', fls);
+      var addFigs = function (list, value) {
+        var add = function (n) { fgp.appendChild(value == null ? n : variant(fgp, value, n)); }, quiet = value != null && value !== first;
+        if (lensed) LENSES.concat(['']).forEach(function (l) {
+          var fl = list.filter(function (f) { return (LENS_NAME[f.lens] ? f.lens : '') === l; });
+          if (fl.length) add(piece(figures(fl), l || null, quiet));
+        });
+        else add(piece(figures(list), null, quiet));
+      };
+      addFigs(it.figures, null);
+      figOpts.forEach(function (o) { addFigs(o.figures, o.value); });
+      view.groups.push({ g: fgp, always: it.figures.length });
     }
     if (!evN.business && !evN.tech && !plain) evb.appendChild(el('p', 'ev-empty', 'No evidence attached: the case is on the card.'));
     else if (lensed && !plain) LENSES.forEach(function (l) { if (!evN[l]) evb.appendChild(el('p', 'ev-empty lens-none ' + l, 'No ' + l + ' evidence on this card.')); });
@@ -1319,16 +1379,39 @@ dialog.zoom p:empty { display: none; }
       ev.appendChild(tb.bar);
     } else { var eh = el('div', 'phead'); eh.appendChild(el('h2', null, 'Evidence')); ev.appendChild(eh); }
     ev.appendChild(evb);
-    if (it.accepts) { var a = el('div', 'accfoot'); a.appendChild(el('b', null, 'Accepts: ')); inline(a, it.accepts); ev.appendChild(a); }
+    // Accepts: the shown option's cost. One without its own never borrows the recommended one's: that is labelled as such.
+    var acc = null, rec = it.options.filter(function (o) { return o.recommended; })[0];
+    if (it.accepts || own.some(function (o) { return o.accepts; })) {
+      acc = el('div', 'accfoot'); ev.appendChild(acc);
+      view.draws.push(function (v) {
+        var o = optOf(v), base = (rec && rec.accepts) || it.accepts, text = o && o.accepts ? o.accepts : base;
+        acc.textContent = ''; acc.hidden = !text;
+        if (!text) return;
+        acc.appendChild(el('b', null, o && !o.accepts && rec && o !== rec ? 'The recommended option accepts: ' : 'Accepts: '));
+        inline(acc, text);
+      });
+    }
+    view.draw();
     c.appendChild(main);
     // Nothing but a location to show: the location goes by the heading and the card takes the evidence column too.
-    var thin = !lensed && !it.accepts && evN.business + evN.tech + plain - (atText ? 1 : 0) === 0;
+    var thin = !lensed && !acc && evN.business + evN.tech + plain - (atText ? 1 : 0) === 0;
     if (thin) { c.classList.add('wide'); if (atText) h.appendChild(atNode(el('span', 'cloc'), it.at)); } else c.appendChild(ev);
     var hay = [it.id, it.title, it.detail, it.why, (it.tags || []).join(' '), it.group,
       (it.for || []).concat(it.against || []).map(function (a) { return (a.who || '') + ' ' + a.point; }).join(' '),
       (it.sides || []).map(function (sd) { return sd.who + ' ' + sd.position; }).join(' ')].join(' ').toLowerCase();
-    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, rely: rely, tabs: tb && tb.tabs, cols: cols, mootMsg: mootMsg, kstate: kstate, trows: trows };
+    cards[it.id] = { it: it, card: c, buttons: buttons, note: note, hay: hay, gap: gap, rely: rely, tabs: tb && tb.tabs, cols: cols, mootMsg: mootMsg, kstate: kstate, trows: trows, view: view };
     return c;
+  }
+  // An outcome with "on" holds for some answers of one card: shown while that answer is chosen, else recommended.
+  var outViews = [];
+  function drawOutcomes() {
+    outViews.forEach(function (x) {
+      var it = byIdx[x.o.on.id], chosen = choiceOf(it.id);
+      var v = chosen || it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
+      var opt = it.options.filter(function (o) { return o.value === v; })[0];
+      x.node.hidden = !opt || x.o.on.when.indexOf(v) < 0;
+      x.label.textContent = opt ? 'If ' + it.id + ' = ' + opt.label + (chosen ? '' : ' (recommended)') : '';
+    });
   }
   // The summary item: the whole summary, the outcome (today beside the target) and the gate's figures.
   function summaryCard() {
@@ -1357,6 +1440,7 @@ dialog.zoom p:empty { display: none; }
         var ov = el('div', 'oview'), oh = el('div', 'ohead');
         oh.appendChild(el('span', 'tag', o.view === 'ui' ? 'Mockup' : 'System'));
         oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
+        if (o.on) { var oif = el('span', 'oif'); oh.appendChild(oif); outViews.push({ o: o, node: ov, label: oif }); }
         ov.appendChild(oh);
         if (o.caption) ov.appendChild(el('p', 'ocap', o.caption));
         var panes = el('div', 'opanes');
@@ -1646,6 +1730,9 @@ dialog.zoom p:empty { display: none; }
       c.mootMsg.hidden = !moot;
       if (moot) { c.mootMsg.textContent = ''; c.mootMsg.appendChild(icon('lock')); c.mootMsg.appendChild(el('span', null, 'Not needed: ' + moot.id + ' is set to “' + moot.label + '”, so this card no longer applies.')); }
       c.trows.forEach(function (r) { r.tr.classList.toggle('chosen', r.value === v); r.mine.hidden = r.value !== v; });
+      // A new choice brings the option's own evidence back to it.
+      if (c.view.choice !== v) { c.view.choice = v; c.view.shown = null; }
+      c.view.draw();
       // A constraint holds until the current choice lifts it.
       c.kstate.forEach(function (s) {
         var lifted = !!(opt && opt.violates && opt.violates.indexOf(s.k.id) >= 0);
@@ -1657,6 +1744,7 @@ dialog.zoom p:empty { display: none; }
       });
       if (v || moot) done++;
     });
+    drawOutcomes();
     sections.forEach(function (sec) {
       var n = sec.items.filter(function (it) { return choiceOf(it.id) || mootBy(it, items, state); }).length;
       sec.count.textContent = n + ' of ' + sec.items.length;
@@ -1680,7 +1768,9 @@ dialog.zoom p:empty { display: none; }
     else {
       L.push(['↑↓', 'Move']);
       if (c && !mootBy(c.it, items, state)) c.it.options.forEach(function (o, i) { if (i < 9) L.push([String(i + 1), o.label, 'ctx']); });
-      if (ae && ae.classList && ae.classList.contains('opt')) L.push(['Enter', 'Choose focused', 'ctx']);
+      // Keyboard focus only: on a click, an extra key could wrap the legend to a new line between mousedown and mouseup,
+      // move the option away from the pointer, and lose the click.
+      if (ae && ae.classList && ae.classList.contains('opt') && ae.matches(':focus-visible')) L.push(['Enter', 'Choose focused', 'ctx']);
       L.push(['U', 'Next to decide']);
       if (c) L.push(['N', 'Note']);
       if (lensed) L.push(['L', 'Lens: ' + (lensView === 'both' ? 'both' : LENS_NAME[lensView])]);
