@@ -1,6 +1,6 @@
 ---
 name: team-review
-description: "Use when a change needs reviewing before it merges — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge. Not for restructuring code that works: team-refactor."
+description: "Use when a change needs reviewing before it merges — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge, and in the session that wrote a change, to leave its author's note for the review. Not for restructuring code that works: team-refactor."
 ---
 
 # team-review
@@ -55,6 +55,21 @@ Card IDs carry the seat's prefix: CR, SE, IN, CF, and HO for an intake card (§ 
 
 Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
 
+**The session that wrote the code has no voice.** It sits on no seat, answers no seat, and does not run the review: its certainty is the bias the verifier exists for, and its context would be re-read on every dispatch. What it knows that the diff, the commits and the MR/PR don't say reaches the panel through one file, `.council/author-notes/<branch>.md` (`/` in the branch name → `-`), which it writes as its last step:
+
+```markdown
+# Author's note — <branch>
+Intent: <what the change is for, in the user's words where there was a request>
+Choices:
+- <file:line> — <the choice> — <why, and what it trades away>
+Gaps:
+- <what is knowingly left undone or deferred, and where it is tracked>
+Checked by hand:
+- <what was verified outside the tests, and how>
+```
+
+~20 lines at most, only what the diff and the commit messages don't already say. Claims, not a defense: no "this is safe", no "already reviewed". Recon copies it into the Review Brief as claims; the seats check the code against them; the verifier never sees it (`templates.md` § *Review Brief*, § *Finding Card*).
+
 | Agent | Model | Tool budget | Receives | Writes by `templates.md` |
 |-------|-------|-------------|----------|--------------------------|
 | Recon | sonnet | ~30 | scope, profile | *Review Brief* |
@@ -83,6 +98,7 @@ The verifier receives each card's title, location, scenario and fix — never it
 
 ### 0. Preconditions
 - **Scope**: a diff (a branch, an MR/PR), a path or module, the whole repo, or one or more refactor records (§ *Intake*), sized by `team-protocol` § *Code scope*, counting changed lines. To narrow it, Recon ranks zones by churn × complexity × exposure, one option per zone, plus "all of them" (one panel per zone, one page, by `team-protocol` § *Sweep*). Resolve the forge's head first (`glab mr view` / `gh pr view`: the head SHA) and review that commit; when the local branch differs, say so on the first line and offer to align it. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
+- **This conversation wrote or edited code in scope?** Then it does not review it: write the author's note (§ *Separation of Context*), and hand off (`team-protocol` § *Handoff*): *"`/clear`, then: `team-review <scope>`."*
 - **Owner**: `git -C <checkout> log --format=%ae <base>..HEAD | sort -u` against `git -C <checkout> config user.email`. Only yours → own branch; none yours → someone else's; mixed, or a shared account → ask. A path or module → audit.
 - **MR/PR**: take the host from `git -C <checkout> remote get-url origin` (`<origin URL>`). GitHub: `gh pr view <branch> -R <owner/repo> --json number,headRefOid,baseRefName`; GitLab: `glab mr view <branch> -R <origin URL> --output json` (the `iid`). Then get its refs and diff by loading `team-ceo-view` (Skill tool) and using its *Share* → `as: review` → *Refs and diff*, writing the diff to the run folder instead of `$TMPDIR`. Recon reads them from there.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
@@ -104,13 +120,13 @@ A separate synthesizer agent writes the review by `templates.md` § *Synthesis*:
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; it is share-ready whoever owns the branch. Serve it with `--channels` as team-ceo-view's SKILL.md step 3 says. On an auto-accept run on your own branch or an audit, no gate writer runs: the synthesis carries every finding's options (`team-protocol` § *Auto-accept*).
 
 ### 6. Deliver
-**Someone else's branch.** The human curates on the page (declines false positives, adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A declined finding is not posted; the review body carries the verdict, *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder.
+**Someone else's branch.** The human curates on the page (declines false positives, adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A declined finding is not posted; the review body carries the verdict, *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder and the author's note.
 
 **Own branch, audit.** Read the decisions block (team-ceo-view steps 4–5), or on an auto-accept run, the synthesis (`team-protocol` § *Auto-accept*). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-ceo-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes: *"`/clear`, then: execute the review fixes in `<exec brief path>`."*
 
 **Execute** by `team-protocol` § *Execution*, from the exec brief, on a clean tree. The steps are the Fix cards; each executor (sonnet) gets its batch's Fix cards and the exec brief's header. Each fix goes test-first (`superpowers:test-driven-development`, or the profile's TDD skill when it lists one), one commit per finding; the executor replies one line per finding: the commit hash, `blocked — <reason>` or `stopped — <the diff guard's hit>`. After each batch, run the exec brief's quality gates: red → `git revert` that fix's commit yourself (a revert is not a patch), report it, and go on with the next batch.
 
-Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their finding's commit (`team-protocol` § *Execution*), each with the Fix card it names. Complete the record (`team-protocol` § *Writers*); its *Notes* count as *Not raised* lines for the next review. Delete the exec brief and the run folder. Every later Recon reads this record (`team-protocol` § *Code scope*): an audit's known debt is not reopened.
+Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their finding's commit (`team-protocol` § *Execution*), each with the Fix card it names. Complete the record (`team-protocol` § *Writers*); its *Notes* count as *Not raised* lines for the next review. Delete the exec brief, the run folder and the author's note. Every later Recon reads this record (`team-protocol` § *Code scope*): an audit's known debt is not reopened.
 
 ## Intake
 
@@ -132,6 +148,8 @@ The shared ones are in `team-protocol`. These are the review's own.
 | Excuse | Reality |
 |--------|---------|
 | "The seat is sure, skip the verifier" | The author's certainty is the bias the verifier exists for. |
+| "I wrote this code, I'll review it here: I have the context" | That context is the code author's certainty, and every dispatch would re-read it. Write the author's note, then hand off. |
+| "The author's note explains it, drop the card" | A note is a claim. A choice whose scenario still breaks stays a card that names the claim. |
 | "It's pre-existing but bad, flag it" | Diff scope: once in *Not raised*, never a card. |
 | "The broken caller is in a file the diff doesn't touch: *Not raised*" | The diff broke it. A card, `In diff: reach`, anchored on the changed line. |
 | "Two requests at once would race here" (a one-user CLI) | Judge against the brief's *Expected load*. A race that load never reaches is *Not raised*. |
@@ -157,6 +175,8 @@ The shared ones are in `team-protocol`. These are the review's own.
 - A fix commit carrying two findings, or a refactoring its finding did not ask for
 - A behavior fix whose test passed before the fix
 - Reading a seat's file to "help" the verifier
+- A review run in the conversation that wrote the code
+- A seat or verifier prompt carrying the code author's reasoning, or the verifier given the author's note
 - Security not seated while the brief lists a trust boundary
 - An intake run that dispatched seats
 - A Fix card that changes a refactor's pinning test without naming it

@@ -8,7 +8,8 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 The *only* shared context for the seats, so the seats don't each re-read the same files. Its size cap and gate-command rule: `team-protocol` § *Code scope*. It holds:
 - **Scope**: the changed line ranges per file (`git diff --unified=0`), so seats can tell new code from old; the reviewed commit's full SHA; for an MR/PR, its refs (base, start, head SHAs) from the run folder.
-- **Intent**, from the first that exists, with its source named: the MR/PR title and description and its linked ticket (`gh pr view <n> --json title,body`, `glab mr view <iid>`); the commit messages; a matching `.council/decisions/` record and its plan. None → write `Intent: none found`; the orchestrator asks the user.
+- **Intent**, from the first that exists, with its source named: the MR/PR title and description and its linked ticket (`gh pr view <n> --json title,body`, `glab mr view <iid>`); the author's note's *Intent* line; the commit messages; a matching `.council/decisions/` record and its plan. None → write `Intent: none found`; the orchestrator asks the user.
+- **Author's note**, when `.council/author-notes/<branch>.md` exists (`/` in the branch name → `-`; read it from the user's checkout, not a review worktree): its *Choices*, *Gaps* and *Checked by hand* lines under that heading, copied as written, each marked `author claim`. A claim is what the author says, not evidence: don't check it, don't drop it. None → leave the heading out.
 - **Intake only**: in place of *Intent*, the refactor records' paths and their *For team-review* lines, copied as written.
 - Quality-gate commands, each with its result (`team-protocol` § *Code scope*). Red is a result to report, not a reason to stop.
 - *Settled*, *Ungated*, *Unformatted*, *Known flakes* and the *Diff guard*, by `team-protocol` § *Code scope*. The Intent seat cards each *Ungated* path in scope.
@@ -39,6 +40,7 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 - **Prefix.** Your seat's two letters: `CR`, `SE`, `IN` or `CF` (`HO` for an intake card), never the seat's name: `### CF-2`, not `### CRAFT-2`.
 - **Severity.** `blocker`: merging it loses money or data, opens a hole, or breaks a main path at the brief's *Expected load*. `major`: wrong behavior on a real path, a swallowed error, new logic with no test. `minor`: names, conventions, a cost with no hot path at that load.
 - **Diff scope.** A caller the diff breaks is a card, `In diff: reach`, with the broken caller in its heading. A defect the diff did not cause is one line under *Not raised*, after *For team-refactor*, never a card.
+- **Author claims.** A line of the brief's *Author's note* explains a choice; it refutes nothing. When your scenario still breaks with the choice made, write the card and name the claim in its *Refutation*. When the choice already weighs your scenario (a trade-off it states, a gap it defers), one line under *Not raised*: `author choice: <the claim> — <the scenario it accepts>`.
 
 ## Intake cards (Recon, intake)
 
@@ -72,6 +74,7 @@ Its length and its readers: `team-protocol` § *Writers*. It holds everything th
 ## Review — <scope>
 Owner: <own branch | someone else's (<author>) | audit>. Reviewed commit: <full SHA>. Refs: <base, start, head SHAs, for an MR/PR>.
 Intent: <source> — <one line>
+Author's note: <n claims | none>
 Quality gates: <commands verbatim, each with its result>
 Known flakes: <the brief's, or none>
 Expected load: <the brief's, with its source>
@@ -92,7 +95,7 @@ verifier's verdict with its Checked, Found and Scenario lines, and its
 
 ### Not raised
 [One line each: UNSURE cards (now med), low cards, findings over the cap,
-the seats' *Not raised* lines (defects the diff did not cause)]
+the seats' *Not raised* lines (defects the diff did not cause, `author choice:` lines)]
 
 ### For team-refactor
 [The seats' lines merged, at most ~5, by `team-protocol` § *Lane hand-offs*]
@@ -104,7 +107,7 @@ the seats' *Not raised* lines (defects the diff did not cause)]
 - **Cap** at ~15 findings; the rest goes to *Not raised*. A gate with 30 findings gets rubber-stamped.
 - **Verdict.** **Not mergeable** if any confirmed blocker; **mergeable after fixes** if any confirmed major; else **mergeable**.
 - Copy the cards' fields; don't reword a scenario or re-rate a severity.
-- **Options.** End each finding with its `Options:` line, which the gate writer and, on an auto-accept run, the record writer take as written (`team-protocol` § *Auto-accept*). One fix: `Options: fix (default) | leave`. Two (`(a)` and `(b)` on its *Fix*): `fix-a` and `fix-b`, recommending the one that keeps the behavior and data from before the change (what the base branch accepted, a saved file that still loads), e.g. `Options: fix-b (recommended: keeps 7/32 imports) | fix-a | leave`. When neither keeps them, or both do, recommend none and say why: the human picks, and auto-accept asks. A finding that contradicts what the intent or the human stated also gets `Tags: corrects <premise>`.
+- **Options.** End each finding with its `Options:` line, which the gate writer and, on an auto-accept run, the record writer take as written (`team-protocol` § *Auto-accept*). One fix: `Options: fix (default) | leave`. Two (`(a)` and `(b)` on its *Fix*): `fix-a` and `fix-b`, recommending the one that keeps the behavior and data from before the change (what the base branch accepted, a saved file that still loads), e.g. `Options: fix-b (recommended: keeps 7/32 imports) | fix-a | leave`. When neither keeps them, or both do, recommend none and say why: the human picks, and auto-accept asks. A finding that contradicts what the intent, the author's note or the human stated also gets `Tags: corrects <premise>`.
 
 ## Gate page (gate writer)
 
@@ -116,7 +119,7 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "r
 - `after` from the finding's `Needs:` line.
 - `suggestion`: the card's `Replacement:` line, copied.
 - Threads: every finding whose line is in the diff gets its own.
-- `settled`: author-intent questions on someone else's branch, `who` the seat, `answer` "asked the author".
+- `settled`: author-intent questions on someone else's branch, `who` the seat, `answer` "asked the author"; each *Not raised* `author choice:` line, `who` the seat, `answer` the claim and the scenario it accepts.
 - Refuted cards stay off the page: the record lists them.
 
 Write the share fields by `contract.md` § *Share fields* on every review gate, whoever owns the branch. The record does not exist yet: the synthesis stands in for the review record that section says to read first. The fix briefs feed the exec brief too, so write each one for an executor who never sees the page. Render the page until it passes.

@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.16.0 — 2026-10-22
+
+- **The author's note (team-review).** The session that wrote a change has no voice in its review: no seat, no answers to the seats, no running the review itself. Its last step is a note in `.council/author-notes/<branch>.md`, ~20 lines: intent, deliberate choices with what they trade away, known gaps, what was checked by hand. Recon copies it into the Review Brief as `author claim` lines; the verifier never sees it. A claim refutes nothing: a choice whose scenario still breaks stays a card naming the claim; a scenario the choice already accepts goes under *Not raised* as `author choice:`, and onto the gate's *Settled without you* list, where the CEO can reopen it. Invoking team-review in the conversation that wrote the code writes the note and hands off to a fresh session. The note is deleted with the run folder.
+
 ## 0.15.0 — 2026-10-22
 
 - **Evidence per option.** An option, or a tension side, can carry its own `code: { "after" }` (plus `"before"` where it differs; the item keeps the shared `before`), `metrics`, `figures` and `accepts`. The evidence pane shows the chosen option's, else the recommended one's, beside the item's own; an *Evidence for* picker atop the pane shows another option's without choosing it, and a new choice brings the pane back to it. An option with no code of its own (Defer, Decline) shows *Before* alone. The renderer rejects an option `code` with no `after`, a `code.after` on the item beside options that carry their own, and an option `accepts` over 160 characters; a recommended option's own `accepts` stands in for the item's.
