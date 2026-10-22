@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.14.2 — 2026-10-22
+
+- **Figures readable again.** The 0.13.0 redesign dropped `--surface`, `--surface-2` and `--accent`, the colours `figures.md` gives figure authors: box fills fell back to the text colour and swallowed their labels. They are back, scoped to figures: fills and label masks take the ground the figure sits on, and the focus is told by brightness alone (text in ink-2, sublabels a step below, the focus in full ink), so no hue takes a second meaning. A test now checks that every colour `figures.md` names is defined.
+- **Web links in text.** `[ticket #1892](https://…)` renders as a link on the words, in a new tab; a bare URL links too and wraps instead of spilling into the next column. Only `http(s)`. The contract asks for the first form.
+
 ## 0.14.1 — 2026-10-22
 
 - **The gate page opens on the summary.** The one-line summary strip under the top bar is gone. The page lands on the *Summary* item, the first row of the list, instead of the first card to decide. A card named in the address (`#d-ID`) still opens first. `z` still goes from the summary to the card and back.

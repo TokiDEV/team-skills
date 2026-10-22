@@ -114,3 +114,19 @@ test('the template makes unfilled figure marks take the text colour', () => {
   const html = fs.readFileSync(TEMPLATE, 'utf8');
   assert.match(html, /\.figure svg \{[^}]*fill: currentColor;/);
 });
+
+test('the template defines every colour figures.md gives figure authors', () => {
+  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const figures = fs.readFileSync(path.join(path.dirname(TEMPLATE), 'figures.md'), 'utf8');
+  const names = [...new Set([...figures.matchAll(/var\((--[a-z0-9-]+)\)/g)].map(m => m[1]))];
+  const rule = /\.figure svg \{([^}]*)\}/.exec(html)[1];
+  const root = /:root[^{]*\{([^}]*)\}/.exec(html)[1];
+  names.forEach(n => assert.ok(rule.includes(n + ':') || root.includes(n + ':'), n + ' is not defined'));
+});
+
+test('text links are web links only, and plain text keeps them as words', () => {
+  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  assert.ok(html.includes(String.raw`/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/`));
+  assert.match(html, /if \(plain\) return document\.createTextNode\(label\);/);
+  assert.match(html, /a\.rel = 'noopener noreferrer'/);
+});

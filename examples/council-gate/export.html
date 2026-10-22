@@ -33,6 +33,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 a, .link { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; cursor: pointer; }
 a:hover, .link:hover { text-decoration-color: var(--ink); }
+/* A bare URL breaks anywhere rather than spill into the next column */
+a.xlink { overflow-wrap: anywhere; }
 code { font: 0.88em/1 var(--mono); color: var(--ink); background: var(--raised); padding: .15em .4em; border-radius: 5px; border: 1px solid var(--edge); }
 kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; font: 600 11.5px/1 var(--mono); color: var(--ink-2);
   background: var(--ground); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; vertical-align: 1px; }
@@ -354,9 +356,13 @@ a.fref:hover .forge, .fref .ext:hover .forge { color: var(--ink); }
 /* Figures: SVG at reading size, screenshots in a grid that opens full size */
 .figure { margin: 12px 0 0; }
 .figure .ftitle { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
-.figure .svgwrap { overflow-x: auto; }
-/* unfilled marks take the text colour, not SVG's default black */
-.figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; color: var(--ink); fill: currentColor; }
+.figure .svgwrap { overflow-x: auto; color: var(--ink-2); }
+/* The figure palette (figures.md), mapped onto the page's: unfilled marks take the text colour, not SVG's default black;
+   box fills and label masks are the ground the figure sits on; the focus is told by brightness alone, a step above
+   ink-2 text, sublabels a step below. */
+.figure svg { max-width: 100%; height: auto; display: block; margin: 8px auto; fill: currentColor;
+  --surface: var(--panel); --surface-2: var(--raised); --accent: var(--ink); --ink-2: var(--ink-3); }
+.oview .figure svg { --surface: var(--ground); --surface-2: var(--panel); }
 figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
 .shots figure { margin: 0; }
@@ -685,13 +691,28 @@ dialog.zoom p:empty { display: none; }
     return files.indexOf(m[1]) >= 0 ? fileRef(m[1], m[2] ? Number(m[2]) : null, s) : el('code', null, s);
   }
 
+  // A web link: http(s) only, in a new tab. plain: its text alone (inside a button).
+  function webLink(label, href, plain) {
+    if (plain) return document.createTextNode(label);
+    var a = el('a', 'xlink', label); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    return a;
+  }
+
   // detail and why: an array of bullets, or a string whose "- " lines are bullets.
-  // Inline `code` and **bold** are built as nodes, never as HTML. plain: no file links (inside a button).
+  // Inline `code`, **bold** and [text](https://…) links are built as nodes, never as HTML; a bare URL links too.
+  // plain: no links (inside a button).
   function inline(parent, text, plain) {
-    String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach(function (part) {
+    String(text).split(/(`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<>()]+)/).forEach(function (part) {
       if (!part) return;
+      var md = /^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/.exec(part), url = /^(https?:\/\/.*?)([.,;:!?]*)$/.exec(part);
       if (/^`[^`]+`$/.test(part)) parent.appendChild(plain ? el('code', null, part.slice(1, -1)) : codeOrFile(part.slice(1, -1)));
       else if (/^\*\*[^*]+\*\*$/.test(part)) parent.appendChild(el('strong', null, part.slice(2, -2)));
+      else if (md) parent.appendChild(webLink(md[1], md[2], plain));
+      else if (url) {
+        // The sentence's closing punctuation stays text.
+        parent.appendChild(webLink(url[1], url[1], plain));
+        if (url[2]) parent.appendChild(document.createTextNode(url[2]));
+      }
       else parent.appendChild(document.createTextNode(part));
     });
     return parent;
@@ -706,7 +727,7 @@ dialog.zoom p:empty { display: none; }
     });
     return box;
   }
-  function plainTitle(id) { var it = byIdx[id]; return it ? String(it.title).replace(/`|\*\*/g, '') : ''; }
+  function plainTitle(id) { var it = byIdx[id]; return it ? String(it.title).replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/`|\*\*/g, '') : ''; }
 
   // SVG figures render full width; raster figures share a thumbnail grid.
   function figures(list) {
