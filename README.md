@@ -2,7 +2,7 @@
 
 **Agent-team skills for [Claude Code](https://claude.com/claude-code).** Instead of one model giving one opinion, these skills dispatch a *team* of agents, each in its own isolated context. The agents debate with evidence, a gate kills speculative work, and **you, the CEO, make the final call** on a local HTML decision page. A review can be handed on from there: the owner of the branch you reviewed gets a page to decide on alone.
 
-![The CEO gate on a refactoring backlog, a three-pane console: the card list with rails (S5 refines S1 by a solid elbow, S1 and the others come after S0 by dashed ones), card S1 in the centre with its For and Against, and its before/after code in the evidence pane](docs/ceo-view.png)
+![The CEO gate on a refactoring backlog, a three-pane console: the card list with rails (S5 refines S1 by a solid elbow, S1 and the others come after S0 by dashed ones), card S1 in the centre with its For and Against, and in the evidence pane its before/after code and, unfolded under How it gets done, its Step Card](docs/ceo-view.png)
 
 ## The skills
 
@@ -14,12 +14,12 @@
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → council → brief, profile, `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Biz or Tech, your choice), and its evidence (trade-offs, numbers, diff, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Biz or Tech, your choice), and its evidence (trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
 ## Which skill?
 
-![A review gate of the refund route in the console, the security blocker SE-1 current, its file linked to GitHub, with the list of findings beside it](docs/review-gate.png)
+![A review gate of the refund route in the console, the security blocker SE-1 current with the list of findings beside it, and in the evidence pane its file linked to GitHub and the fix's instructions for the coding agent](docs/review-gate.png)
 
 | Skill | Question | When |
 |-------|----------|------|

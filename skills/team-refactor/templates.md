@@ -88,11 +88,11 @@ version of each side, each side's step as a Step Card, and a suggested default]
 
 Build the page by `team-ceo-view`'s `contract.md`, from the synthesis:
 - `summary`: labelled bullets *Verdict*, *Weak spots*, *For team-review*, *Recommendation*. `source` is the refactor record. When a *For team-review* line touches money, data or a public contract, *Recommendation* says to run team-review on the scope before executing.
-- **Steps**: routine decisions. Each takes its before/after `code` and credited `for`/`against` from its Step Card's gate material.
+- **Steps**: routine decisions. Each takes its before/after `code` and credited `for`/`against` from its Step Card's gate material, and its Step Card as `brief`, as written, without its `## Step` heading: the CEO reads how the step gets done before approving it. Step 0's brief is Safety Net's spec. A step with several options that lead to work gives each its own brief.
 - `after` from the *Steps* table's *Needs* column (Step 0 when its characterization tests are that step's safety net, or the earlier step it builds on).
 - Optional steps, steps that make a structural choice, and tensions are major decisions.
 - `settled`: what the run decided without the CEO (`contract.md` § *Field rules*). Unanimous zero-cost structural choices: one *Confirm the structure* card.
-- `tensions` and `rejected`: the synthesis's tensions and gate-rejected cards, so the CEO can side or revive. A tension's steps have no card of their own: put their `code` on the tension.
+- `tensions` and `rejected`: the synthesis's tensions and gate-rejected cards, so the CEO can side or revive. A tension's steps have no card of their own: put their `code` on the tension, and each side's Step Card on that side as `brief`. A side that leaves the code as it is is `"negative": true`, with no brief.
 - `outcome` when module boundaries move: the `system` view, the module map today and after the approved steps.
 - Each metric on the step it measures, each screenshot on the finding it shows.
 

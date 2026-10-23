@@ -364,6 +364,16 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   });
   (data.figures || []).forEach((f, i) => embed(f, `figures[${i}]`));
 
+  // An item brief stands for one option that leads to work, never two: the evidence pane and the prompt
+  // would pair one choice with the other's fix.
+  items.forEach(it => {
+    if (!it.brief || it.kind === 'rejected' || it.kind === 'settled') return;
+    const work = it.options.filter(o => !o.negative);
+    if (work.length > 1) work.forEach(o => {
+      if (!o.brief) errors.push(`"${it.id}" option "${o.value}" has no brief of its own — with ${work.length} options that lead to work, each needs its own "brief"`);
+    });
+  });
+
   let preset = null;
   // --share: every outcome that leads to work carries a brief the reader's Claude can follow alone.
   if (SHARE) {

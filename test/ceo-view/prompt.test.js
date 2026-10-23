@@ -12,9 +12,13 @@ function load(gate) {
   const html = fs.readFileSync(file.replace(/\.ceo\.json$/, '.share.html'), 'utf8');
   const src = html.match(/\/\*PROMPT-START\*\/([\s\S]*?)\/\*PROMPT-END\*\//)[1];
   const data = pageData(html);
-  const fns = vm.runInNewContext(src + '\n({ buildPrompt: buildPrompt, missingAfter: missingAfter });');
+  const fns = vm.runInNewContext(src + '\n({ buildPrompt: buildPrompt, buildItemPrompt: buildItemPrompt, missingAfter: missingAfter });');
   const build = state => fns.buildPrompt(data, data.items, state);
   build.missingAfter = (it, state) => fns.missingAfter(it, data.items, state);
+  build.item = (id, value) => {
+    const it = data.items.find(i => i.id === id);
+    return fns.buildItemPrompt(data, data.items, it, it.options.find(o => o.value === value));
+  };
   build.items = data.items;
   return build;
 }
@@ -60,6 +64,20 @@ test('the option brief wins over the item brief', () => {
   const prompt = load(gate)({ F1: { choice: 'keep' } });
   assert.match(section(prompt, 'To do'), /Add a comment\./);
   assert.doesNotMatch(prompt, /GENERIC/);
+});
+
+test('the stakes sit under the title, in the full prompt and in a card prompt', () => {
+  const gate = shareGate(); gate.decisions[1].why = 'Changes invoices customers already received.';
+  const build = load(gate);
+  const stakes = /### F1 — Rounding rule\nWhat's at stake: Changes invoices customers already received\.\nChoice: Round\n\nUse Math\.round\./;
+  assert.match(section(build({ F1: { choice: 'round' } }), 'To do'), stakes);
+  assert.match(build.item('F1', 'round'), stakes);
+});
+
+test('stakes as bullets stay bullets, and French', () => {
+  const gate = shareGate({ lang: 'fr' }); gate.decisions[0].why = ['Money moves', 'No test covers it'];
+  const prompt = load(gate)({ S1: { choice: 'approve' } });
+  assert.match(section(prompt, 'À faire'), /### S1 — Extract Constant: RATE\nEnjeu :\n- Money moves\n- No test covers it\n\nDo S1\./);
 });
 
 test('a negative choice on an item with a brief does not leak the brief', () => {

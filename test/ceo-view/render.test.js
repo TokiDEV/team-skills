@@ -30,15 +30,21 @@ test('--share writes a standalone page with the share data', () => {
   assert.strictEqual(sides.find(o => o.value === 'Minimalist').negative, true);
 });
 
-test('the local page carries no share fields', () => {
+test('the local page carries no share fields, but keeps the briefs the CEO decides on', () => {
   const file = writeGate(shareGate());
   assert.strictEqual(render(file).code, 0);
-  const data = pageData(fs.readFileSync(localOf(file), 'utf8'));
+  const html = fs.readFileSync(localOf(file), 'utf8');
+  const data = pageData(html);
   assert.strictEqual(data.mode, undefined);
   assert.strictEqual(data.preamble, undefined);
   assert.strictEqual(data.lang, undefined);
-  assert.doesNotMatch(JSON.stringify(data), /"brief"/);
   assert.strictEqual(data.source, '.council/refactors/2026-10-14-x.md');
+  const byId = Object.fromEntries(data.items.map(it => [it.id, it]));
+  assert.strictEqual(byId.S1.brief, 'Do S1.');
+  assert.strictEqual(byId.F1.options.find(o => o.value === 'round').brief, 'Use Math.round.');
+  assert.strictEqual(byId.T1.options.find(o => o.value === 'Responsibilities').brief, 'Split into a.js and b.js.');
+  // The evidence pane shows the shown option's brief, folded, under "How it gets done".
+  assert.ok(html.includes("evGroup('How it gets done'"));
 });
 
 test('the local render ignores missing share fields', () => {
@@ -78,6 +84,17 @@ test('--share rejects a gate that is not a review', () => {
 test('an option that leads to work needs a brief', () => {
   const gate = shareGate(); delete gate.decisions[0].brief;
   rejects(gate, /"S1" option "approve" leads to work but has no brief/);
+});
+
+test('several work options cannot share the item brief: the prompt would pair one choice with another fix', () => {
+  const gate = shareGate(); gate.decisions[1].brief = 'Add a comment.';
+  delete gate.decisions[1].options[0].brief; delete gate.decisions[1].options[1].brief;
+  rejects(gate, /"F1" option "keep" has no brief of its own/);
+  rejects(gate, /"F1" option "round" has no brief of its own/);
+  // The local page shows the brief too, so a refactor gate is held to the same rule.
+  const local = render(writeGate(Object.assign(gate, { kind: 'refactor' })));
+  assert.strictEqual(local.code, 1);
+  assert.match(local.stderr, /"F1" option "keep" has no brief of its own/);
 });
 
 test('a "change nothing" tension side without negative is rejected by name', () => {

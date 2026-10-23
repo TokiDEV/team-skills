@@ -121,6 +121,7 @@ The renderer rejects a `detail` or `why` over its limit, a `detail` that opens w
 - **File names** in any text: write them repo-relative in backticks, `` `src/a.js` `` or `` `src/a.js:42` ``. When the file exists in the repo, the renderer links it, as it links `at` and the record: on the served page a click opens it in the human's editor; any page links it on the remote repo, at the pushed commit, else the pushed branch, when git tracks it.
 - **Web links** in any text: put the URL behind the words it stands for, `[ticket #1892](https://…)`, never bare. Only `http(s)` links. A bare URL still links, but it reads as noise.
 - `suggestion`: `{ "lines", "text" }`, on an item or one of its options: the exact replacement for the `lines` lines starting at `at.line`, up to ~10 lines. Only for a small, certain fix on lines the change touches (a rename, a constant, a guard), written from the reviewed commit: the reader applies it in one click from the review, as written, so never guess. Anything bigger stays in the brief.
+- `brief` (Markdown): how an option gets done, as its executor will get it. The evidence pane shows the shown option's under *How it gets done*, folded; an option that leads to work without one shows nothing there. Put it on each option that leads to work, or on the item when only one does: the renderer rejects an item brief beside two options that lead to work, each without its own. team-review writes it (*Share fields*), team-refactor writes the Step Card; other gates leave it out.
 - `options` defaults to Approve/Decline. Set `"recommended": "decline"` on the decision to recommend declining.
 - **Tensions** hold only questions with no majority (see *Triage*). They get their id from their position (`T1`, `T2`…) unless you set `id`. Their default options are "Side with `<who>`" for each side, plus Defer. Mark the recommended side with `"recommended": true` on that side.
 - **Rejected** items default to *Keep rejected* (pre-applied) or *Revive*, and `reason` is shown on the card.
@@ -161,7 +162,7 @@ On council, plan and kickoff gates; the calling skill's mapping says what fills 
 
 ## Share fields
 
-A review gate (kind "review") is always share-ready: its gate writer writes these fields with the rest of the page. Other gates leave them out; the local page ignores them.
+A review gate (kind "review") is always share-ready: its gate writer writes these fields with the rest of the page. Other gates leave them out, except `brief` (*Field rules*), which the local page shows too.
 
 The reader is someone else, typically the owner of the branch the review looked at. They may not have team-skills, they saw none of the review, and they paste the page's prompt into their own coding agent (Claude Code, Codex, Cursor…). Write every field for them.
 
@@ -188,6 +189,8 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **Verify**: the exact command, and what green looks like.
 - **Commit**: the message, in the repo's convention.
 
+**`why`**: by *Field rules*. What sharing adds: the prompt carries it under each finding's title, so it tells the reader's agent what the fix protects.
+
 **`after`, `at`, `suggestion`**: by *Field rules*. What sharing adds: when the reader keeps a finding but not what it comes `after`, the prompt tells their agent to ask first.
 
 **Rules**
@@ -196,4 +199,4 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **Same outcome, one option.** If two options of a finding lead to the same change, write one.
 - **No customer data.** No names, emails, phone numbers, amounts tied to a person or tokens in any brief, code pane, figure or screenshot. When the review touched such data, describe it ("a customer's email") instead.
 
-**Checks.** `render.js --share` rejects a `kind` other than `review`, a missing preamble, a preamble without a commit SHA, an option that leads to work without a brief, a local path, an unknown `lang`, and an `at` that is not repo-relative. Fix the JSON and re-run until it passes. Never edit the `.html`.
+**Checks.** `render.js --share` rejects a `kind` other than `review`, a missing preamble, a preamble without a commit SHA, an option that leads to work without a brief, an item-level brief standing in for two options that lead to work, a local path, an unknown `lang`, and an `at` that is not repo-relative. Fix the JSON and re-run until it passes. Never edit the `.html`.

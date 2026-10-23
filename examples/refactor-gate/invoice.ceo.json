@@ -68,7 +68,8 @@
           "after": 11,
           "better": "higher"
         }
-      ]
+      ],
+      "brief": "Why: Safety Net: today's two tests only cover the silver path.\nDo:\n- Add `test/invoice.characterization.test.js`: one test per behavior in *Details*, each asserting today's output, quirks included (Gold rounds down, `12,00 €`, `Discount: -0.00`)\n- Make each one bite: flip the rounding, then the tax constant, watch it fail, revert\nFence: `src/invoice.js` and the existing tests. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: test(invoice): characterize invoice totals\nOn red: revert the step, report why, stop."
     },
     {
       "id": "S1",
@@ -91,7 +92,8 @@
       },
       "after": [
         "S0"
-      ]
+      ],
+      "brief": "Why: Responsibilities, Minimalist: one tax rule written three times (DRY).\nDo:\n- Add `const TAX_RATE = 0.2` at the top of `src/invoice.js`\n- Replace `0.2` with `TAX_RATE`, and both `1.2` with `(1 + TAX_RATE)`\nFence: the rest of `src/invoice.js`; no rounding change. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Constant TAX_RATE in invoice.js\nOn red: revert the step, report why, stop."
     },
     {
       "id": "S2",
@@ -109,7 +111,8 @@
       },
       "after": [
         "S0"
-      ]
+      ],
+      "brief": "Why: Responsibilities: `grand` hides that the total includes tax.\nDo:\n- Rename the local `grand` to `totalWithTax` in `buildInvoice`, at its declaration and in `sendInvoice(grand)`\nFence: `sendInvoice` and its parameters: only the local variable changes. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Variable grand in buildInvoice\nOn red: revert the step, report why, stop."
     },
     {
       "id": "S3",
@@ -131,7 +134,8 @@
       ],
       "after": [
         "S0"
-      ]
+      ],
+      "brief": "Why: Minimalist: no callers in the repo or in git history.\nDo:\n- Delete `exportCsv()` and its entry in `module.exports`\n- Check `git grep exportCsv` returns nothing\nFence: the formatter it calls: `buildInvoice` still uses it. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Remove Dead Code exportCsv in invoice.js\nOn red: revert the step, report why, stop."
     },
     {
       "id": "S4",
@@ -156,7 +160,8 @@
       },
       "after": [
         "S0"
-      ]
+      ],
+      "brief": "Why: Responsibilities: the tier switch is the next change's target (platinum).\nDo:\n- Move the `if (tier === …)` chain into `function computeDiscount(tier, total)` in the same file\n- Call it as `const discount = computeDiscount(tier, total)`\nFence: each tier's rounding as it is: Gold keeps `Math.floor` (pinned by S0, a team-review question). Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Function computeDiscount in invoice.js\nOn red: revert the step, report why, stop."
     },
     {
       "id": "S5",
@@ -178,7 +183,8 @@
           "who": "Minimalist",
           "point": "One more conversion for no new behavior."
         }
-      ]
+      ],
+      "brief": "Why: Responsibilities: a percentage reads the way the business says it.\nDo:\n- Rename `TAX_RATE` to `TAX_RATE_PCT` and store `20`\n- Divide by `100` at each of its three uses\nFence: the computed amounts: S0's tests stay green unchanged. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Constant TAX_RATE to TAX_RATE_PCT\nOn red: revert the step, report why, stop."
     }
   ],
   "tensions": [
@@ -187,12 +193,14 @@
       "sides": [
         {
           "who": "Responsibilities",
-          "position": "Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh."
+          "position": "Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh.",
+          "brief": "Why: Responsibilities: three reasons to change in one file.\nDo:\n- Move the tax and discount functions to `src/invoice/calculate.js`, the formatter to `src/invoice/format.js`, the email to `src/invoice/send.js`\n- Keep `src/invoice.js` re-exporting `buildInvoice`, so its one caller does not change\nFence: every function body: moved as is. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Move Function calculate, format and send out of invoice.js\nOn red: revert the step, report why, stop."
         },
         {
           "who": "Minimalist + Depth",
           "position": "After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.",
-          "recommended": true
+          "recommended": true,
+          "negative": true
         }
       ]
     }

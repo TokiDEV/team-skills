@@ -1,17 +1,12 @@
 // Building the page object and injecting it into template.html.
 const crypto = require('crypto');
 
+// Both pages keep the briefs: the evidence pane shows how each option gets done, which weighs on the choice.
 function buildPage({ data, items, outcome, preset, channels, share: SHARE }) {
   const page = { kind: data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, outcome, figures: data.figures || [], items };
   if (SHARE) {
     Object.assign(page, { mode: 'share', lang: data.lang || 'en', preamble: data.preamble }, preset ? { preset } : {});
     delete page.source; // a path in the sharer's repo
-  } else {
-    items.forEach(it => {
-      delete it.brief;
-      it.options.forEach(o => { delete o.brief; });
-      (it.sides || []).forEach(s => { delete s.brief; }); // a tension keeps its sides as written
-    });
   }
   // Content hash: saved browser state is keyed by it, so an edited gate starts with fresh decisions.
   page._rev = crypto.createHash('sha1').update(JSON.stringify(page)).digest('hex').slice(0, 12);

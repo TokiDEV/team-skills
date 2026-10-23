@@ -19,6 +19,12 @@ test('the refactor example renders and is not shareable', () => {
   fs.cpSync(path.join(EX, 'refactor-gate', 'invoice'), path.join(dir, 'invoice'), { recursive: true }); // the figures it references
   assert.strictEqual(render(file).code, 0);
   assert.strictEqual(render(file, '--share').code, 1);
+  // Each step carries its Step Card as its brief; the tension's side that keeps the file as it is has none.
+  const data = pageData(fs.readFileSync(file.replace(/\.ceo\.json$/, '.html'), 'utf8'));
+  data.items.filter(it => it.kind === 'decision').forEach(it => assert.match(it.brief || '', /^Do:/m, it.id + ' has no Step Card'));
+  const sides = data.items.find(it => it.kind === 'tension').options;
+  assert.match(sides.find(o => o.value === 'Responsibilities').brief, /^Commit: refactor\(invoice\)/m);
+  assert.strictEqual(sides.find(o => o.value === 'Minimalist + Depth').negative, true);
 });
 
 test('the review example renders, shares, and builds a GitHub review without the declined finding', () => {

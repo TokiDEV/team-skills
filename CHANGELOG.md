@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.16.3 — 2026-10-23
+
+- **How it gets done.** The evidence pane shows the shown option's brief, folded under *How it gets done*: what files it touches, its steps, what it leaves alone, its verify command and its commit. These are the instructions the coding agent will get. The local page used to strip the briefs, so the CEO chose a fix without seeing its mechanics; it now keeps them, like the share page. When two options carry a brief, they join the *Evidence for* picker, so fix-a and fix-b compare without choosing. An option that changes nothing reads *nothing to do, so no instructions*. team-refactor now writes briefs too: each step's Step Card, and each tension side's, so the CEO reads the mechanics, the fence and the verify command before approving a step. Council and kickoff gates have none, since the *how* is planned after they decide. A gate already open in the browser starts with fresh choices, since its content hash changes.
+- **The stakes reach the prompt.** On a share page, the copied prompt, and each card's correction prompt in the review, now carry the finding's `why` under its title (*What's at stake:* / *Enjeu :*). Until now, the reader's agent got the fix without the reason for it.
+- **One choice, one fix.** `--share` used to accept an item-level brief in place of the briefs of two options that lead to work. In that case the prompt said *Choice: B* and then gave the brief, which was written for A. Such a card is now rejected on every render, since the local page shows the brief too: each option that leads to work needs its own brief.
+
 ## 0.16.2 — 2026-10-23
 
 - **Biz, not Business.** The page labels the business lens *Biz*: the lens marks, the *Both | Biz | Tech* switch, the trade-off column, the Filter menu and the shortcut list. The JSON key stays `business`, so existing gates render unchanged.
