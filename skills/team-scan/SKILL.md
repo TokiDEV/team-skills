@@ -17,7 +17,7 @@ Produces the project profile that every council skill reads. Run it once per pro
    - **Process domain**: brainstorming, planning, executing plans, reviews
    - **Project-specific**: agents, MCP servers and skills that only make sense for this project (a database MCP, a deploy skill)
 
-   Leave out what fits no domain (document formats, config helpers). The `team-*` skills themselves are not specialists.
+   Leave out what fits no domain (document formats, config helpers). The `team-*` skills and agents are not specialists.
 4. **Other models** — `codex` and `gemini` on PATH (`command -v`), with `--version`. Detect only: never send them a prompt here. The council's off-model seat (`team-protocol`) uses what you find.
 5. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
 6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.

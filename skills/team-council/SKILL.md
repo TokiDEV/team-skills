@@ -113,15 +113,15 @@ Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<de
 
 ## Dispatch mechanics
 
-| Agent | Model | Tool budget |
-|-------|-------|-------------|
-| Evidence pass | sonnet | ~15 |
-| Round 1 roles, ad-hoc specialists | sonnet | ~12 |
-| Round 2: Philosopher, conflicting pairs, contradicted seats | sonnet | ~5 |
-| Synthesis, two-round depth | opus | ~10 |
-| Synthesis, one-round depth | sonnet | ~10 |
-| Gate writer (JSON, sketches, render) | sonnet | ~15 |
-| Record writer | sonnet | ~8 |
+| Agent | Type | Model | Tool budget |
+|-------|------|-------|-------------|
+| Evidence pass | analyst | sonnet | ~15 |
+| Round 1 roles, ad-hoc specialists | analyst | sonnet | ~12 |
+| Round 2: Philosopher, conflicting pairs, contradicted seats | analyst | sonnet | ~5 |
+| Synthesis, two-round depth | judge | opus | ~10 |
+| Synthesis, one-round depth | analyst | sonnet | ~10 |
+| Gate writer (JSON, sketches, render) | maker | sonnet | ~15 |
+| Record writer | maker | sonnet | ~8 |
 
 - Keep each agent's context lean: profile + decision + role template + `bridge.md` + (Round 2) the specific counterpart positions. Writers get their `templates.md` section and `bridge.md`, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
 - Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.

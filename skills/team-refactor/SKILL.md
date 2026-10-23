@@ -45,17 +45,17 @@ On fresh code, the panel is **Mechanics, Depth and Safety Net**, and the Minimal
 
 Every agent gets the minimum it needs (`team-protocol` § *Dispatch*). `templates.md` (copied into the run folder, see `team-protocol`) holds what each one writes.
 
-| Agent | Model | Tool budget | Receives | Writes by `templates.md` |
-|-------|-------|-------------|----------|--------------------------|
-| Recon | sonnet | ~30 | scope, profile | *Code Brief* |
-| Panelist (R1), 3 or 6 (§ *Panel size*) | sonnet | ~15 | role template + Code Brief | *Finding Card* |
-| Minimalist gate (R2) | opus | ~10 | all Finding Cards | its role file's *Round 2 Job* |
-| Tension pair (R2) | sonnet | ~5 | own + counterpart's cards only | one direct reply |
-| Synthesizer | opus | ~10 | cards + verdicts + tension replies | *Synthesis* |
-| Gate writer (none on an auto-accept run) | sonnet | ~12 | the synthesis | *Gate page* |
-| Record writer | sonnet | ~8 | the synthesis + the Code Brief + the decisions block (auto-accept: the chat answers) | *Record and exec brief* |
-| Executor | sonnet | — | **one** Step Batch + the exec brief's header | *Step Card* |
-| Final reviewer | opus | — | full diff + exec brief | *Final review* |
+| Agent | Type | Model | Tool budget | Receives | Writes by `templates.md` |
+|-------|------|-------|-------------|----------|--------------------------|
+| Recon | analyst | sonnet | ~30 | scope, profile | *Code Brief* |
+| Panelist (R1), 3 or 6 (§ *Panel size*) | analyst | sonnet | ~15 | role template + Code Brief | *Finding Card* |
+| Minimalist gate (R2) | judge | opus | ~10 | all Finding Cards | its role file's *Round 2 Job* |
+| Tension pair (R2) | analyst | sonnet | ~5 | own + counterpart's cards only | one direct reply |
+| Synthesizer | judge | opus | ~10 | cards + verdicts + tension replies | *Synthesis* |
+| Gate writer (none on an auto-accept run) | maker | sonnet | ~12 | the synthesis | *Gate page* |
+| Record writer | maker | sonnet | ~8 | the synthesis + the Code Brief + the decisions block (auto-accept: the chat answers) | *Record and exec brief* |
+| Executor | maker | sonnet | — | **one** Step Batch + the exec brief's header | *Step Card* |
+| Final reviewer | judge | opus | — | full diff + exec brief | *Final review* |
 
 Put this line first in each panelist's *How to work* block: `- Start from the Code Brief. Open a file only to confirm or cite evidence.`
 

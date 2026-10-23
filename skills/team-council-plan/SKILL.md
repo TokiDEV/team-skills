@@ -61,15 +61,15 @@ A writer that needs to change the contract stops and reports. A fresh `fix-index
 ### 3. Role review (parallel)
 Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write its `## Sources` with 3–5 entries, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder) and the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches.
 
-| Agent | Model | Tool budget |
-|-------|-------|-------------|
-| Evidence pass, spike | sonnet (opus for a design spike) | ~20 |
-| Keystone writer | opus | ~30 |
-| Other writers | sonnet | ~25 |
-| Fixers (review defects, CEO rulings) | sonnet | ~20 |
-| Reviewers: CTO, PO, UX, specialists | sonnet | ~10 |
-| Gate writer | sonnet | ~12 |
-| Record writer (amendments, approval) | sonnet | ~8 |
+| Agent | Type | Model | Tool budget |
+|-------|------|-------|-------------|
+| Evidence pass, spike | analyst | sonnet (opus for a design spike) | ~20 |
+| Keystone writer | maker | opus | ~30 |
+| Other writers | maker | sonnet | ~25 |
+| Fixers (review defects, CEO rulings) | maker | sonnet | ~20 |
+| Reviewers: CTO, PO, UX, specialists | analyst | sonnet | ~10 |
+| Gate writer | maker | sonnet | ~12 |
+| Record writer (amendments, approval) | maker | sonnet | ~8 |
 
 ### 4. Reconcile
 Fold review feedback into a revised plan. One fixer per round takes every defect at once and writes the amendment's line under `## Plan gate` in the decision record. Its brief adds: "Add nothing unasked; list your own additions first." Before the approval pass, one consolidation pass deletes superseded rules and their references. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*).

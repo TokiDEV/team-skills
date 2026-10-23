@@ -70,17 +70,17 @@ Checked by hand:
 
 ~20 lines at most, only what the diff and the commit messages don't already say. Claims, not a defense: no "this is safe", no "already reviewed". Recon copies it into the Review Brief as claims; the seats check the code against them; the verifier never sees it (`templates.md` § *Review Brief*, § *Finding Card*).
 
-| Agent | Model | Tool budget | Receives | Writes by `templates.md` |
-|-------|-------|-------------|----------|--------------------------|
-| Recon | sonnet | ~30 | scope, profile | *Review Brief* |
-| Recon (intake) | sonnet | ~30 | the refactor records, profile | *Review Brief*, then *Intake cards* |
-| Seat ×3–4 (R1) | sonnet | ~15 | role file + Review Brief | *Finding Card* |
-| Verifier | opus (sonnet if all minor) | ~3 per card | `{CARDS}` + read access to the code | *Verdict* |
-| Synthesizer | sonnet | ~10 | cards + verdicts + the Review Brief | *Synthesis* |
-| Gate writer (none on an auto-accept run on your own branch or an audit) | sonnet | ~12 | the synthesis | *Gate page* |
-| Record writer | sonnet | ~8 | the synthesis + the gate's fix briefs + the decisions or share block (auto-accept, no page: the synthesis + the chat answers) | *Record and exec brief* |
-| Executor | sonnet | — | **one** batch of Fix cards + the exec brief's header | *Fix card* |
-| Final reviewer | opus | — | full diff + exec brief | *Final review* |
+| Agent | Type | Model | Tool budget | Receives | Writes by `templates.md` |
+|-------|------|-------|-------------|----------|--------------------------|
+| Recon | analyst | sonnet | ~30 | scope, profile | *Review Brief* |
+| Recon (intake) | analyst | sonnet | ~30 | the refactor records, profile | *Review Brief*, then *Intake cards* |
+| Seat ×3–4 (R1) | analyst | sonnet | ~15 | role file + Review Brief | *Finding Card* |
+| Verifier | judge | opus (sonnet if all minor) | ~3 per card | `{CARDS}` + read access to the code | *Verdict* |
+| Synthesizer | analyst | sonnet | ~10 | cards + verdicts + the Review Brief | *Synthesis* |
+| Gate writer (none on an auto-accept run on your own branch or an audit) | maker | sonnet | ~12 | the synthesis | *Gate page* |
+| Record writer | maker | sonnet | ~8 | the synthesis + the gate's fix briefs + the decisions or share block (auto-accept, no page: the synthesis + the chat answers) | *Record and exec brief* |
+| Executor | maker | sonnet | — | **one** batch of Fix cards + the exec brief's header | *Fix card* |
+| Final reviewer | judge | opus | — | full diff + exec brief | *Final review* |
 
 The verifier receives each card's title, location, scenario and fix — never its Evidence or Refutation lines. Put this line first in each seat's *How to work* block: `- Start from the Review Brief. Open a file only to confirm or cite evidence. Before a test-gap card, grep the specs for the behaviour; before a convention card, check the line is added by the diff.` Seats and the verifier also get `team-protocol`'s *leave the project tree as you found it* line.
 

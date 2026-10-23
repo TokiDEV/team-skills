@@ -74,14 +74,17 @@ docs/plans/YYYY-MM-DD-*.md      # team-council-plan: the plan (or your project's
 
 ```bash
 git clone https://github.com/plasminds/team-skills.git
+mkdir -p ~/.claude/agents
 cp -r team-skills/skills/team-* ~/.claude/skills/
+cp team-skills/agents/team-*.md ~/.claude/agents/
 # or symlink them, so a git pull updates them:
 for d in team-skills/skills/team-*; do ln -s "$PWD/$d" ~/.claude/skills/; done
+for f in team-skills/agents/team-*.md; do ln -s "$PWD/$f" ~/.claude/agents/; done
 ```
 
 Use one method or the other, not both, or every skill will show up twice.
 
-**Requirements:** Claude Code with subagent support. The skills copy their files into the run folder before anyone reads them. If a run still asks to read a skill file, allow reads of the install folder in your settings' `permissions.allow`: `Read(~/.claude/skills/**)` after a manual install (plus the clone's own path when you symlinked it, e.g. `Read(//home/you/team-skills/skills/**)`), or `Read(~/.claude/plugins/cache/**)` after a plugin install. `team-ceo-view` needs Node.js to render and serve its page. `team-scan` maps whatever skills, agents and MCP servers you have to the roles, so the council works without companions, and uses them when they're installed: for example [superpowers](https://github.com/obra/superpowers) (TDD, planning, plan execution) and [impeccable](https://impeccable.style) (UX audits).
+**Requirements:** Claude Code with subagent support. The three agents in `agents/` (`team-analyst`, `team-judge`, `team-maker`) fix each seat's default model and keep read-only seats from editing; without them, the skills dispatch `general-purpose` agents and say so. The skills copy their files into the run folder before anyone reads them. If a run still asks to read a skill file, allow reads of the install folder in your settings' `permissions.allow`: `Read(~/.claude/skills/**)` after a manual install (plus the clone's own path when you symlinked it, e.g. `Read(//home/you/team-skills/skills/**)`), or `Read(~/.claude/plugins/cache/**)` after a plugin install. `team-ceo-view` needs Node.js to render and serve its page. `team-scan` maps whatever skills, agents and MCP servers you have to the roles, so the council works without companions, and uses them when they're installed: for example [superpowers](https://github.com/obra/superpowers) (TDD, planning, plan execution) and [impeccable](https://impeccable.style) (UX audits).
 
 **Sandbox and `.bare/` worktrees:** add the whole git directory to the sandbox's write paths. With only `worktrees/`, `objects/`, `refs/` and `logs/`, executors can commit, but rebase and cherry-pick fail on `packed-refs.lock`.
 
