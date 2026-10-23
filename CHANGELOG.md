@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.16.2 — 2026-10-23
+
+- **Biz, not Business.** The page labels the business lens *Biz*: the lens marks, the *Both | Biz | Tech* switch, the trade-off column, the Filter menu and the shortcut list. The JSON key stays `business`, so existing gates render unchanged.
+
 ## 0.16.1 — 2026-10-23
 
 - **List marks on the first line.** A row's status mark, and the rail elbow that meets it, sat 5px under the title, level with neither line. It is now centred on the lowercase of the first line, where the eye reads it, in whatever font the reader's `system-ui` resolves to: the page measures it (baseline plus half the x-height) when the list lays out, and again when it is shown, narrowed to a rail (where the id is the line) or widened.

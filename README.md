@@ -14,7 +14,7 @@
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → council → brief, profile, `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
-| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Business or Tech, your choice), and its evidence (trade-offs, numbers, diff, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
+| [`team-ceo-view`](skills/team-ceo-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Biz or Tech, your choice), and its evidence (trade-offs, numbers, diff, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
 ## Which skill?
@@ -114,9 +114,9 @@ node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --se
 node skills/team-ceo-view/render.js examples/refactor-gate/invoice.ceo.json --accept-recommended
 ```
 
-[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens switch. D1 weighs both lenses; its evidence pane switches between Both, Business and Tech (`l`, `b`, `t`). D2 is tech only and D3 business only, so the Filter menu can hide them.
+[`examples/council-gate/`](examples/council-gate) holds a council gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens switch. D1 weighs both lenses; its evidence pane switches between Both, Biz and Tech (`l`, `b`, `t`). D2 is tech only and D3 business only, so the Filter menu can hide them.
 
-![A council gate: card D1 current with Business and Tech marks, its arguments tagged by lens, and in the evidence pane the Both | Business | Tech switch, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
+![A council gate: card D1 current with Biz and Tech marks, its arguments tagged by lens, and in the evidence pane the Both | Biz | Tech switch, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/council-gate.png)
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.ceo.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send, or with `--artifact` for a claude.ai Artifact.
 
@@ -132,7 +132,7 @@ Or hand it over as a pending review on the pull request, which you submit yourse
 node skills/team-ceo-view/render.js examples/review-gate/refund.ceo.json --share --preset=examples/review-gate/refund.share.txt --review=github --head=<sha> --diff=examples/review-gate/refund.diff
 ```
 
-Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `l` / `b` / `t` switch the evidence between both lenses, Business and Tech, `/` searches, `[` narrows or hides the list, `z` opens the full summary, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut.
+Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `l` / `b` / `t` switch the evidence between both lenses, Biz and Tech, `/` searches, `[` narrows or hides the list, `z` opens the full summary, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut.
 
 ## Changelog
 

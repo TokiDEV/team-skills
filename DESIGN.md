@@ -231,7 +231,7 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 ### Tertiary
 - **For Blue** (pro, with pro-bg fill): the For sign. Arguments never take the green and red of a code diff.
 - **Against Copper** (con, with con-bg fill): the Against sign. Copper, not amber: amber stays "Recommended".
-- **Business Violet** (biz, with biz-bg fill): the Business lens mark, tag and column label.
+- **Business Violet** (biz, with biz-bg fill): the business lens mark, tag and column label ("Biz").
 - **Tech Teal** (tech, with tech-bg fill): the Tech lens mark, tag and column label. Teal, so it never reads as For Blue.
 
 ### Neutral
@@ -333,7 +333,7 @@ The decision itself, pinned in the foot bar of the centre pane.
 
 ### Chips, tags and lens marks
 - **Tag:** raised fill, ink-2, 7px corners, 24px; blocker variant red on red-bg, warn variant an inset line ring.
-- **Lens mark:** full-round, icon plus "Business" or "Tech" in its hue on its deep tint.
+- **Lens mark:** full-round, icon plus "Biz" or "Tech" in its hue on its deep tint.
 - **Filter pill:** panel fill with edge border; pressed state takes the cursor fill and an ink-3 border.
 
 ### Inputs / Fields
@@ -350,7 +350,7 @@ The decision itself, pinned in the foot bar of the centre pane.
 - **Rails:** drawn to the left of the rows; the cursor's family lights to rail-lit.
 
 ### Lens switch
-A segmented control (Both | Business | Tech) recessed in ground with a 4px inner padding; the selected segment takes the cursor fill and an inset line ring. Counts sit beside each name in ink-3.
+A segmented control (Both | Biz | Tech) recessed in ground with a 4px inner padding; the selected segment takes the cursor fill and an inset line ring. Counts sit beside each name in ink-3.
 
 ### Evidence boxes
 Recessed ground wells with a 1px edge and 11px corners holding constraints, the trade-off table, metrics, code and location; rows inside divide with edge hairlines. Code diffs tint whole lines green or red.

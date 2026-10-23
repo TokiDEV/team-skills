@@ -791,7 +791,7 @@ dialog.zoom p:empty { display: none; }
 
   // Lens marks: a drawn icon and its name, the same on the list, the card, the switch, the filter and the constraints.
   // A briefcase for business, brackets for tech.
-  var LENS_NAME = { business: 'Business', tech: 'Tech' };
+  var LENS_NAME = { business: 'Biz', tech: 'Tech' };
   var LENS_PATHS = {
     business: ['M3.5 5.5h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z', 'M6 5.5v-2h4v2', 'M2.5 9.5h11'],
     tech: ['M5.5 4L2 8l3.5 4', 'M10.5 4L14 8l-3.5 4']
@@ -948,7 +948,7 @@ dialog.zoom p:empty { display: none; }
   var statusPills = pills('Status', 'status', [['all', 'Any status'], ['open', 'Undecided'], ['done', 'Decided'], ['note', 'With note']]);
   fgroup('Status', statusPills);
   // Lens: hide the cards that don't concern it, and turn both panes to it.
-  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Business'], ['tech', 'Tech']], function (l) { setLens(l === 'all' ? 'both' : l); });
+  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Biz'], ['tech', 'Tech']], function (l) { setLens(l === 'all' ? 'both' : l); });
   [].forEach.call(lensPills.children, function (b) { if (LENS_PATHS[b.dataset.v]) b.insertBefore(lensIcon(b.dataset.v), b.firstChild); });
   if (lensed) fgroup('Lens', lensPills);
   var tags = [];
@@ -1077,7 +1077,7 @@ dialog.zoom p:empty { display: none; }
     });
     return s;
   }
-  // The lens is one view for both panes: Both, Business only, Tech only. Hidden arguments are counted, never silent.
+  // The lens is one view for both panes: Both, Biz only, Tech only. Hidden arguments are counted, never silent.
   var lensView = 'both';
   function setLens(l) {
     lensView = l;
@@ -1567,8 +1567,8 @@ dialog.zoom p:empty { display: none; }
     ['<kbd>↓</kbd> <kbd>↑</kbd> &nbsp;<kbd>→</kbd> <kbd>←</kbd>', 'Next / previous card (also <kbd>j</kbd> / <kbd>k</kbd>)'],
     ['<kbd>u</kbd>', 'Next card still to decide'],
     ['<kbd>z</kbd>', 'The full summary, and back to the card'],
-    ['<kbd>l</kbd>', 'Lens for both panes: both, business only, tech only'],
-    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Business / tech lens (again for both)'],
+    ['<kbd>l</kbd>', 'Lens for both panes: both, biz only, tech only'],
+    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Biz / tech lens (again for both)'],
     ['<kbd>/</kbd>', 'Search; <kbd>Enter</kbd> goes to the first result'],
     ['<kbd>[</kbd>', 'The list: narrow to a rail, hide, show again'],
     ['', 'Decide'],
